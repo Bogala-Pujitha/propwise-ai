@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experiments - PropWise AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+            <div class="nav-links">
+                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
+                <a href="/logout" class="btn-nav-login">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-flask"></i> Experiments</h3>
+                <small>ML Training Comparison</small>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard"><i class="fas fa-home"></i> Valuation</a>
+                <a href="/experiments" class="active"><i class="fas fa-flask"></i> Experiments</a>
+                <a href="/model-performance"><i class="fas fa-chart-line"></i> Model Performance</a>
+                <a href="/market-intelligence"><i class="fas fa-chart-bar"></i> Market Intelligence</a>
+                <a href="/map"><i class="fas fa-map"></i> Map</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1><i class="fas fa-flask" style="color:var(--primary);"></i> Training Experiments</h1>
+                <p>Compare three training approaches: Hyderabad-Only, India-Wide, and Hybrid</p>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:30px;">
+                {% for exp_key, exp in experiments.items() %}
+                <div class="prediction-form-card">
+                    <h2 style="font-size:1rem;margin-bottom:15px;">
+                        <i class="fas fa-flask" style="color:var(--primary);"></i>
+                        {{ exp.label }}
+                    </h2>
+                    {% if exp.models %}
+                    {% for pt, meta in exp.models.items() %}
+                    <div style="padding:10px 0;border-bottom:1px solid #e2e8f0;">
+                        <strong>{{ pt }}</strong>
+                        <span style="float:right;color:var(--text-light);font-size:0.85rem;">{{ meta.algorithm }}</span>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:5px;font-size:0.8rem;color:var(--text-light);">
+                            <span>R2: {{ meta.metrics.R2 }}</span>
+                            <span>MAE: {{ "{:,.0f}".format(meta.metrics.MAE) }}</span>
+                            <span>MAPE: {{ meta.metrics.MAPE }}%</span>
+                            <span>+/-10%: {{ meta.metrics.within_10_pct }}%</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <p style="color:var(--text-light);padding:20px 0;text-align:center;">No results</p>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="prediction-form-card">
+                <h2><i class="fas fa-trophy" style="color:var(--primary);"></i> Best Model Per Property Type</h2>
+                {% if best_models %}
+                <table class="comparables-table">
+                    <thead>
+                        <tr>
+                            <th>Property Type</th>
+                            <th>Best Experiment</th>
+                            <th>Algorithm</th>
+                            <th>R2</th>
+                            <th>MAE</th>
+                            <th>MAPE</th>
+                            <th>+/-10%</th>
+                            <th>+/-20%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pt, info in best_models.items() %}
+                        <tr>
+                            <td><strong>{{ pt }}</strong></td>
+                            <td>{{ info.experiment }}</td>
+                            <td>{{ info.algorithm }}</td>
+                            <td>{{ info.metrics.R2 }}</td>
+                            <td>{{ "{:,.0f}".format(info.metrics.MAE) }}</td>
+                            <td>{{ info.metrics.MAPE }}%</td>
+                            <td>{{ info.metrics.within_10_pct }}%</td>
+                            <td>{{ info.metrics.within_20_pct }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align:center;color:var(--text-light);padding:30px;">No experiment results available yet.</p>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

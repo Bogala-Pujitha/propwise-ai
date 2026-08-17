@@ -1,0 +1,31 @@
+{
+  "property_type": "Plot",
+  "experiment": "expB",
+  "algorithm": "random_forest",
+  "version": "1.0",
+  "training_date": "2026-08-16T16:07:59.608055",
+  "dataset_size": 632,
+  "metrics": {
+    "MAE": 5496765.87,
+    "RMSE": 13806638.52,
+    "R2": 0.315,
+    "MAPE": 100.76,
+    "within_10_pct": 8.66,
+    "within_20_pct": 15.75
+  },
+  "feature_columns": [
+    "area_sqft",
+    "bhk",
+    "bathrooms",
+    "property_age",
+    "latitude",
+    "longitude",
+    "area_per_bhk",
+    "bath_per_bhk",
+    "log_area",
+    "area_bin",
+    "city_encoded",
+    "locality_encoded",
+    "property_type_encoded"
+  ]
+}

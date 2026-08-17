@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparables - PropWise AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+            <div class="nav-links">
+                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
+                <a href="/logout" class="btn-nav-login">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
+                <small>{{ current_user.role }}</small>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard"><i class="fas fa-home"></i> Valuation</a>
+                <a href="/what-if"><i class="fas fa-exchange-alt"></i> What-If</a>
+                <a href="/comparables" class="active"><i class="fas fa-balance-scale"></i> Comparables</a>
+                <a href="/bulk-valuation"><i class="fas fa-file-csv"></i> Bulk Valuation</a>
+                <a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
+                <a href="/map"><i class="fas fa-map-marked-alt"></i> Map</a>
+                <a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1><i class="fas fa-balance-scale" style="color:var(--primary);"></i> Comparable Properties</h1>
+                <p>Find similar properties to validate valuations</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="prediction-form-card animate-on-scroll">
+                <h2><i class="fas fa-search" style="color:var(--primary);"></i> Search Comparables</h2>
+                <form id="comparablesForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Property Type</label>
+                            <select name="property_type">
+                                <option value="Apartment">Apartment</option>
+                                <option value="House">House</option>
+                                <option value="Villa">Villa</option>
+                                <option value="Plot">Plot</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <select name="city">
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Bengaluru">Bengaluru</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Kolkata">Kolkata</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Gurgaon">Gurgaon</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Locality</label>
+                            <input type="text" name="locality" placeholder="e.g. Gachibowli">
+                        </div>
+                        <div class="form-group">
+                            <label>Area (sqft)</label>
+                            <input type="number" name="area_sqft" placeholder="e.g. 1500" min="100">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fas fa-search"></i> Find Comparables</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="comparablesResult"></div>
+        </main>
+    </div>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+        document.getElementById('comparablesForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const resultArea = document.getElementById('comparablesResult');
+            resultArea.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i><p style="margin-top:10px;color:var(--text-light);">Finding comparables...</p></div>';
+
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch('/comparables', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+
+                if (result.error) {
+                    resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>' + result.error + '</p></div>';
+                    return;
+                }
+
+                if (!result.comparables || result.comparables.length === 0) {
+                    resultArea.innerHTML = '<div class="prediction-form-card animate-on-scroll"><h3>No Comparables Found</h3><p style="text-align:center;color:var(--text-light);padding:20px;">No comparable properties found for the given criteria.</p></div>';
+                    return;
+                }
+
+                let tableHtml = '<div class="prediction-form-card animate-on-scroll"><h2><i class="fas fa-list" style="color:var(--primary);"></i> Found ' + result.comparables.length + ' Comparables</h2>';
+                tableHtml += '<table class="comparables-table"><thead><tr><th>Locality</th><th>Area</th><th>Price</th><th>Price/sqft</th></tr></thead><tbody>';
+                result.comparables.forEach(c => {
+                    tableHtml += '<tr><td>' + c.locality + '</td><td>' + c.area_sqft + ' sqft</td><td><strong>₹' + Number(c.price).toLocaleString() + '</strong></td><td>₹' + Number(c.price_per_sqft).toLocaleString() + '</td></tr>';
+                });
+                tableHtml += '</tbody></table></div>';
+
+                if (result.stats) {
+                    tableHtml += '<div class="result-grid animate-on-scroll" style="margin-top:20px;">';
+                    tableHtml += '<div class="result-card"><h3><i class="fas fa-calculator"></i> Average Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.average).toLocaleString() + '</div></div>';
+                    tableHtml += '<div class="result-card"><h3><i class="fas fa-chart-bar"></i> Median Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.median).toLocaleString() + '</div></div>';
+                    tableHtml += '<div class="result-card"><h3><i class="fas fa-sort-amount-down"></i> Min Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.min).toLocaleString() + '</div></div>';
+                    tableHtml += '<div class="result-card"><h3><i class="fas fa-sort-amount-up"></i> Max Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.max).toLocaleString() + '</div></div>';
+                    tableHtml += '</div>';
+                }
+
+                resultArea.innerHTML = tableHtml;
+            } catch(err) {
+                resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>Failed to find comparables. Please try again.</p></div>';
+            }
+        });
+    </script>
+</body>
+</html>

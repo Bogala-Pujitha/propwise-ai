@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - PropWise AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .map-container { height: 300px; border-radius: 12px; overflow: hidden; margin: 15px 0; }
+        .map-controls { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .map-controls select { padding: 6px 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 0.85rem; background: white; }
+        .map-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px; padding: 10px; background: #f8fafc; border-radius: 8px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #475569; }
+        .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+        .chart-card { background: white; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; }
+        .chart-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        .chart-card h3 i { color: var(--primary); }
+        .trend-card { background: white; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; margin: 16px 0; }
+        .trend-card h3 { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; color: #1e293b; display: flex; align-items: center; gap: 8px; }
+        .trend-card h3 i { color: var(--primary); }
+        .trend-badge { display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; margin-left: 8px; }
+        .trend-up { background: #eef2ff; color: #4f46e5; }
+        .trend-down { background: #eef2ff; color: #818cf8; }
+        .shap-bar-container { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f1f5f9; }
+        .shap-label { min-width: 140px; font-size: 0.85rem; font-weight: 500; }
+        .shap-bar-bg { flex: 1; height: 22px; background: #e2e8f0; border-radius: 11px; overflow: hidden; position: relative; }
+        .shap-bar-pos { height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8); border-radius: 11px; transition: width 0.6s ease; }
+        .shap-bar-neg { height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8); border-radius: 11px; transition: width 0.6s ease; float: right; }
+        .shap-value { min-width: 70px; text-align: right; font-size: 0.8rem; font-weight: 600; }
+        .location-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .loc-item { background: #f8fafc; border-radius: 10px; padding: 14px; text-align: center; }
+        .loc-item i { font-size: 1.4rem; color: var(--primary); margin-bottom: 6px; display: block; }
+        .loc-item .loc-dist { font-size: 1.2rem; font-weight: 700; color: var(--text); }
+        .loc-item .loc-name { font-size: 0.75rem; color: var(--text-light); margin-top: 2px; }
+        .comp-card { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; padding: 14px; background: #f8fafc; border-radius: 10px; margin-bottom: 10px; align-items: center; }
+        .comp-icon { width: 44px; height: 44px; background: var(--gradient); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; }
+        .comp-info strong { display: block; font-size: 0.95rem; }
+        .comp-info small { color: var(--text-light); }
+        .comp-price { text-align: right; }
+        .comp-price .price { font-weight: 700; color: var(--primary); font-size: 1.05rem; }
+        .comp-price .psf { font-size: 0.75rem; color: var(--text-light); }
+        .whatif-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 15px; align-items: start; }
+        .whatif-arrow { display: flex; align-items: center; justify-content: center; font-size: 2rem; color: var(--primary); padding-top: 40px; }
+        .diff-badge { display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+        .diff-up { background: #eef2ff; color: #4f46e5; }
+        .diff-down { background: #eef2ff; color: #818cf8; }
+        .diff-same { background: #f1f5f9; color: #64748b; }
+        .model-badge { display: inline-block; background: var(--gradient); color: white; padding: 3px 12px; border-radius: 50px; font-size: 0.75rem; font-weight: 600; }
+        .ood-warning { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 12px 16px; margin: 10px 0; display: flex; align-items: center; gap: 10px; }
+        .ood-warning i { color: #4f46e5; font-size: 1.2rem; }
+        .sanity-ok { background: #f0fdf4; border: 1px solid #86efac; border-radius: 10px; padding: 12px 16px; }
+        .sanity-warn { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 10px; padding: 12px 16px; }
+        .metric-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 10px 0; }
+        .metric-mini { text-align: center; padding: 8px; background: #f8fafc; border-radius: 8px; }
+        .metric-mini .val { font-weight: 700; font-size: 1rem; }
+        .metric-mini .lbl { font-size: 0.7rem; color: var(--text-light); }
+        .section-divider { border-top: 2px solid #e2e8f0; margin: 25px 0 20px; padding-top: 5px; }
+        .section-title { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .section-title i { color: var(--primary); }
+        .result-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 15px 0; }
+        .result-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; }
+        .result-card h3 { font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; justify-content: center; }
+        .result-card h3 i { color: var(--primary); }
+        .big-value { font-size: 1.5rem; font-weight: 800; color: #1e293b; text-align: center; }
+        .sub-value { font-size: 0.8rem; color: #94a3b8; text-align: center; margin-top: 4px; }
+        .reliability-high { color: #4f46e5; }
+        .reliability-medium { color: #818cf8; }
+        .reliability-low { color: #818cf8; }
+        .main-content { overflow-x: hidden; max-width: 100%; }
+        .chart-card canvas, .trend-card canvas { max-width: 100%; }
+        @media (max-width: 768px) {
+            .result-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .location-grid { grid-template-columns: repeat(2, 1fr); }
+            .whatif-grid { grid-template-columns: 1fr; }
+            .whatif-arrow { padding-top: 0; transform: rotate(90deg); }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+            <div class="nav-links">
+                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
+                <a href="/logout" class="btn-nav-login">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
+                <small>{{ current_user.role }}</small>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#valuation-section" class="active"><i class="fas fa-calculator"></i> Valuation</a>
+                <a href="#result-section" id="navResult" style="display:none;"><i class="fas fa-chart-line"></i> Result</a>
+                <a href="#charts-section" id="navCharts" style="display:none;"><i class="fas fa-chart-bar"></i> Charts</a>
+                <a href="#map-section" id="navMap" style="display:none;"><i class="fas fa-map"></i> Map</a>
+                <a href="#shap-section" id="navShap" style="display:none;"><i class="fas fa-lightbulb"></i> SHAP</a>
+                <a href="#location-section" id="navLocation" style="display:none;"><i class="fas fa-map-marker-alt"></i> Location</a>
+                <a href="#comparables-section" id="navComp" style="display:none;"><i class="fas fa-balance-scale"></i> Comparables</a>
+                <a href="#whatif-section" id="navWhatif" style="display:none;"><i class="fas fa-exchange-alt"></i> What-If</a>
+                <a href="#history-section"><i class="fas fa-history"></i> History</a>
+                <a href="/market-intelligence"><i class="fas fa-chart-bar"></i> Market Intel</a>
+                <a href="/experiments"><i class="fas fa-flask"></i> Experiments</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1>Property Valuation</h1>
+                <p>Enter property details to get AI-powered valuation with full intelligence</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- VALUATION FORM -->
+            <div id="valuation-section" class="prediction-form-card">
+                <h2><i class="fas fa-search-dollar" style="color:var(--primary);"></i> New Valuation</h2>
+                <form id="predictionForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Property Type</label>
+                            <select name="property_type" id="propertyType" class="dropdown-select">
+                                {% for pt in dropdown.get('property_types', ['Apartment','House','Villa','Plot']) %}
+                                <option value="{{ pt }}">{{ pt }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <select name="city" id="city" class="dropdown-select">
+                                {% for city in dropdown.get('cities', []) %}
+                                <option value="{{ city }}">{{ city }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Locality</label>
+                            <select name="locality" id="locality" class="dropdown-select">
+                                <option value="">Select Locality</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Area (sqft)</label>
+                            <select name="area_sqft" id="areaSqft" class="dropdown-select">
+                                {% for ar in dropdown.get('area_ranges', []) %}
+                                <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>BHK</label>
+                            <select name="bhk" id="bhk" class="dropdown-select">
+                                {% for b in dropdown.get('bhk_options', [1,2,3,4,5]) %}
+                                <option value="{{ b }}" {{ 'selected' if b == 3 }}>{{ b }} BHK</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Bathrooms</label>
+                            <select name="bathrooms" id="bathrooms" class="dropdown-select">
+                                {% for b in dropdown.get('bathroom_options', [1,2,3,4]) %}
+                                <option value="{{ b }}" {{ 'selected' if b == 2 }}>{{ b }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary"><i class="fas fa-calculator"></i> Get Full Valuation</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- LOADING -->
+            <div id="loadingArea" style="display:none;">
+                <div class="prediction-form-card" style="text-align:center;padding:50px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size:3rem;color:var(--primary);"></i>
+                    <p style="margin-top:15px;color:var(--text-light);font-size:1.1rem;">Analyzing property with full intelligence...</p>
+                    <p style="color:var(--text-muted);font-size:0.85rem;">Running OOD check, model routing, SHAP, comparables, location analysis</p>
+                </div>
+            </div>
+
+            <!-- RESULT AREA (hidden until prediction) -->
+            <div id="resultArea" style="display:none;">
+
+                <!-- PRICE + RELIABILITY + RANGE -->
+                <div id="result-section" class="prediction-form-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+                        <h2 style="margin:0;"><i class="fas fa-chart-line" style="color:var(--primary);"></i> Valuation Result</h2>
+                        <span id="modelBadge" class="model-badge"></span>
+                    </div>
+
+                    <div id="oodWarning" class="ood-warning" style="display:none;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span id="oodMessage"></span>
+                    </div>
+
+                    <div class="result-grid" style="grid-template-columns:repeat(4,1fr);">
+                        <div class="result-card" style="text-align:center;">
+                            <h3 style="justify-content:center;"><i class="fas fa-rupee-sign"></i> Estimated Value</h3>
+                            <div class="big-value" id="predPrice"></div>
+                            <div class="sub-value" id="predPsf"></div>
+                        </div>
+                        <div class="result-card" style="text-align:center;">
+                            <h3 style="justify-content:center;"><i class="fas fa-chart-line"></i> Expected Range</h3>
+                            <div class="big-value" style="font-size:1.1rem;" id="predRange"></div>
+                            <div class="sub-value">Evidence-based interval</div>
+                        </div>
+                        <div class="result-card" style="text-align:center;">
+                            <h3 style="justify-content:center;"><i class="fas fa-shield-alt"></i> Reliability</h3>
+                            <div class="big-value" id="predReliability"></div>
+                            <div class="sub-value" id="predRelScore"></div>
+                        </div>
+                        <div class="result-card" style="text-align:center;">
+                            <h3 style="justify-content:center;"><i class="fas fa-tags"></i> Fair Listing</h3>
+                            <div class="big-value" style="font-size:1.1rem;" id="predListing"></div>
+                            <div class="sub-value" id="predRec"></div>
+                        </div>
+                    </div>
+
+                    <div class="metric-row" id="modelMetrics" style="display:none;">
+                        <div class="metric-mini"><div class="val" id="mR2"></div><div class="lbl">R2 Score</div></div>
+                        <div class="metric-mini"><div class="val" id="mMAE"></div><div class="lbl">MAE</div></div>
+                        <div class="metric-mini"><div class="val" id="mMAPE"></div><div class="lbl">MAPE</div></div>
+                        <div class="metric-mini"><div class="val" id="mAcc"></div><div class="lbl">+/-20% Accuracy</div></div>
+                    </div>
+
+                    <div id="sanityArea"></div>
+                </div>
+
+                <!-- CHARTS: Price Bar + Value Distribution Doughnut -->
+                <div id="charts-section" class="prediction-form-card">
+                    <div class="section-title"><i class="fas fa-chart-bar"></i> Price Analysis</div>
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-bar"></i> Predicted vs Comparables</h3>
+                            <div style="position:relative;height:180px;"><canvas id="priceBarChart"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-pie"></i> Value Distribution</h3>
+                            <div style="position:relative;height:180px;"><canvas id="valueDistChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FUTURE PRICE TREND -->
+                <div class="trend-card">
+                    <h3><i class="fas fa-chart-area"></i> 12-Month Price Forecast <span class="trend-badge trend-up" id="trendBadge"></span></h3>
+                    <div style="position:relative;height:160px;"><canvas id="trendLineChart"></canvas></div>
+                    <div id="trendSummary" style="font-size:0.85rem;margin-top:10px;"></div>
+                </div>
+
+                <!-- MAP -->
+                <div id="map-section" class="prediction-form-card">
+                    <div class="section-title"><i class="fas fa-map"></i> Property Location &amp; Comparables Map</div>
+                    <div class="map-controls">
+                        <select id="mapCityFilter">
+                            <option value="">All Cities</option>
+                        </select>
+                        <select id="mapTypeFilter">
+                            <option value="">All Types</option>
+                        </select>
+                    </div>
+                    <div id="map" class="map-container"></div>
+                    <div class="map-legend" id="mapLegend">
+                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Your Property</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Apartment</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> House</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Villa</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Plot</div>
+                    </div>
+                </div>
+
+                <!-- SHAP EXPLANATIONS -->
+                <div id="shap-section" class="prediction-form-card">
+                    <div class="section-title"><i class="fas fa-lightbulb"></i> SHAP Feature Impact (Why this price?)</div>
+                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:15px;">Each feature's contribution to the predicted price. Bars show impact magnitude.</p>
+                    <div id="shapContainer"></div>
+                </div>
+
+                <!-- LOCATION INTELLIGENCE -->
+                <div id="location-section" class="prediction-form-card">
+                    <div class="section-title"><i class="fas fa-map-marker-alt"></i> Location Intelligence</div>
+                    <div class="location-grid" id="locationGrid"></div>
+                </div>
+
+                <!-- COMPARABLE PROPERTIES -->
+                <div id="comparables-section" class="prediction-form-card">
+                    <div class="section-title"><i class="fas fa-balance-scale"></i> Comparable Properties</div>
+                    <div id="comparablesContainer"></div>
+                    <div id="compStats" style="margin-top:12px;"></div>
+                </div>
+
+                <!-- WHAT-IF ANALYSIS -->
+                <div id="whatif-section" class="prediction-form-card">
+                    <div class="section-title"><i class="fas fa-exchange-alt"></i> What-If Analysis</div>
+                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:15px;">Change features to see how value is affected</p>
+                    <div class="whatif-grid">
+                        <div>
+                            <h4 style="margin-bottom:10px;">Current Property</h4>
+                            <div id="whatifOriginal"></div>
+                        </div>
+                        <div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>
+                        <div>
+                            <h4 style="margin-bottom:10px;">Modified Property</h4>
+                            <div style="margin-bottom:10px;">
+                                <label style="font-size:0.8rem;font-weight:500;">Change BHK to:</label>
+                                <select id="whatifBhk" class="dropdown-select" style="width:100%;">
+                                    <option value="">Keep same</option>
+                                    <option value="1">1 BHK</option>
+                                    <option value="2">2 BHK</option>
+                                    <option value="3">3 BHK</option>
+                                    <option value="4">4 BHK</option>
+                                    <option value="5">5 BHK</option>
+                                </select>
+                            </div>
+                            <div style="margin-bottom:10px;">
+                                <label style="font-size:0.8rem;font-weight:500;">Change Area to:</label>
+                                <select id="whatifArea" class="dropdown-select" style="width:100%;">
+                                    <option value="">Keep same</option>
+                                    {% for ar in dropdown.get('area_ranges', []) %}
+                                    <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div style="margin-bottom:10px;">
+                                <label style="font-size:0.8rem;font-weight:500;">Change Bathrooms to:</label>
+                                <select id="whatifBath" class="dropdown-select" style="width:100%;">
+                                    <option value="">Keep same</option>
+                                    {% for b in dropdown.get('bathroom_options', [1,2,3,4]) %}
+                                    <option value="{{ b }}">{{ b }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="button" class="btn-primary" onclick="runWhatIf()" style="width:100%;"><i class="fas fa-play"></i> Run What-If</button>
+                            <div id="whatifModified" style="margin-top:12px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- HISTORY -->
+            <div id="history-section" class="prediction-form-card">
+                <h2><i class="fas fa-history" style="color:var(--primary);"></i> Recent Predictions</h2>
+                {% if predictions %}
+                <table class="comparables-table">
+                    <thead>
+                        <tr><th>Type</th><th>City</th><th>Locality</th><th>Area</th><th>Price</th><th>Range</th><th>Reliability</th><th>Rec</th><th>Date</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for p in predictions %}
+                        <tr>
+                            <td>{{ p.property_type }}</td>
+                            <td>{{ p.city }}</td>
+                            <td>{{ p.locality }}</td>
+                            <td>{{ p.area_sqft|int }} sqft</td>
+                            <td><strong>INR {{ "{:,.0f}".format(p.predicted_price) }}</strong></td>
+                            <td style="font-size:0.8rem;">{{ "{:,.0f}".format(p.lower_bound) }} - {{ "{:,.0f}".format(p.upper_bound) }}</td>
+                            <td><span class="reliability-{{ p.reliability|lower }}">{{ p.reliability }}</span></td>
+                            <td>{{ p.recommendation }}</td>
+                            <td>{{ p.created_at.strftime('%d %b %Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p style="text-align:center;color:var(--text-light);padding:30px;">No predictions yet. Try your first valuation above!</p>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+    var map = null;
+    var currentResult = null;
+    var priceBarChartInstance = null;
+    var valueDistChartInstance = null;
+    var trendLineChartInstance = null;
+    var allMapMarkers = [];
+
+    var dropdownData = {{ dropdown | tojson }};
+
+    var propertyTypeColors = {
+        'Apartment': '#4f46e5',
+        'House': '#4f46e5',
+        'Villa': '#4f46e5',
+        'Plot': '#4f46e5'
+    };
+
+    var cityGrowthRates = {
+        'Hyderabad': 1.2,
+        'Bengaluru': 1.0,
+        'Mumbai': 0.8,
+        'Delhi': 0.9,
+        'Chennai': 0.85,
+        'Pune': 0.95,
+        'Kolkata': 0.7,
+        'Ahmedabad': 0.75,
+        'Jaipur': 0.65,
+        'Lucknow': 0.6,
+        'Noida': 0.88,
+        'Gurgaon': 0.92,
+        'Faridabad': 0.55,
+        'Ghaziabad': 0.58,
+        'Thane': 0.82,
+        'Navi Mumbai': 0.8,
+        'Visakhapatnam': 0.7,
+        'Coimbatore': 0.72,
+        'Kochi': 0.78,
+        'Indore': 0.6,
+        'Bhopal': 0.55,
+        'Surat': 0.65,
+        'Nagpur': 0.5,
+        'Patna': 0.45,
+        'Chandigarh': 0.7
+    };
+
+    function fmt(n) {
+        return Number(n).toLocaleString('en-IN');
+    }
+
+    document.getElementById('city').addEventListener('change', function() {
+        var city = this.value;
+        var locSelect = document.getElementById('locality');
+        locSelect.innerHTML = '<option value="">Select Locality</option>';
+        var localities = dropdownData.localities && dropdownData.localities[city] ? dropdownData.localities[city] : [];
+        localities.forEach(function(loc) {
+            var opt = document.createElement('option');
+            opt.value = loc;
+            opt.textContent = loc;
+            locSelect.appendChild(opt);
+        });
+    });
+    document.getElementById('city').dispatchEvent(new Event('change'));
+
+    document.getElementById('predictionForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        var data = {};
+        formData.forEach(function(value, key) { data[key] = value; });
+
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('loadingArea').style.display = 'block';
+
+        fetch('/predict', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(result) {
+            document.getElementById('loadingArea').style.display = 'none';
+
+            if (result.error) {
+                document.getElementById('resultArea').style.display = 'block';
+                document.getElementById('resultArea').innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>' + result.error + '</p></div>';
+                return;
+            }
+
+            currentResult = result;
+            showSidebarLinks();
+            renderResult(result, data);
+            document.getElementById('resultArea').style.display = 'block';
+            document.getElementById('result-section').scrollIntoView({behavior:'smooth'});
+        })
+        .catch(function(err) {
+            document.getElementById('loadingArea').style.display = 'none';
+            document.getElementById('resultArea').style.display = 'block';
+            document.getElementById('resultArea').innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>Failed to get prediction. Please try again.</p></div>';
+        });
+    });
+
+    function showSidebarLinks() {
+        var ids = ['navResult','navCharts','navMap','navShap','navLocation','navComp','navWhatif'];
+        ids.forEach(function(id) {
+            document.getElementById(id).style.display = 'block';
+        });
+    }
+
+    function renderResult(r, inputData) {
+        document.getElementById('predPrice').textContent = 'INR ' + fmt(r.predicted_price);
+        document.getElementById('predPsf').textContent = 'INR ' + fmt(r.price_per_sqft) + '/sqft';
+        document.getElementById('predRange').textContent = 'INR ' + fmt(r.uncertainty.lower_bound) + ' - ' + fmt(r.uncertainty.upper_bound);
+        document.getElementById('predReliability').className = 'big-value reliability-' + r.reliability.level.toLowerCase();
+        document.getElementById('predReliability').textContent = r.reliability.level;
+        document.getElementById('predRelScore').textContent = 'Score: ' + r.reliability.score + '/100';
+        document.getElementById('predListing').textContent = 'INR ' + fmt(r.fair_listing.recommended_listing);
+        document.getElementById('predRec').textContent = r.fair_listing.recommendation;
+        document.getElementById('modelBadge').textContent = r.model_info.algorithm.toUpperCase() + ' | ' + r.model_info.property_type;
+
+        if (r.ood && r.ood.is_ood) {
+            document.getElementById('oodWarning').style.display = 'flex';
+            document.getElementById('oodMessage').textContent = r.ood.warnings.join('; ');
+        } else {
+            document.getElementById('oodWarning').style.display = 'none';
+        }
+
+        if (r.model_info.metrics && Object.keys(r.model_info.metrics).length > 0) {
+            document.getElementById('modelMetrics').style.display = 'grid';
+            document.getElementById('mR2').textContent = r.model_info.metrics.R2 || 'N/A';
+            document.getElementById('mMAE').textContent = r.model_info.metrics.MAE ? 'INR ' + fmt(r.model_info.metrics.MAE) : 'N/A';
+            document.getElementById('mMAPE').textContent = r.model_info.metrics.MAPE ? r.model_info.metrics.MAPE + '%' : 'N/A';
+            document.getElementById('mAcc').textContent = r.model_info.metrics.within_20_pct ? r.model_info.metrics.within_20_pct + '%' : 'N/A';
+        }
+
+        if (r.sanity_check) {
+            var cls = r.sanity_check.flag ? 'sanity-warn' : 'sanity-ok';
+            var icon = r.sanity_check.flag ? 'fa-exclamation-triangle' : 'fa-check-circle';
+            document.getElementById('sanityArea').innerHTML = '<div class="' + cls + '" style="margin-top:12px;"><i class="fas ' + icon + '"></i> ' + r.sanity_check.message + '</div>';
+        }
+
+        renderCharts(r, inputData);
+        renderTrend(r, inputData);
+        renderMap(r, inputData);
+        renderSHAP(r.shap);
+        renderLocation(r.location_features);
+        renderComparables(r.comparables);
+        renderWhatIfOriginal(inputData, r.predicted_price);
+    }
+
+    function renderCharts(r, inputData) {
+        if (priceBarChartInstance) { priceBarChartInstance.destroy(); }
+        if (valueDistChartInstance) { valueDistChartInstance.destroy(); }
+
+        var barLabels = ['Your Property'];
+        var barData = [r.predicted_price];
+        var barColors = ['#4f46e5'];
+
+        if (r.comparables && r.comparables.length > 0) {
+            r.comparables.forEach(function(c, i) {
+                barLabels.push('Comp ' + (i + 1));
+                barData.push(c.price);
+                barColors.push(propertyTypeColors[c.property_type] || '#94a3b8');
+            });
+        }
+
+        var barCtx = document.getElementById('priceBarChart').getContext('2d');
+        priceBarChartInstance = new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [{
+                    label: 'Price (INR)',
+                    data: barData,
+                    backgroundColor: barColors,
+                    borderColor: barColors,
+                    borderWidth: 1,
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) { return 'INR ' + fmt(ctx.parsed.y); }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(val) { return 'INR ' + fmt(val); }
+                        }
+                    }
+                }
+            }
+        });
+
+        var lower = r.uncertainty ? r.uncertainty.lower_bound : r.predicted_price * 0.9;
+        var upper = r.uncertainty ? r.uncertainty.upper_bound : r.predicted_price * 1.1;
+
+        var doughCtx = document.getElementById('valueDistChart').getContext('2d');
+        valueDistChartInstance = new Chart(doughCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Lower Bound', 'Predicted', 'Upper Bound'],
+                datasets: [{
+                    data: [lower, r.predicted_price, upper],
+                    backgroundColor: ['#4f46e5', '#4f46e5', '#4f46e5'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '55%',
+                plugins: {
+                    legend: { position: 'bottom', labels: { padding: 12, font: { size: 11 } } },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) { return ctx.label + ': INR ' + fmt(ctx.parsed); }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderTrend(r, inputData) {
+        if (trendLineChartInstance) { trendLineChartInstance.destroy(); }
+
+        var city = inputData.city || 'Hyderabad';
+        var growthRate = cityGrowthRates[city] || 0.8;
+        var basePrice = r.predicted_price;
+        var months = ['Now'];
+        var trendValues = [basePrice];
+
+        for (var i = 1; i <= 12; i++) {
+            var futureDate = new Date();
+            futureDate.setMonth(futureDate.getMonth() + i);
+            var monthLabel = futureDate.toLocaleString('default', { month: 'short' }) + ' ' + futureDate.getFullYear().toString().slice(-2);
+            months.push(monthLabel);
+
+            var monthPrice = basePrice * Math.pow(1 + growthRate / 100 / 12, i);
+            trendValues.push(Math.round(monthPrice));
+        }
+
+        var projectedValue = trendValues[12];
+        var totalGrowth = ((projectedValue - basePrice) / basePrice * 100).toFixed(1);
+        var badgeEl = document.getElementById('trendBadge');
+        badgeEl.textContent = '+' + totalGrowth + '% (12mo)';
+        badgeEl.className = 'trend-badge trend-up';
+
+        document.getElementById('trendSummary').innerHTML =
+            '<div style="margin-bottom:8px;"><strong>City:</strong> ' + city + '</div>' +
+            '<div style="margin-bottom:8px;"><strong>Growth Rate:</strong> ' + growthRate + '% / month</div>' +
+            '<div style="margin-bottom:8px;"><strong>Current:</strong> INR ' + fmt(basePrice) + '</div>' +
+            '<div style="margin-bottom:8px;"><strong>12-Month:</strong> INR ' + fmt(projectedValue) + '</div>' +
+            '<div><strong>Change:</strong> <span class="trend-badge trend-up">+' + totalGrowth + '%</span></div>';
+
+        var trendCtx = document.getElementById('trendLineChart').getContext('2d');
+        trendLineChartInstance = new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Forecasted Price (INR)',
+                    data: trendValues,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 2.5,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 3,
+                    pointBackgroundColor: '#4f46e5'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) { return 'INR ' + fmt(ctx.parsed.y); }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(val) { return 'INR ' + fmt(val); }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderMap(r, inputData) {
+        if (map) { map.remove(); }
+        var lat = r.location_features ? r.location_features.latitude : 17.385;
+        var lon = r.location_features ? r.location_features.longitude : 78.487;
+
+        map = L.map('map').setView([lat, lon], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var purpleIcon = L.divIcon({
+            className: 'custom-marker',
+            html: '<div style="background:#4f46e5;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(79,70,229,0.4);">INR ' + fmt(r.predicted_price) + '</div>',
+            iconSize: [130, 30],
+            iconAnchor: [65, 15]
+        });
+
+        L.marker([lat, lon], {icon: purpleIcon})
+            .addTo(map)
+            .bindPopup('<b>Your Property</b><br>' + inputData.property_type + ' in ' + inputData.locality + '<br>INR ' + fmt(r.predicted_price));
+
+        allMapMarkers = [];
+
+        if (r.comparables) {
+            r.comparables.forEach(function(c, i) {
+                var cLat = c.latitude || (lat + (Math.random() - 0.5) * 0.02);
+                var cLon = c.longitude || (lon + (Math.random() - 0.5) * 0.02);
+                var cType = c.property_type || inputData.property_type || 'Apartment';
+                var cColor = propertyTypeColors[cType] || '#94a3b8';
+
+                var compIcon = L.divIcon({
+                    className: 'comp-marker',
+                    html: '<div style="background:' + cColor + ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;">INR ' + fmt(c.price) + '</div>',
+                    iconSize: [100, 22],
+                    iconAnchor: [50, 11]
+                });
+
+                var marker = L.marker([cLat, cLon], {icon: compIcon})
+                    .addTo(map)
+                    .bindPopup('<b>Comp ' + (i + 1) + '</b><br>' + cType + '<br>' + c.locality + '<br>' + c.area_sqft + ' sqft | ' + (c.bhk || '?') + ' BHK<br>INR ' + fmt(c.price));
+
+                allMapMarkers.push({
+                    marker: marker,
+                    type: cType,
+                    city: c.city || inputData.city,
+                    price: c.price,
+                    locality: c.locality,
+                    area: c.area_sqft,
+                    bhk: c.bhk
+                });
+            });
+        }
+
+        if (r.location_features) {
+            var lf = r.location_features;
+            if (lf.distance_to_metro) {
+                L.circle([lat, lon], {
+                    radius: lf.distance_to_metro * 1000,
+                    color: '#4f46e5',
+                    fillOpacity: 0.05,
+                    weight: 1
+                }).addTo(map).bindPopup('Metro: ' + lf.distance_to_metro + ' km');
+            }
+            if (lf.distance_to_hospital) {
+                L.circle([lat, lon], {
+                    radius: lf.distance_to_hospital * 800,
+                    color: '#4f46e5',
+                    fillOpacity: 0.03,
+                    weight: 1
+                }).addTo(map).bindPopup('Hospital: ' + lf.distance_to_hospital + ' km');
+            }
+        }
+
+        populateMapFilters(r, inputData);
+        setTimeout(function() { map.invalidateSize(); }, 100);
+    }
+
+    function populateMapFilters(r, inputData) {
+        var cityFilter = document.getElementById('mapCityFilter');
+        var typeFilter = document.getElementById('mapTypeFilter');
+
+        cityFilter.innerHTML = '<option value="">All Cities</option>';
+        typeFilter.innerHTML = '<option value="">All Types</option>';
+
+        var cities = {};
+        var types = {};
+        if (inputData.city) { cities[inputData.city] = true; }
+        types[inputData.property_type] = true;
+
+        allMapMarkers.forEach(function(m) {
+            if (m.city) { cities[m.city] = true; }
+            if (m.type) { types[m.type] = true; }
+        });
+
+        Object.keys(cities).sort().forEach(function(city) {
+            var opt = document.createElement('option');
+            opt.value = city;
+            opt.textContent = city;
+            cityFilter.appendChild(opt);
+        });
+
+        Object.keys(types).sort().forEach(function(type) {
+            var opt = document.createElement('option');
+            opt.value = type;
+            opt.textContent = type;
+            typeFilter.appendChild(opt);
+        });
+
+        cityFilter.addEventListener('change', filterMapMarkers);
+        typeFilter.addEventListener('change', filterMapMarkers);
+    }
+
+    function filterMapMarkers() {
+        var cityVal = document.getElementById('mapCityFilter').value;
+        var typeVal = document.getElementById('mapTypeFilter').value;
+
+        allMapMarkers.forEach(function(m) {
+            var show = true;
+            if (cityVal && m.city !== cityVal) { show = false; }
+            if (typeVal && m.type !== typeVal) { show = false; }
+
+            if (show) {
+                m.marker.addTo(map);
+            } else {
+                map.removeLayer(m.marker);
+            }
+        });
+    }
+
+    function renderSHAP(shap) {
+        if (!shap || shap.length === 0) {
+            document.getElementById('shapContainer').innerHTML = '<p style="color:var(--text-light);">No SHAP data available</p>';
+            return;
+        }
+        var maxImp = 0;
+        shap.forEach(function(s) { if (s.importance > maxImp) maxImp = s.importance; });
+        if (maxImp === 0) maxImp = 1;
+
+        var html = '';
+        shap.forEach(function(s) {
+            var pct = (s.importance / maxImp) * 100;
+            var cls = s.direction === 'negative' ? 'shap-bar-neg' : 'shap-bar-pos';
+            var prefix = s.direction === 'negative' ? '-' : '+';
+            html += '<div class="shap-bar-container">' +
+                '<div class="shap-label">' + s.feature.replace(/_/g, ' ') + '</div>' +
+                '<div class="shap-bar-bg"><div class="' + cls + '" style="width:' + pct + '%"></div></div>' +
+                '<div class="shap-value">' + prefix + (s.importance * 100).toFixed(1) + '%</div></div>';
+        });
+        document.getElementById('shapContainer').innerHTML = html;
+    }
+
+    function renderLocation(lf) {
+        if (!lf) {
+            document.getElementById('locationGrid').innerHTML = '<p>No location data</p>';
+            return;
+        }
+        var items = [
+            {icon: 'fa-train', dist: lf.distance_to_metro, unit: 'km', name: 'Nearest Metro'},
+            {icon: 'fa-graduation-cap', dist: lf.distance_to_school, unit: 'km', name: 'Nearest School'},
+            {icon: 'fa-hospital', dist: lf.distance_to_hospital, unit: 'km', name: 'Nearest Hospital'},
+            {icon: 'fa-city', dist: lf.distance_to_it_hub, unit: 'km', name: 'IT Hub'},
+            {icon: 'fa-building', dist: lf.distance_to_city_center, unit: 'km', name: 'City Center'},
+            {icon: 'fa-map-pin', dist: null, unit: '', name: (lf.latitude || 0).toFixed(4) + ', ' + (lf.longitude || 0).toFixed(4)}
+        ];
+        var html = '';
+        items.forEach(function(it) {
+            html += '<div class="loc-item"><i class="fas ' + it.icon + '"></i>' +
+                '<div class="loc-dist">' + (it.dist !== null ? it.dist + ' ' + it.unit : it.name) + '</div>' +
+                '<div class="loc-name">' + (it.dist !== null ? it.name : 'Coordinates') + '</div></div>';
+        });
+        document.getElementById('locationGrid').innerHTML = html;
+    }
+
+    function renderComparables(comps) {
+        if (!comps || comps.length === 0) {
+            document.getElementById('comparablesContainer').innerHTML = '<p style="color:var(--text-light);text-align:center;padding:20px;">No comparable properties found</p>';
+            return;
+        }
+        var html = '';
+        comps.forEach(function(c, i) {
+            var cType = c.property_type || 'Property';
+            var cColor = propertyTypeColors[cType] || '#4f46e5';
+            html += '<div class="comp-card">' +
+                '<div class="comp-icon" style="background:linear-gradient(135deg,' + cColor + ',' + cColor + 'aa);"><i class="fas fa-home"></i></div>' +
+                '<div class="comp-info"><strong>' + c.locality + '</strong><small>' + c.area_sqft + ' sqft | ' + (c.bhk || '?') + ' BHK | ' + cType + ' | ' + c.city + '</small></div>' +
+                '<div class="comp-price"><div class="price">INR ' + fmt(c.price) + '</div><div class="psf">INR ' + fmt(c.price_per_sqft) + '/sqft</div></div></div>';
+        });
+        document.getElementById('comparablesContainer').innerHTML = html;
+
+        var prices = comps.map(function(c) { return c.price; }).filter(function(p) { return p > 0; });
+        if (prices.length > 0) {
+            var sum = 0;
+            prices.forEach(function(p) { sum += p; });
+            var avg = sum / prices.length;
+            var min = Math.min.apply(null, prices);
+            var max = Math.max.apply(null, prices);
+            var sorted = prices.slice().sort(function(a, b) { return a - b; });
+            var median = sorted[Math.floor(sorted.length / 2)];
+            document.getElementById('compStats').innerHTML =
+                '<div class="metric-row"><div class="metric-mini"><div class="val">INR ' + fmt(avg) + '</div><div class="lbl">Average</div></div>' +
+                '<div class="metric-mini"><div class="val">INR ' + fmt(median) + '</div><div class="lbl">Median</div></div>' +
+                '<div class="metric-mini"><div class="val">INR ' + fmt(min) + '</div><div class="lbl">Min</div></div>' +
+                '<div class="metric-mini"><div class="val">INR ' + fmt(max) + '</div><div class="lbl">Max</div></div></div>';
+        }
+    }
+
+    function renderWhatIfOriginal(data, price) {
+        document.getElementById('whatifOriginal').innerHTML =
+            '<div class="comp-card"><div class="comp-icon"><i class="fas fa-home"></i></div>' +
+            '<div class="comp-info"><strong>' + data.property_type + '</strong><small>' + data.locality + ', ' + data.city + '</small></div>' +
+            '<div class="comp-price"><div class="price">INR ' + fmt(price) + '</div><div class="psf">' + data.area_sqft + ' sqft | ' + data.bhk + ' BHK | ' + data.bathrooms + ' Bath</div></div></div>';
+    }
+
+    function runWhatIf() {
+        if (!currentResult) return;
+        var bhk = document.getElementById('whatifBhk').value;
+        var area = document.getElementById('whatifArea').value;
+        var bath = document.getElementById('whatifBath').value;
+
+        if (!bhk && !area && !bath) {
+            document.getElementById('whatifModified').innerHTML = '<p style="color:var(--text-light);">Change at least one feature above</p>';
+            return;
+        }
+
+        var form = document.getElementById('predictionForm');
+        var formData = new FormData(form);
+        var data = {};
+        formData.forEach(function(value, key) { data[key] = value; });
+        if (bhk) data.change_bhk = bhk;
+        if (area) data.change_area = area;
+        if (bath) data.change_bathrooms = bath;
+
+        document.getElementById('whatifModified').innerHTML = '<i class="fas fa-spinner fa-spin" style="color:var(--primary);"></i> Analyzing...';
+
+        fetch('/what-if', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            var origPrice = res.original.predicted_price;
+            var modPrice = res.modified.predicted_price;
+            var diff = modPrice - origPrice;
+            var pct = ((diff / origPrice) * 100).toFixed(1);
+            var diffCls = diff > 0 ? 'diff-up' : diff < 0 ? 'diff-down' : 'diff-same';
+            var diffIcon = diff > 0 ? 'fa-arrow-up' : diff < 0 ? 'fa-arrow-down' : 'fa-equals';
+
+            document.getElementById('whatifModified').innerHTML =
+                '<div class="comp-card"><div class="comp-icon" style="background:linear-gradient(135deg,#4f46e5,#818cf8);"><i class="fas fa-home"></i></div>' +
+                '<div class="comp-info"><strong>' + (bhk || data.bhk) + ' BHK | ' + (area || data.area_sqft) + ' sqft</strong><small>' + (bath || data.bathrooms) + ' Bathrooms</small></div>' +
+                '<div class="comp-price"><div class="price">INR ' + fmt(modPrice) + '</div>' +
+                '<div class="psf"><span class="diff-badge ' + diffCls + '"><i class="fas ' + diffIcon + '"></i> ' + (diff >= 0 ? '+' : '') + fmt(diff) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)</span></div></div></div>';
+        })
+        .catch(function(err) {
+            document.getElementById('whatifModified').innerHTML = '<p style="color:red;">Error running what-if</p>';
+        });
+    }
+    </script>
+</body>
+</html>
+

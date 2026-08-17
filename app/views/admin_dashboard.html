@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropWise AI - Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        .admin-stats-bar {
+            display: flex;
+            gap: 20px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border-bottom: 1px solid #475569;
+            margin-bottom: 0;
+        }
+        .admin-stat {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.08);
+            flex: 1;
+        }
+        .admin-stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+        }
+        .admin-stat-icon.users { background: linear-gradient(135deg, #4f46e5, #3730a3); }
+        .admin-stat-icon.predictions { background: linear-gradient(135deg, #4f46e5, #3730a3); }
+        .admin-stat-icon.types { background: linear-gradient(135deg, #4f46e5, #3730a3); }
+        .admin-stat-icon.cities { background: linear-gradient(135deg, #4f46e5, #3730a3); }
+        .admin-stat-info h4 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .admin-stat-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .dashboard-layout {
+            display: flex;
+            min-height: calc(100vh - 120px);
+        }
+        .sidebar {
+            width: 240px;
+            background: #1e293b;
+            border-right: 1px solid #334155;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+        .sidebar-title {
+            padding: 0 20px 15px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            font-weight: 600;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(79,102,241,0.1);
+            color: #818cf8;
+            border-left-color: #4f46e5;
+        }
+        .sidebar .divider {
+            height: 1px;
+            background: #334155;
+            margin: 10px 20px;
+        }
+        .sidebar .section-label {
+            padding: 10px 20px 5px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #475569;
+            font-weight: 600;
+        }
+        .main-content {
+            flex: 1;
+            padding: 24px;
+            max-width: calc(100% - 240px);
+        }
+        .section {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .section h2 {
+            margin: 0 0 16px;
+            font-size: 18px;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-group label {
+            font-size: 13px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+        .dropdown-select {
+            padding: 10px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 14px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .dropdown-select:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        .btn-predict {
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #4f46e5, #3730a3);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        .btn-predict:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+        }
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .result-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            text-align: center;
+        }
+        .result-card h4 {
+            margin: 0 0 4px;
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .result-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .result-card .sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .model-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .ood-warning {
+            background: rgba(79,102,241,0.1);
+            border: 1px solid rgba(79,102,241,0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #818cf8;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .sanity-ok {
+            background: rgba(79,102,241,0.1);
+            border: 1px solid rgba(79,102,241,0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #818cf8;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .sanity-warn {
+            background: rgba(79,102,241,0.1);
+            border: 1px solid rgba(79,102,241,0.3);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: #818cf8;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .metric-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .metric-mini {
+            flex: 1;
+            min-width: 100px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+        .metric-mini h5 {
+            margin: 0 0 4px;
+            font-size: 11px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+        .metric-mini .val {
+            font-size: 16px;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .chart-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px;
+        }
+        .chart-card h3 {
+            margin: 0 0 10px;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+        .trend-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 16px;
+        }
+        .trend-card h3 {
+            margin: 0 0 10px;
+            font-size: 0.85rem;
+            color: #1e293b;
+        }
+        .trend-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .trend-up {
+            background: rgba(79,102,241,0.15);
+            color: #818cf8;
+        }
+        .trend-down {
+            background: rgba(79,102,241,0.15);
+            color: #818cf8;
+        }
+        .map-container {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+        .map-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .map-controls select {
+            padding: 8px 12px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .map-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: rgba(15,23,42,0.9);
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .shap-bar-container {
+            margin-bottom: 10px;
+        }
+        .shap-label {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .shap-bar-bg {
+            height: 24px;
+            background: #0f172a;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        .shap-bar-pos {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #818cf8);
+            border-radius: 6px;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transition: width 0.5s ease;
+        }
+        .shap-bar-neg {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #818cf8);
+            border-radius: 6px;
+            position: absolute;
+            top: 0;
+            right: 50%;
+            transition: width 0.5s ease;
+        }
+        .shap-value {
+            font-size: 12px;
+            color: #64748b;
+            text-align: right;
+            margin-top: 2px;
+        }
+        .location-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+        }
+        .loc-item {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 14px;
+            text-align: center;
+        }
+        .loc-item .loc-name {
+            font-size: 13px;
+            color: #e2e8f0;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .loc-item .loc-val {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .comp-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .comp-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .comp-info {
+            flex: 1;
+        }
+        .comp-info h4 {
+            margin: 0 0 4px;
+            font-size: 14px;
+            color: #e2e8f0;
+        }
+        .comp-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #64748b;
+        }
+        .comp-price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4f46e5;
+        }
+        .whatif-grid {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr;
+            gap: 12px;
+            align-items: end;
+            margin-bottom: 16px;
+        }
+        .whatif-arrow {
+            text-align: center;
+            color: #64748b;
+            font-size: 20px;
+            padding-bottom: 10px;
+        }
+        .diff-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .diff-badge.positive {
+            background: rgba(79,102,241,0.15);
+            color: #818cf8;
+        }
+        .diff-badge.negative {
+            background: rgba(79,102,241,0.15);
+            color: #818cf8;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .history-table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: #0f172a;
+            color: #64748b;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #334155;
+        }
+        .history-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #1e293b;
+            font-size: 13px;
+            color: #94a3b8;
+        }
+        .history-table tr:hover td {
+            background: rgba(99,102,241,0.05);
+        }
+        #shapContainer {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .main-content { overflow-x: hidden; max-width: 100%; }
+        .chart-card canvas, .trend-card canvas { max-width: 100%; }
+        @media (max-width: 900px) {
+            .charts-grid { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .main-content { max-width: 100%; }
+            .admin-stats-bar { flex-wrap: wrap; }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-stats-bar">
+        <div class="admin-stat">
+            <div class="admin-stat-icon users">👥</div>
+            <div class="admin-stat-info">
+                <h4>{{ total_users }}</h4>
+                <p>Total Users</p>
+            </div>
+        </div>
+        <div class="admin-stat">
+            <div class="admin-stat-icon predictions">📊</div>
+            <div class="admin-stat-info">
+                <h4>{{ total_predictions }}</h4>
+                <p>Total Predictions</p>
+            </div>
+        </div>
+        <div class="admin-stat">
+            <div class="admin-stat-icon types">🏢</div>
+            <div class="admin-stat-info">
+                <h4>{{ unique_viewed_users }}</h4>
+                <p>Unique Viewed Users</p>
+            </div>
+        </div>
+        <div class="admin-stat">
+            <div class="admin-stat-icon cities">🏙️</div>
+            <div class="admin-stat-info">
+                <h4>{{ predictions|length }}</h4>
+                <p>Recent Predictions</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-layout">
+        <div class="sidebar">
+            <div class="sidebar-title">PropWise AI</div>
+            <a href="#valuation" class="active">📋 Valuation</a>
+            <a href="#result-section">📊 Result</a>
+            <a href="#charts-section">📈 Charts</a>
+            <a href="#trend-section">📉 Trend</a>
+            <a href="#map-section">🗺️ Map</a>
+            <a href="#shap-section">🔍 SHAP</a>
+            <a href="#location-section">📍 Location</a>
+            <a href="#comparables-section">🏠 Comparables</a>
+            <a href="#whatif-section">🔮 What-If</a>
+            <a href="#history-section">🕐 History</a>
+            <div class="divider"></div>
+            <div class="section-label">Admin Tools</div>
+            <a href="/bulk-valuation">📦 Bulk Valuation</a>
+            <a href="/market-intelligence">🧠 Market Intel</a>
+            <a href="/experiments">🧪 Experiments</a>
+            <a href="/model-performance">⚡ Models</a>
+            <div class="divider"></div>
+            <div class="section-label">Admin Panel</div>
+            <a href="/admin/users">👥 Users</a>
+            <a href="/admin/analytics">📈 Analytics</a>
+            <a href="/admin/audit">🔒 Audit</a>
+        </div>
+
+        <div class="main-content">
+            <div class="section" id="valuation">
+                <h2>📋 Property Valuation</h2>
+                <form id="valuationForm" onsubmit="return false;">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>City</label>
+                            <select class="dropdown-select" id="city" name="city">
+                                {% for item in dropdown.cities %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Locality</label>
+                            <select class="dropdown-select" id="locality" name="locality">
+                                {% for item in dropdown.localities %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Property Type</label>
+                            <select class="dropdown-select" id="property_type" name="property_type">
+                                {% for item in dropdown.property_types %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Area (sq ft)</label>
+                            <select class="dropdown-select" id="area" name="area">
+                                {% for item in dropdown.areas %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Bedrooms</label>
+                            <select class="dropdown-select" id="bedrooms" name="bedrooms">
+                                {% for item in dropdown.bedrooms %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Bathrooms</label>
+                            <select class="dropdown-select" id="bathrooms" name="bathrooms">
+                                {% for item in dropdown.bathrooms %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Furnishing</label>
+                            <select class="dropdown-select" id="furnishing" name="furnishing">
+                                {% for item in dropdown.furnishings %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Facing</label>
+                            <select class="dropdown-select" id="facing" name="facing">
+                                {% for item in dropdown.facings %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Age of Property</label>
+                            <select class="dropdown-select" id="age" name="age">
+                                {% for item in dropdown.ages %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Floor</label>
+                            <select class="dropdown-select" id="floor" name="floor">
+                                {% for item in dropdown.floors %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Total Floors</label>
+                            <select class="dropdown-select" id="total_floors" name="total_floors">
+                                {% for item in dropdown.total_floors %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Parking</label>
+                            <select class="dropdown-select" id="parking" name="parking">
+                                {% for item in dropdown.parkings %}
+                                <option value="{{ item }}">{{ item }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 16px;">
+                        <button type="button" class="btn-predict" onclick="predict()">Get Valuation</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="predictionResult" style="display: none;">
+                <div class="section" id="result-section">
+                    <h2>📊 Prediction Result</h2>
+                    <div id="oodWarning"></div>
+                    <div id="sanityCheck"></div>
+                    <div class="result-cards" id="resultCards"></div>
+                    <div class="metric-row" id="modelMetrics"></div>
+                </div>
+
+                <div class="section" id="charts-section">
+                    <h2>Price Analysis</h2>
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3>Price by Property Type</h3>
+                            <div style="position:relative;height:180px;"><canvas id="priceBarChart"></canvas></div>
+                        </div>
+                        <div class="chart-card">
+                            <h3>Value Distribution</h3>
+                            <div style="position:relative;height:180px;"><canvas id="valueDoughnut"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" id="trend-section">
+                    <h2>12-Month Price Trend</h2>
+                    <div class="trend-card">
+                        <div style="position:relative;height:160px;"><canvas id="trendLine"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="section" id="map-section">
+                    <h2>🗺️ Property Map</h2>
+                    <div class="map-controls">
+                        <select id="mapCityFilter" onchange="filterMap()">
+                            <option value="all">All Cities</option>
+                            {% for item in dropdown.cities %}
+                            <option value="{{ item }}">{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                        <select id="mapTypeFilter" onchange="filterMap()">
+                            <option value="all">All Types</option>
+                            {% for item in dropdown.property_types %}
+                            <option value="{{ item }}">{{ item }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="map-container" id="mapContainer" style="height: 300px;"></div>
+                    <div class="map-legend">
+                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> Apartment</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> House</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> Villa</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> Plot</div>
+                    </div>
+                </div>
+
+                <div class="section" id="shap-section">
+                    <h2>🔍 SHAP Feature Importance</h2>
+                    <div id="shapContainer"></div>
+                </div>
+
+                <div class="section" id="location-section">
+                    <h2>📍 Location Intelligence</h2>
+                    <div class="location-grid" id="locationGrid"></div>
+                </div>
+
+                <div class="section" id="comparables-section">
+                    <h2>🏠 Comparable Properties</h2>
+                    <div id="comparablesList"></div>
+                </div>
+
+                <div class="section" id="whatif-section">
+                    <h2>🔮 What-If Analysis</h2>
+                    <div id="whatifContent"></div>
+                </div>
+
+                <div class="section" id="history-section">
+                    <h2>🕐 Recent Prediction History</h2>
+                    <div style="overflow-x: auto;">
+                        <table class="history-table" id="historyTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>City</th>
+                                    <th>Locality</th>
+                                    <th>Type</th>
+                                    <th>Area</th>
+                                    <th>Predicted Price</th>
+                                    <th>Model</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const MARKER_COLORS = {
+        'Apartment': '#4f46e5',
+        'House': '#4f46e5',
+        'Villa': '#4f46e5',
+        'Plot': '#4f46e5'
+    };
+
+        const FUTURE_TREND_GROWTH = {
+            'Hyderabad': 1.2,
+            'Bengaluru': 1.0,
+            'Mumbai': 0.8,
+            'Chennai': 0.9,
+            'Kolkata': 0.7,
+            'Pune': 1.1,
+            'Delhi': 0.6,
+            'Gurgaon': 0.9
+        };
+
+        let predictionData = null;
+        let map = null;
+        let mapMarkers = [];
+
+        async function predict() {
+            const formData = {
+                city: document.getElementById('city').value,
+                locality: document.getElementById('locality').value,
+                property_type: document.getElementById('property_type').value,
+                area: document.getElementById('area').value,
+                bedrooms: document.getElementById('bedrooms').value,
+                bathrooms: document.getElementById('bathrooms').value,
+                furnishing: document.getElementById('furnishing').value,
+                facing: document.getElementById('facing').value,
+                age: document.getElementById('age').value,
+                floor: document.getElementById('floor').value,
+                total_floors: document.getElementById('total_floors').value,
+                parking: document.getElementById('parking').value
+            };
+
+            try {
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+                predictionData = await response.json();
+                renderPrediction();
+            } catch (err) {
+                console.error('Prediction failed:', err);
+            }
+        }
+
+        function renderPrediction() {
+            if (!predictionData) return;
+            document.getElementById('predictionResult').style.display = 'block';
+
+            renderOODWarning();
+            renderSanityCheck();
+            renderResultCards();
+            renderModelMetrics();
+            renderPriceBarChart();
+            renderValueDoughnut();
+            renderTrendLine();
+            renderMap();
+            renderSHAP();
+            renderLocation();
+            renderComparables();
+            renderWhatIf();
+            renderHistory();
+        }
+
+        function renderOODWarning() {
+            const el = document.getElementById('oodWarning');
+            if (predictionData.ood_warning) {
+                el.innerHTML = `<div class="ood-warning">⚠️ ${predictionData.ood_warning}</div>`;
+            } else {
+                el.innerHTML = '';
+            }
+        }
+
+        function renderSanityCheck() {
+            const el = document.getElementById('sanityCheck');
+            if (predictionData.sanity_status === 'ok') {
+                el.innerHTML = `<div class="sanity-ok">✅ Sanity check passed</div>`;
+            } else if (predictionData.sanity_status === 'warn') {
+                el.innerHTML = `<div class="sanity-warn">⚠️ Sanity check warning: ${predictionData.sanity_message || 'Result may be unusual'}</div>`;
+            } else {
+                el.innerHTML = '';
+            }
+        }
+
+        function renderResultCards() {
+            const el = document.getElementById('resultCards');
+            const p = predictionData;
+            el.innerHTML = `
+                <div class="result-card">
+                    <h4>Predicted Price</h4>
+                    <div class="value">₹${formatNumber(p.predicted_price)}</div>
+                    <div class="sub">Per unit</div>
+                </div>
+                <div class="result-card">
+                    <h4>Price / sqft</h4>
+                    <div class="value">₹${formatNumber(p.price_per_sqft)}</div>
+                    <div class="sub">Per sq ft</div>
+                </div>
+                <div class="result-card">
+                    <h4>Confidence</h4>
+                    <div class="value">${(p.confidence * 100).toFixed(1)}%</div>
+                    <div class="sub">${p.confidence_label || 'Model confidence'}</div>
+                </div>
+                <div class="result-card">
+                    <h4>Reliability</h4>
+                    <div class="value"><span class="model-badge" style="background: ${getReliabilityColor(p.reliability)}; color: #fff;">${p.reliability || 'N/A'}</span></div>
+                    <div class="sub">Prediction reliability</div>
+                </div>
+            `;
+        }
+
+        function renderModelMetrics() {
+            const el = document.getElementById('modelMetrics');
+            const m = predictionData.model_metrics || {};
+            el.innerHTML = `
+                <div class="metric-mini"><h5>R²</h5><div class="val">${(m.r2 || 0).toFixed(4)}</div></div>
+                <div class="metric-mini"><h5>MAE</h5><div class="val">${formatNumber(m.mae || 0)}</div></div>
+                <div class="metric-mini"><h5>RMSE</h5><div class="val">${formatNumber(m.rmse || 0)}</div></div>
+                <div class="metric-mini"><h5>MAPE</h5><div class="val">${(m.mape || 0).toFixed(2)}%</div></div>
+                <div class="metric-mini"><h5>Model</h5><div class="val">${predictionData.model_used || 'N/A'}</div></div>
+            `;
+        }
+
+        function renderPriceBarChart() {
+            const ctx = document.getElementById('priceBarChart').getContext('2d');
+            if (window.priceBarInstance) window.priceBarInstance.destroy();
+            const labels = ['Apartment', 'House', 'Villa', 'Plot'];
+            const values = [
+                predictionData.apartment_avg || 0,
+                predictionData.house_avg || 0,
+                predictionData.villa_avg || 0,
+                predictionData.plot_avg || 0
+            ];
+            window.priceBarInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Avg Price',
+                        data: values,
+                        backgroundColor: ['#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' } },
+                        x: { ticks: { color: '#64748b' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderValueDoughnut() {
+            const ctx = document.getElementById('valueDoughnut').getContext('2d');
+            if (window.valueDoughnutInstance) window.valueDoughnutInstance.destroy();
+            const p = predictionData;
+            const segments = [
+                p.land_value || 0,
+                p.construction_value || 0,
+                p.location_premium || 0,
+                p.amenity_value || 0
+            ];
+            window.valueDoughnutInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Land', 'Construction', 'Location Premium', 'Amenities'],
+                    datasets: [{
+                        data: segments,
+                        backgroundColor: ['#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#64748b', font: { size: 11 } } } },
+                    cutout: '60%'
+                }
+            });
+        }
+
+        function renderTrendLine() {
+            const ctx = document.getElementById('trendLine').getContext('2d');
+            if (window.trendLineInstance) window.trendLineInstance.destroy();
+            const p = predictionData;
+            const city = p.city || 'Hyderabad';
+            const growthRate = (FUTURE_TREND_GROWTH[city] || 1.0) / 100;
+            const basePrice = p.predicted_price || 1000000;
+            const months = [];
+            const historical = [];
+            const forecast = [];
+            const now = new Date();
+
+            for (let i = -6; i <= 6; i++) {
+                const d = new Date(now);
+                d.setMonth(d.getMonth() + i);
+                months.push(d.toLocaleString('default', { month: 'short', year: '2-digit' }));
+                if (i <= 0) {
+                    historical.push(Math.round(basePrice * (1 - growthRate * i)));
+                    forecast.push(null);
+                } else {
+                    historical.push(null);
+                    forecast.push(Math.round(basePrice * (1 + growthRate * i)));
+                }
+            }
+
+            window.trendLineInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [
+                        {
+                            label: 'Historical',
+                            data: historical,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 3
+                        },
+                        {
+                            label: 'Forecast',
+                            data: forecast,
+                            borderColor: '#4f46e5',
+                            borderDash: [5, 5],
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#64748b', font: { size: 11 } } }
+                    },
+                    scales: {
+                        y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' } },
+                        x: { ticks: { color: '#64748b' }, grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        function renderMap() {
+            const cityCoords = {
+                'Hyderabad': [17.385, 78.4867],
+                'Bengaluru': [12.9716, 77.5946],
+                'Mumbai': [19.076, 72.8777],
+                'Chennai': [13.0827, 80.2707],
+                'Kolkata': [22.5726, 88.3639],
+                'Pune': [18.5204, 73.8567],
+                'Delhi': [28.7041, 77.1025],
+                'Gurgaon': [28.4595, 77.0266]
+            };
+
+            const city = predictionData.city || 'Hyderabad';
+            const coords = cityCoords[city] || cityCoords['Hyderabad'];
+
+            if (!map) {
+                map = L.map('mapContainer').setView(coords, 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+            } else {
+                map.setView(coords, 12);
+            }
+
+            mapMarkers.forEach(m => map.removeLayer(m));
+            mapMarkers = [];
+
+            const propType = predictionData.property_type || 'Apartment';
+            const color = MARKER_COLORS[propType] || '#4f46e5';
+
+            const marker = L.circleMarker(coords, {
+                radius: 12,
+                fillColor: color,
+                color: '#fff',
+                weight: 2,
+                fillOpacity: 0.9
+            }).addTo(map).bindPopup(`
+                <b>${propType}</b><br>
+                ${predictionData.locality || ''}, ${city}<br>
+                <b>₹${formatNumber(predictionData.predicted_price)}</b>
+            `);
+            mapMarkers.push(marker);
+
+            const nearbyPoints = [
+                { lat: coords[0] + 0.01, lng: coords[1] + 0.015, type: 'Apartment' },
+                { lat: coords[0] - 0.008, lng: coords[1] - 0.01, type: 'House' },
+                { lat: coords[0] + 0.012, lng: coords[1] - 0.008, type: 'Villa' },
+                { lat: coords[0] - 0.015, lng: coords[1] + 0.012, type: 'Plot' }
+            ];
+            nearbyPoints.forEach(pt => {
+                const c = MARKER_COLORS[pt.type] || '#4f46e5';
+                const m = L.circleMarker([pt.lat, pt.lng], {
+                    radius: 7,
+                    fillColor: c,
+                    color: '#fff',
+                    weight: 1,
+                    fillOpacity: 0.7
+                }).addTo(map).bindPopup(`<b>${pt.type}</b><br>Nearby property`);
+                mapMarkers.push(m);
+            });
+        }
+
+        function renderSHAP() {
+            const el = document.getElementById('shapContainer');
+            const shap = predictionData.shap_values || {};
+            const features = Object.entries(shap).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+            const maxAbs = Math.max(...features.map(f => Math.abs(f[1])), 1);
+
+            el.innerHTML = features.map(([name, value]) => {
+                const pct = (Math.abs(value) / maxAbs) * 50;
+                const isPos = value >= 0;
+                return `
+                    <div class="shap-bar-container">
+                        <div class="shap-label">
+                            <span>${name}</span>
+                            <span>${isPos ? '+' : ''}${value.toFixed(4)}</span>
+                        </div>
+                        <div class="shap-bar-bg">
+                            ${isPos
+                                ? `<div class="shap-bar-pos" style="width: ${pct}%;"></div>`
+                                : `<div class="shap-bar-neg" style="width: ${pct}%;"></div>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLocation() {
+            const el = document.getElementById('locationGrid');
+            const loc = predictionData.location_intel || {};
+            const items = [
+                { name: 'Infrastructure Score', val: loc.infrastructure || 'N/A' },
+                { name: 'Connectivity', val: loc.connectivity || 'N/A' },
+                { name: 'Green Cover', val: loc.green_cover || 'N/A' },
+                { name: 'Flood Risk', val: loc.flood_risk || 'N/A' },
+                { name: 'Safety Index', val: loc.safety || 'N/A' },
+                { name: 'Schools Nearby', val: loc.schools || 'N/A' },
+                { name: 'Hospitals Nearby', val: loc.hospitals || 'N/A' },
+                { name: 'IT Parks Nearby', val: loc.it_parks || 'N/A' },
+                { name: 'Market Appreciation', val: loc.appreciation || 'N/A' },
+                { name: 'Rental Yield', val: loc.rental_yield || 'N/A' },
+                { name: 'Walkability', val: loc.walkability || 'N/A' },
+                { name: 'Public Transport', val: loc.public_transport || 'N/A' }
+            ];
+
+            el.innerHTML = items.map(item => `
+                <div class="loc-item">
+                    <div class="loc-name">${item.name}</div>
+                    <div class="loc-val">${item.val}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderComparables() {
+            const el = document.getElementById('comparablesList');
+            const comps = predictionData.comparables || [];
+            const colors = ['#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5'];
+            el.innerHTML = comps.map((c, i) => `
+                <div class="comp-card">
+                    <div class="comp-icon" style="background: ${colors[i % colors.length]};">🏠</div>
+                    <div class="comp-info">
+                        <h4>${c.locality || 'N/A'}, ${c.city || 'N/A'}</h4>
+                        <p>${c.area || 0} sqft • ${c.bedrooms || 0} BHK • ${c.property_type || 'N/A'}</p>
+                    </div>
+                    <div class="comp-price">₹${formatNumber(c.price || 0)}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderWhatIf() {
+            const el = document.getElementById('whatifContent');
+            const p = predictionData;
+            const scenarios = [
+                { label: 'Add Parking', key: 'parking', delta: 50000 },
+                { label: 'Furnish', key: 'furnishing', delta: 30000 },
+                { label: 'East Facing', key: 'facing', delta: 20000 },
+                { label: 'Newer Build', key: 'age', delta: -100000 },
+                { label: 'Higher Floor', key: 'floor', delta: 15000 }
+            ];
+
+            el.innerHTML = scenarios.map(s => {
+                const newVal = (p.predicted_price || 0) + s.delta;
+                const diff = s.delta;
+                const badgeClass = diff >= 0 ? 'positive' : 'negative';
+                return `
+                    <div class="whatif-grid">
+                        <div style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;">
+                            <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Current</div>
+                            <div style="font-size:16px;font-weight:700;color:#e2e8f0;">₹${formatNumber(p.predicted_price)}</div>
+                        </div>
+                        <div class="whatif-arrow">→</div>
+                        <div style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;">
+                            <div style="font-size:12px;color:#64748b;margin-bottom:4px;">If ${s.label}</div>
+                            <div style="font-size:16px;font-weight:700;color:#e2e8f0;">₹${formatNumber(newVal)}</div>
+                            <span class="diff-badge ${badgeClass}">${diff >= 0 ? '+' : ''}₹${formatNumber(diff)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHistory() {
+            const el = document.getElementById('historyBody');
+            const preds = {{ predictions | tojson }};
+            el.innerHTML = preds.map(p => `
+                <tr>
+                    <td>${p.id || 'N/A'}</td>
+                    <td>${p.city || 'N/A'}</td>
+                    <td>${p.locality || 'N/A'}</td>
+                    <td>${p.property_type || 'N/A'}</td>
+                    <td>${p.area || 'N/A'}</td>
+                    <td>₹${formatNumber(p.predicted_price || 0)}</td>
+                    <td>${p.model_used || 'N/A'}</td>
+                    <td>${p.created_at || 'N/A'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function filterMap() {
+            if (!map) return;
+            const cityFilter = document.getElementById('mapCityFilter').value;
+            const typeFilter = document.getElementById('mapTypeFilter').value;
+            mapMarkers.forEach(m => {
+                const popup = m.getPopup().getContent();
+                const showCity = cityFilter === 'all' || popup.includes(cityFilter);
+                const showType = typeFilter === 'all' || popup.includes(typeFilter);
+                if (showCity && showType) {
+                    m.setStyle({ opacity: 1, fillOpacity: 0.9 });
+                } else {
+                    m.setStyle({ opacity: 0.2, fillOpacity: 0.2 });
+                }
+            });
+        }
+
+        function formatNumber(num) {
+            return Number(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+        }
+
+        function getReliabilityColor(r) {
+            const map = {
+                'High': '#4f46e5',
+                'Medium': '#4f46e5',
+                'Low': '#4f46e5'
+            };
+            return map[r] || '#4f46e5';
+        }
+
+        document.querySelectorAll('.sidebar a').forEach(a => {
+            a.addEventListener('click', function() {
+                document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>

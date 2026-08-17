@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valuation Result - PropWise AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+            <div class="nav-links">
+                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
+                <a href="/logout" class="btn-nav-login">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
+                <small>{{ current_user.role }}</small>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard"><i class="fas fa-home"></i> Valuation</a>
+                <a href="/what-if"><i class="fas fa-exchange-alt"></i> What-If</a>
+                <a href="/comparables"><i class="fas fa-balance-scale"></i> Comparables</a>
+                <a href="/bulk-valuation"><i class="fas fa-file-csv"></i> Bulk Valuation</a>
+                <a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
+                <a href="/map"><i class="fas fa-map-marked-alt"></i> Map</a>
+                <a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1><i class="fas fa-check-circle" style="color:var(--primary);"></i> Valuation Result</h1>
+                <p>AI-powered property valuation analysis</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="result-grid animate-on-scroll">
+                <div class="result-card">
+                    <h3><i class="fas fa-rupee-sign"></i> Estimated Value</h3>
+                    <div class="big-value">₹{{ "{:,.0f}".format(result.predicted_price) }}</div>
+                    <div class="sub-value">₹{{ "{:,.0f}".format(result.price_per_sqft) }}/sqft</div>
+                </div>
+                <div class="result-card">
+                    <h3><i class="fas fa-chart-line"></i> Expected Range</h3>
+                    <div class="big-value" style="font-size:1.3rem;">₹{{ "{:,.0f}".format(result.uncertainty.lower_bound) }} - ₹{{ "{:,.0f}".format(result.uncertainty.upper_bound) }}</div>
+                    <div class="sub-value">Evidence-based prediction interval</div>
+                </div>
+                <div class="result-card">
+                    <h3><i class="fas fa-shield-alt"></i> Reliability</h3>
+                    <div class="big-value reliability-{{ result.reliability.level|lower }}">{{ result.reliability.level }}</div>
+                    <div class="sub-value">Score: {{ result.reliability.score }}/100</div>
+                </div>
+            </div>
+
+            <div class="result-grid animate-on-scroll">
+                <div class="result-card">
+                    <h3><i class="fas fa-tags"></i> Fair Listing Recommendation</h3>
+                    <div class="big-value" style="font-size:1.3rem;">₹{{ "{:,.0f}".format(result.fair_listing.recommended_listing) }}</div>
+                    <div class="sub-value">{{ result.fair_listing.recommendation }}</div>
+                </div>
+                {% if result.sanity_check %}
+                <div class="result-card">
+                    <h3><i class="fas fa-check-circle"></i> Sanity Check</h3>
+                    <div style="font-size:1rem;margin-top:8px;">{{ result.sanity_check.message }}</div>
+                </div>
+                {% endif %}
+                <div class="result-card">
+                    <h3><i class="fas fa-info-circle"></i> Model Info</h3>
+                    <div style="font-size:0.9rem;margin-top:8px;">
+                        <p><strong>Type:</strong> {{ result.model_info.property_type }}</p>
+                        <p><strong>Algorithm:</strong> {{ result.model_info.algorithm }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if result.location_features %}
+            <div class="prediction-form-card animate-on-scroll">
+                <h2><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> Location Features</h2>
+                <div class="result-grid" style="margin-bottom:0;">
+                    <div class="result-card">
+                        <h3><i class="fas fa-subway"></i> Metro Distance</h3>
+                        <div class="big-value" style="font-size:1.5rem;">{{ result.location_features.distance_to_metro }} km</div>
+                        <div class="sub-value">Nearest metro station</div>
+                    </div>
+                    <div class="result-card">
+                        <h3><i class="fas fa-graduation-cap"></i> School Distance</h3>
+                        <div class="big-value" style="font-size:1.5rem;">{{ result.location_features.distance_to_school }} km</div>
+                        <div class="sub-value">Nearest school</div>
+                    </div>
+                    <div class="result-card">
+                        <h3><i class="fas fa-hospital"></i> Hospital Distance</h3>
+                        <div class="big-value" style="font-size:1.5rem;">{{ result.location_features.distance_to_hospital }} km</div>
+                        <div class="sub-value">Nearest hospital</div>
+                    </div>
+                    <div class="result-card">
+                        <h3><i class="fas fa-city"></i> City Center Distance</h3>
+                        <div class="big-value" style="font-size:1.5rem;">{{ result.location_features.distance_to_city_center }} km</div>
+                        <div class="sub-value">Distance to city center</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if result.shap and result.shap|length > 0 %}
+            <div class="prediction-form-card animate-on-scroll">
+                <h2><i class="fas fa-lightbulb" style="color:var(--primary);"></i> Feature Impact (SHAP)</h2>
+                <ul class="shap-list">
+                    {% for s in result.shap %}
+                    <li class="shap-item">
+                        <span>{{ s.feature }}</span>
+                        <div class="shap-bar"><div class="shap-bar-fill" style="width:{{ [s.importance * 200, 100]|min }}%"></div></div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            {% if result.comparables and result.comparables|length > 0 %}
+            <div class="prediction-form-card animate-on-scroll">
+                <h2><i class="fas fa-balance-scale" style="color:var(--primary);"></i> Comparable Properties</h2>
+                <table class="comparables-table">
+                    <thead>
+                        <tr>
+                            <th>Locality</th>
+                            <th>Area</th>
+                            <th>Price</th>
+                            <th>₹/sqft</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in result.comparables %}
+                        <tr>
+                            <td>{{ c.locality }}</td>
+                            <td>{{ c.area_sqft }} sqft</td>
+                            <td><strong>₹{{ "{:,.0f}".format(c.price) }}</strong></td>
+                            <td>₹{{ "{:,.0f}".format(c.price_per_sqft) }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+
+            <div class="form-actions animate-on-scroll" style="justify-content:center;gap:15px;margin-top:20px;">
+                <a href="/what-if" class="btn-primary"><i class="fas fa-exchange-alt"></i> What-If Analysis</a>
+                <a href="/comparables" class="btn-secondary"><i class="fas fa-balance-scale"></i> View Comparables</a>
+                <a href="/map" class="btn-secondary"><i class="fas fa-map-marked-alt"></i> Open Map</a>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

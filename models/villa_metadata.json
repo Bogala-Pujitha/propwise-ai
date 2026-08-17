@@ -1,0 +1,31 @@
+{
+  "property_type": "Villa",
+  "experiment": "expB",
+  "algorithm": "linear_regression",
+  "version": "1.0",
+  "training_date": "2026-08-16T16:08:00.534931",
+  "dataset_size": 284,
+  "metrics": {
+    "MAE": 7943040.18,
+    "RMSE": 12660152.1,
+    "R2": 0.6766,
+    "MAPE": 43.72,
+    "within_10_pct": 15.79,
+    "within_20_pct": 31.58
+  },
+  "feature_columns": [
+    "area_sqft",
+    "bhk",
+    "bathrooms",
+    "property_age",
+    "latitude",
+    "longitude",
+    "area_per_bhk",
+    "bath_per_bhk",
+    "log_area",
+    "area_bin",
+    "city_encoded",
+    "locality_encoded",
+    "property_type_encoded"
+  ]
+}

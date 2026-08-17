@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Map - PropWise AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        #map { height: calc(100vh - 200px); min-height: 500px; border-radius: var(--radius); z-index: 1; }
+        .map-container { position: relative; }
+        .map-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .map-controls input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        .map-controls input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .map-legend {
+            background: white;
+            padding: 15px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow);
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            font-size: 0.85rem;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+            <div class="nav-links">
+                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
+                <a href="/logout" class="btn-nav-login">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
+                <small>{{ current_user.role }}</small>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard"><i class="fas fa-home"></i> Valuation</a>
+                <a href="/what-if"><i class="fas fa-exchange-alt"></i> What-If</a>
+                <a href="/comparables"><i class="fas fa-balance-scale"></i> Comparables</a>
+                <a href="/bulk-valuation"><i class="fas fa-file-csv"></i> Bulk Valuation</a>
+                <a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
+                <a href="/map" class="active"><i class="fas fa-map-marked-alt"></i> Map</a>
+                <a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1><i class="fas fa-map-marked-alt" style="color:var(--primary);"></i> Property Map</h1>
+                <p>Visualize properties and comparables on an interactive map</p>
+            </div>
+
+            <div class="map-container animate-on-scroll">
+                <div class="map-controls">
+                    <input type="text" id="searchLocation" placeholder="Search location (e.g. Gachibowli, Hyderabad)">
+                    <button type="button" class="btn-primary" onclick="searchLocation()"><i class="fas fa-search"></i> Search</button>
+                </div>
+
+                <div id="map"></div>
+
+                <div class="map-legend">
+                    <strong>Legend</strong>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#4f46e5;"></div>
+                        <span>Searched Location</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#4f46e5;"></div>
+                        <span>Comparable Properties</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([17.385, 78.4867], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        let markers = [];
+        let searchMarker = null;
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+        async function searchLocation() {
+            const query = document.getElementById('searchLocation').value;
+            if (!query) return;
+
+            markers.forEach(m => map.removeLayer(m));
+            markers = [];
+            if (searchMarker) map.removeLayer(searchMarker);
+
+            try {
+                const response = await fetch('/api/map/search', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({query})
+                });
+                const data = await response.json();
+
+                if (data.lat && data.lng) {
+                    map.setView([data.lat, data.lng], 14);
+                    searchMarker = L.marker([data.lat, data.lng])
+                        .addTo(map)
+                        .bindPopup('<strong>Searched Location</strong><br>' + query);
+                }
+
+                if (data.comparables) {
+                    data.comparables.forEach(c => {
+                        const marker = L.marker([c.lat, c.lng])
+                            .addTo(map)
+                            .bindPopup(
+                                '<strong>' + c.locality + '</strong><br>' +
+                                c.area_sqft + ' sqft<br>' +
+                                '₹' + Number(c.price).toLocaleString() + '<br>' +
+                                '₹' + Number(c.price_per_sqft).toLocaleString() + '/sqft'
+                            );
+                        markers.push(marker);
+                    });
+                }
+            } catch(err) {
+                console.error('Search failed:', err);
+            }
+        }
+
+        document.getElementById('searchLocation').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchLocation();
+        });
+    </script>
+</body>
+</html>

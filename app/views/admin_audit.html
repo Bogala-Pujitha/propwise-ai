@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Log - PropWise AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+            <div class="nav-links">
+                <span style="color:var(--text-light);">Admin: <strong>{{ current_user.username }}</strong></span>
+                <a href="/logout" class="btn-nav-login">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-cog"></i> Admin Panel</h3>
+                <small>Administrator</small>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin"><i class="fas fa-tachometer-alt"></i> Overview</a>
+                <a href="/admin/users"><i class="fas fa-users"></i> Users</a>
+                <a href="/admin/analytics"><i class="fas fa-chart-bar"></i> Analytics</a>
+                <a href="/admin/audit" class="active"><i class="fas fa-clipboard-list"></i> Audit Log</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1><i class="fas fa-clipboard-list" style="color:var(--primary);"></i> Audit Log</h1>
+                <p>Track all admin actions and system events</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="prediction-form-card animate-on-scroll">
+                <h2><i class="fas fa-list" style="color:var(--primary);"></i> Audit Entries ({{ logs|length }})</h2>
+                <div style="overflow-x:auto;">
+                    <table class="comparables-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Admin ID</th>
+                                <th>Action</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in logs %}
+                            <tr>
+                                <td>{{ log.timestamp.strftime('%d %b %Y %H:%M:%S') }}</td>
+                                <td><strong>{{ log.admin_id }}</strong></td>
+                                <td>
+                                    {% if 'delete' in log.action|lower %}
+                                    <span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:50px;font-size:0.8rem;">{{ log.action }}</span>
+                                    {% elif 'create' in log.action|lower or 'add' in log.action|lower %}
+                                    <span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:50px;font-size:0.8rem;">{{ log.action }}</span>
+                                    {% elif 'update' in log.action|lower or 'edit' in log.action|lower %}
+                                    <span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:50px;font-size:0.8rem;">{{ log.action }}</span>
+                                    {% else %}
+                                    <span style="background:#eef2ff;color:#4f46e5;padding:3px 10px;border-radius:50px;font-size:0.8rem;">{{ log.action }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ log.details }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% if not logs %}
+                <p style="text-align:center;color:var(--text-light);padding:30px;">No audit entries found</p>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

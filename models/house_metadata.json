@@ -1,0 +1,31 @@
+{
+  "property_type": "House",
+  "experiment": "expB",
+  "algorithm": "random_forest",
+  "version": "1.0",
+  "training_date": "2026-08-16T16:07:58.730116",
+  "dataset_size": 504,
+  "metrics": {
+    "MAE": 1018404.84,
+    "RMSE": 2960122.45,
+    "R2": 0.8549,
+    "MAPE": 38.75,
+    "within_10_pct": 17.82,
+    "within_20_pct": 41.58
+  },
+  "feature_columns": [
+    "area_sqft",
+    "bhk",
+    "bathrooms",
+    "property_age",
+    "latitude",
+    "longitude",
+    "area_per_bhk",
+    "bath_per_bhk",
+    "log_area",
+    "area_bin",
+    "city_encoded",
+    "locality_encoded",
+    "property_type_encoded"
+  ]
+}

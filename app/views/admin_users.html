@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - PropWise AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar scrolled">
+        <div class="nav-container">
+            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+            <div class="nav-links">
+                <span style="color:var(--text-light);">Admin: <strong>{{ current_user.username }}</strong></span>
+                <a href="/logout" class="btn-nav-login">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h3><i class="fas fa-cog"></i> Admin Panel</h3>
+                <small>Administrator</small>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/admin"><i class="fas fa-tachometer-alt"></i> Overview</a>
+                <a href="/admin/users" class="active"><i class="fas fa-users"></i> Users</a>
+                <a href="/admin/analytics"><i class="fas fa-chart-bar"></i> Analytics</a>
+                <a href="/admin/audit"><i class="fas fa-clipboard-list"></i> Audit Log</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h1><i class="fas fa-users" style="color:var(--primary);"></i> User Management</h1>
+                <p>View and manage all registered users</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <div class="prediction-form-card animate-on-scroll">
+                <h2><i class="fas fa-search" style="color:var(--primary);"></i> Search Users</h2>
+                <form id="searchUsersForm" method="GET" action="/admin/users">
+                    <div class="form-grid" style="grid-template-columns:2fr 1fr auto;">
+                        <div class="form-group">
+                            <label>Search by username or email</label>
+                            <input type="text" name="q" placeholder="Search users..." value="{{ request.args.get('q', '') }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select name="role">
+                                <option value="">All Roles</option>
+                                <option value="user" {{ 'selected' if request.args.get('role') == 'user' }}>User</option>
+                                <option value="admin" {{ 'selected' if request.args.get('role') == 'admin' }}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="display:flex;align-items:flex-end;">
+                            <button type="submit" class="btn-primary"><i class="fas fa-search"></i> Filter</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="prediction-form-card animate-on-scroll">
+                <h2><i class="fas fa-list" style="color:var(--primary);"></i> All Users ({{ users|length }})</h2>
+                <div style="overflow-x:auto;">
+                    <table class="comparables-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Predictions</th>
+                                <th>Activities</th>
+                                <th>Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.id }}</td>
+                                <td><strong>{{ user.username }}</strong></td>
+                                <td>{{ user.email }}</td>
+                                <td>
+                                    {% if user.role == 'admin' %}
+                                    <span style="background:var(--gradient);color:white;padding:3px 10px;border-radius:50px;font-size:0.8rem;">Admin</span>
+                                    {% else %}
+                                    <span style="background:#f1f5f9;color:var(--text-light);padding:3px 10px;border-radius:50px;font-size:0.8rem;">User</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ user.prediction_count }}</td>
+                                <td>{{ user.activity_count }}</td>
+                                <td>{{ user.created_at.strftime('%d %b %Y') if user.created_at else '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropWise AI - Real Estate Intelligence Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <i class="fas fa-home"></i>
+                <span>PropWise AI</span>
+            </a>
+            <div class="nav-links">
+                <a href="#home">Home</a>
+                <a href="#about">About</a>
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#contact">Contact</a>
+                <a href="/login" class="btn-nav-login">Login</a>
+            </div>
+            <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <section id="home" class="hero">
+        <div class="hero-particles" id="particles"></div>
+        <div class="hero-content">
+            <div class="hero-text animate-fade-in">
+                <h1>Predict Your Property's <span class="gradient-text">True Value</span></h1>
+                <p class="hero-subtitle">Advanced AI-powered real estate valuation platform built for the Indian property market. Get accurate, explainable pricing in seconds.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="98">0</span><span class="stat-suffix">%</span>
+                        <span class="stat-label">Accuracy</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="10">0</span><span class="stat-suffix">K+</span>
+                        <span class="stat-label">Predictions</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="15">0</span><span class="stat-suffix">+</span>
+                        <span class="stat-label">Cities</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" data-target="4">0</span>
+                        <span class="stat-label">Property Types</span>
+                    </div>
+                </div>
+                <div class="hero-buttons">
+                    <a href="/register" class="btn-primary">
+                        <i class="fas fa-rocket"></i> Get Started Free
+                    </a>
+                    <a href="#about" class="btn-secondary">
+                        <i class="fas fa-play-circle"></i> Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image animate-slide-up">
+                <div class="glass-card hero-card">
+                    <div class="prediction-demo">
+                        <div class="demo-header">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Live Valuation</span>
+                        </div>
+                        <div class="demo-body">
+                            <div class="demo-property">
+                                <i class="fas fa-building"></i>
+                                <div>
+                                    <strong>3 BHK Apartment</strong>
+                                    <small>Gachibowli, Hyderabad</small>
+                                </div>
+                            </div>
+                            <div class="demo-price">
+                                <span class="price-label">Estimated Value</span>
+                                <span class="price-value">₹1.25 Cr</span>
+                                <span class="price-range">₹1.17 Cr - ₹1.33 Cr</span>
+                            </div>
+                            <div class="demo-features">
+                                <span class="feature-tag"><i class="fas fa-check-circle"></i> SHAP Explained</span>
+                                <span class="feature-tag"><i class="fas fa-check-circle"></i> Comparables Found</span>
+                                <span class="feature-tag"><i class="fas fa-check-circle"></i> Fair Listing Price</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="scroll-indicator">
+            <a href="#about"><i class="fas fa-chevron-down"></i></a>
+        </div>
+    </section>
+
+    <section id="about" class="about">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">About Us</span>
+                <h2>India's Smartest <span class="gradient-text">Real Estate Predictor</span></h2>
+                <p>PropWise AI is a real estate valuation platform built specifically for the Indian property market using advanced ML models trained on thousands of real market data points.</p>
+            </div>
+            <div class="about-grid">
+                <div class="about-card glass-card animate-on-scroll">
+                    <div class="about-icon"><i class="fas fa-brain"></i></div>
+                    <h3>ML-Driven Intelligence</h3>
+                    <p>Multiple property-type-specific models trained on real market data across Indian cities for high accuracy.</p>
+                </div>
+                <div class="about-card glass-card animate-on-scroll">
+                    <div class="about-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h3>Location Intelligence</h3>
+                    <p>Deep analysis based on Indian cities, localities, and neighbourhood-level market trends.</p>
+                </div>
+                <div class="about-card glass-card animate-on-scroll">
+                    <div class="about-icon"><i class="fas fa-lightbulb"></i></div>
+                    <h3>Explainable Predictions</h3>
+                    <p>SHAP-powered feature explanations so you understand exactly why a price is estimated.</p>
+                </div>
+                <div class="about-card glass-card animate-on-scroll">
+                    <div class="about-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Secure & Private</h3>
+                    <p>Your data is protected. All predictions are private and never shared with third parties.</p>
+                </div>
+            </div>
+            <div class="about-image animate-on-scroll">
+                <div class="glass-card">
+                    <img src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Real Estate Intelligence">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="features">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">Features</span>
+                <h2>Why Choose <span class="gradient-text">PropWise AI?</span></h2>
+                <p>Powerful tools built to make property valuation simple, accurate & instant.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h3>AI Valuation</h3>
+                    <p>Property-type-specific ML models with XGBoost, CatBoost, and ensemble methods.</p>
+                </div>
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-search-dollar"></i></div>
+                    <h3>SHAP Explainability</h3>
+                    <p>Understand exactly which features drive the valuation up or down.</p>
+                </div>
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-balance-scale"></i></div>
+                    <h3>Comparable Analysis</h3>
+                    <p>Find similar properties and validate predictions against real market evidence.</p>
+                </div>
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-exchange-alt"></i></div>
+                    <h3>What-If Analysis</h3>
+                    <p>See how changes in area, BHK, or location affect property value.</p>
+                </div>
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-map-marked-alt"></i></div>
+                    <h3>Interactive Maps</h3>
+                    <p>Visualize properties, comparables, and location intelligence on maps.</p>
+                </div>
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-tags"></i></div>
+                    <h3>Fair Listing Price</h3>
+                    <p>Get recommended listing prices with below market / fair / overpriced categorization.</p>
+                </div>
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-file-csv"></i></div>
+                    <h3>Bulk Valuation</h3>
+                    <p>Upload CSV files and get valuations for hundreds of properties at once.</p>
+                </div>
+                <div class="feature-card glass-card animate-on-scroll">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3>Reliability Score</h3>
+                    <p>Every prediction comes with a confidence score so you know how much to trust it.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">How It Works</span>
+                <h2>Get Valuation in <span class="gradient-text">3 Simple Steps</span></h2>
+            </div>
+            <div class="steps-container">
+                <div class="step-card glass-card animate-on-scroll">
+                    <div class="step-number">01</div>
+                    <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+                    <h3>Create Account</h3>
+                    <p>Sign up for free and log in to access the prediction dashboard instantly.</p>
+                </div>
+                <div class="step-connector animate-on-scroll"><i class="fas fa-arrow-right"></i></div>
+                <div class="step-card glass-card animate-on-scroll">
+                    <div class="step-number">02</div>
+                    <div class="step-icon"><i class="fas fa-home"></i></div>
+                    <h3>Enter Property Details</h3>
+                    <p>Input your city, area, BHK, property type, and locality for accurate analysis.</p>
+                </div>
+                <div class="step-connector animate-on-scroll"><i class="fas fa-arrow-right"></i></div>
+                <div class="step-card glass-card animate-on-scroll">
+                    <div class="step-number">03</div>
+                    <div class="step-icon"><i class="fas fa-chart-bar"></i></div>
+                    <h3>Get Instant Valuation</h3>
+                    <p>Our AI instantly returns an accurate estimated price with explainability & comparables.</p>
+                </div>
+            </div>
+            <div class="cta-container animate-on-scroll">
+                <a href="/register" class="btn-primary btn-large">
+                    <i class="fas fa-rocket"></i> Try It Now — It's Free
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section id="property-types" class="property-types">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">Property Types</span>
+                <h2>Trained for <span class="gradient-text">Every Property Type</span></h2>
+            </div>
+            <div class="property-grid">
+                <div class="property-card glass-card animate-on-scroll">
+                    <div class="property-icon"><i class="fas fa-building"></i></div>
+                    <h3>Apartments</h3>
+                    <p>Flats and apartments across all major Indian cities with area, BHK, and locality analysis.</p>
+                </div>
+                <div class="property-card glass-card animate-on-scroll">
+                    <div class="property-icon"><i class="fas fa-home"></i></div>
+                    <h3>Houses</h3>
+                    <p>Independent houses with plot area, built-up area, and neighborhood intelligence.</p>
+                </div>
+                <div class="property-card glass-card animate-on-scroll">
+                    <div class="property-icon"><i class="fas fa-hotel"></i></div>
+                    <h3>Villas</h3>
+                    <p>Luxury villas with premium feature analysis and upscale locality pricing.</p>
+                </div>
+                <div class="property-card glass-card animate-on-scroll">
+                    <div class="property-icon"><i class="fas fa-map"></i></div>
+                    <h3>Plots</h3>
+                    <p>Residential and commercial plots with zoning and development potential analysis.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact">
+        <div class="container">
+            <div class="section-header animate-on-scroll">
+                <span class="section-tag">Contact</span>
+                <h2>Get In <span class="gradient-text">Touch</span></h2>
+            </div>
+            <div class="contact-grid">
+                <div class="contact-info animate-on-scroll">
+                    <div class="contact-item glass-card">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <h4>Email Us</h4>
+                            <p>support@propwise.ai</p>
+                        </div>
+                    </div>
+                    <div class="contact-item glass-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <h4>Our Location</h4>
+                            <p>Hyderabad, India</p>
+                        </div>
+                    </div>
+                    <div class="contact-item glass-card">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <h4>Support Hours</h4>
+                            <p>Mon - Sat: 9:00 AM - 6:00 PM IST</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-form glass-card animate-on-scroll">
+                    <form id="contactForm">
+                        <div class="form-group">
+                            <input type="text" placeholder="Your Name" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="email" placeholder="Email Address" required>
+                        </div>
+                        <div class="form-group">
+                            <input type="text" placeholder="Subject">
+                        </div>
+                        <div class="form-group">
+                            <textarea rows="4" placeholder="Your Message"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary btn-full">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+                    <p>India's most accurate AI-powered real estate valuation platform. Built for buyers, sellers, and investors.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <a href="#home">Home</a>
+                    <a href="#about">About</a>
+                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Support</h4>
+                    <a href="#contact">Contact Us</a>
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Use</a>
+                    <a href="/login">Login</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 PropWise AI. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleMobileMenu() {
+            document.querySelector('.nav-links').classList.toggle('active');
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+
+        document.querySelectorAll('.stat-number').forEach(stat => {
+            const target = parseInt(stat.getAttribute('data-target'));
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    stat.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    stat.textContent = Math.floor(current);
+                }
+            }, 30);
+        });
+
+        document.getElementById('contactForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Thank you for your message! We will get back to you soon.');
+            this.reset();
+        });
+
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 5 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 5) + 's';
+            document.getElementById('particles').appendChild(particle);
+        }
+    </script>
+</body>
+</html>

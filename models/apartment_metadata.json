@@ -1,0 +1,31 @@
+{
+  "property_type": "Apartment",
+  "experiment": "expA",
+  "algorithm": "random_forest",
+  "version": "1.0",
+  "training_date": "2026-08-16T16:07:54.705829",
+  "dataset_size": 202,
+  "metrics": {
+    "MAE": 1692699.87,
+    "RMSE": 2457121.26,
+    "R2": 0.899,
+    "MAPE": 18.41,
+    "within_10_pct": 26.83,
+    "within_20_pct": 65.85
+  },
+  "feature_columns": [
+    "area_sqft",
+    "bhk",
+    "bathrooms",
+    "property_age",
+    "latitude",
+    "longitude",
+    "area_per_bhk",
+    "bath_per_bhk",
+    "log_area",
+    "area_bin",
+    "city_encoded",
+    "locality_encoded",
+    "property_type_encoded"
+  ]
+}
