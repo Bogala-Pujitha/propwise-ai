@@ -4,24 +4,24 @@ import os
 import json
 import joblib
 from datetime import datetime
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import LabelEncoder
 import warnings
 warnings.filterwarnings('ignore')
 
 try:
     import xgboost as xgb
     HAS_XGB = True
-except:
+except Exception:
     HAS_XGB = False
 
 try:
     from catboost import CatBoostRegressor
     HAS_CAT = True
-except:
+except Exception:
     HAS_CAT = False
 
 
@@ -202,10 +202,12 @@ def run_experiment_a(master_df, models_dir, output_dir):
 
     joblib.dump(fe, os.path.join(exp_dir, 'feature_engineer.joblib'))
 
-    print(f"\n  Experiment A Results:")
+    print("\n  Experiment A Results:")
     for pt, r in results.items():
         m = r['metrics']
-        print(f"    {pt}: R2={m['R2']:.4f}, MAE={m['MAE']:,.0f}, MAPE={m['MAPE']:.1f}%, +-{m['within_10_pct']:.0f}%")
+        print("    {}: R2={:.4f}, MAE={:,.0f}, MAPE={:.1f}%, +-{:.0f}%".format(
+            pt, m['R2'], m['MAE'], m['MAPE'], m['within_10_pct']
+        ))
 
     return results
 
@@ -235,10 +237,12 @@ def run_experiment_b(master_df, models_dir, output_dir):
 
     joblib.dump(fe, os.path.join(exp_dir, 'feature_engineer.joblib'))
 
-    print(f"\n  Experiment B Results:")
+    print("\n  Experiment B Results:")
     for pt, r in results.items():
         m = r['metrics']
-        print(f"    {pt}: R2={m['R2']:.4f}, MAE={m['MAE']:,.0f}, MAPE={m['MAPE']:.1f}%, +-{m['within_10_pct']:.0f}%")
+        print("    {}: R2={:.4f}, MAE={:,.0f}, MAPE={:.1f}%, +-{:.0f}%".format(
+            pt, m['R2'], m['MAE'], m['MAPE'], m['within_10_pct']
+        ))
 
     return results
 
@@ -255,8 +259,11 @@ def run_experiment_c(master_df, models_dir, output_dir):
     hybrid_df = master_df[master_df['city'].isin(hybrid_cities)].copy()
 
     high_quality = hybrid_df[
-        (hybrid_df['source_type'] == 'PRIMARY') |
-        ((hybrid_df['source_type'] == 'SUPPORTING') & (hybrid_df['city'] == 'Hyderabad'))
+        (hybrid_df['source_type'] == 'PRIMARY')
+        | (
+            (hybrid_df['source_type'] == 'SUPPORTING')
+            & (hybrid_df['city'] == 'Hyderabad')
+        )
     ].copy()
 
     print(f"  Hybrid dataset: {len(high_quality)} properties")
@@ -276,10 +283,12 @@ def run_experiment_c(master_df, models_dir, output_dir):
 
     joblib.dump(fe, os.path.join(exp_dir, 'feature_engineer.joblib'))
 
-    print(f"\n  Experiment C Results:")
+    print("\n  Experiment C Results:")
     for pt, r in results.items():
         m = r['metrics']
-        print(f"    {pt}: R2={m['R2']:.4f}, MAE={m['MAE']:,.0f}, MAPE={m['MAPE']:.1f}%, +-{m['within_10_pct']:.0f}%")
+        print("    {}: R2={:.4f}, MAE={:,.0f}, MAPE={:.1f}%, +-{:.0f}%".format(
+            pt, m['R2'], m['MAE'], m['MAPE'], m['within_10_pct']
+        ))
 
     return results
 
@@ -297,7 +306,6 @@ def select_best_experiment(all_results, models_dir):
         if exp_results:
             property_types.update(exp_results.keys())
 
-    comparison = {}
     best_models = {}
 
     for pt in property_types:

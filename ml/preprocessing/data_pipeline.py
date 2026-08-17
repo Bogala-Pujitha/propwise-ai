@@ -2,10 +2,8 @@ import pandas as pd
 import numpy as np
 import os
 import json
-import hashlib
 import sys
 from datetime import datetime
-from collections import Counter
 
 
 def get_csv_files(data_dir):
@@ -101,10 +99,10 @@ class DataQualityAuditor:
     def profile_dataset(self, filepath, name):
         try:
             df = pd.read_csv(filepath, encoding='utf-8', on_bad_lines='skip')
-        except:
+        except Exception:
             try:
                 df = pd.read_csv(filepath, encoding='latin-1', on_bad_lines='skip')
-            except:
+            except Exception:
                 df = pd.read_csv(filepath, encoding='cp1252', on_bad_lines='skip')
 
         missing = {col: int(df[col].isna().sum()) for col in df.columns if df[col].isna().sum() > 0}
@@ -306,8 +304,10 @@ class DataCleaner:
             q_price = df['price'].quantile([0.01, 0.99])
             q_area = df['area_sqft'].quantile([0.01, 0.99])
             df = df[
-                (df['price'] >= q_price[0.01]) & (df['price'] <= q_price[0.99]) &
-                (df['area_sqft'] >= q_area[0.01]) & (df['area_sqft'] <= q_area[0.99])
+                (df['price'] >= q_price[0.01])
+                & (df['price'] <= q_price[0.99])
+                & (df['area_sqft'] >= q_area[0.01])
+                & (df['area_sqft'] <= q_area[0.99])
             ]
         after = len(df)
         self.log(f"Outlier removal: {before} -> {after} ({before - after} removed)")
@@ -469,7 +469,7 @@ class DataCleaner:
 
 def create_master_dataset(data_dir, output_dir):
     auditor = DataQualityAuditor(data_dir)
-    profiles = auditor.audit_all()
+    auditor.audit_all()
     auditor.save_report(os.path.join(output_dir, '..', 'reports', 'data_quality'))
 
     cleaner = DataCleaner()
@@ -481,14 +481,14 @@ def create_master_dataset(data_dir, output_dir):
 
     for filepath in get_csv_files(data_dir):
         f = os.path.basename(filepath)
-        
+
         try:
             try:
                 df = pd.read_csv(filepath, encoding='utf-8', on_bad_lines='skip')
-            except:
+            except Exception:
                 try:
                     df = pd.read_csv(filepath, encoding='latin-1', on_bad_lines='skip')
-                except:
+                except Exception:
                     df = pd.read_csv(filepath, encoding='cp1252', on_bad_lines='skip')
 
             # Limit large datasets for processing speed
@@ -625,8 +625,8 @@ def create_master_dataset(data_dir, output_dir):
     print(f"  Cities: {master['city'].nunique()}")
     print(f"  Property Types: {master['property_type'].unique().tolist()}")
     print(f"  Source Types: {master['source_type'].value_counts().to_dict()}")
-    print(f"  Hyderabad Test Set: {test_size} properties (LOCKED)")
-    print(f"\n  Cleaning Log:")
+    print("Hyderabad Test Set:", test_size, "properties (LOCKED)")
+    print("\n  Cleaning Log:")
     for log in cleaner.cleaning_log:
         print(f"    - {log}")
 

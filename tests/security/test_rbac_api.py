@@ -1,4 +1,4 @@
-from app import app, db, User
+from app import app, db
 
 
 def test_admin_api_requires_authentication():

@@ -5,14 +5,17 @@ import pytest
 
 @pytest.fixture()
 def client():
-    from app import app
+    from app import app, db
     app.config.update(
         TESTING=True,
         WTF_CSRF_ENABLED=False,
         SECRET_KEY="test-secret-key",
     )
-    with app.test_client() as client:
-        yield client
+    with app.app_context():
+        db.create_all()
+        with app.test_client() as client:
+            yield client
+        db.session.remove()
 
 
 def test_register_login_logout_flow(client):

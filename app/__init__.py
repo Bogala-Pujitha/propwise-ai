@@ -1,14 +1,11 @@
 import os
 import sys
 import json
-import csv
-import io
 import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
 from functools import wraps
 
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_bcrypt import Bcrypt
@@ -17,9 +14,11 @@ from flask_cors import CORS
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(BASE_DIR))
 
-app = Flask(__name__,
+app = Flask(
+    __name__,
     template_folder=os.path.join(BASE_DIR, 'views'),
-    static_folder=os.path.join(BASE_DIR, 'static'))
+    static_folder=os.path.join(BASE_DIR, 'static'),
+)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'propwise-ai-secret-key-2024')
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(BASE_DIR, "propwise.db")}'
@@ -91,6 +90,7 @@ def load_user(user_id):
 VALUATION_ENGINE = None
 MASTER_DF = None
 DROPDOWN_DATA = None
+
 
 def init_engine():
     global VALUATION_ENGINE, MASTER_DF, DROPDOWN_DATA
@@ -205,6 +205,7 @@ def forgot_password():
 @app.route('/api/dropdown-data')
 @login_required
 def api_dropdown_data():
+    global DROPDOWN_DATA
     if DROPDOWN_DATA is None:
         from app.services.geocoding import get_all_dropdown_data
         DROPDOWN_DATA = get_all_dropdown_data(MASTER_DF)
@@ -315,9 +316,13 @@ def what_if():
             'changes': changes
         })
 
-    return render_template('what_if.html',
-        original=original_result, modified=modified_result,
-        base_property=base, changes=changes)
+    return render_template(
+        'what_if.html',
+        original=original_result,
+        modified=modified_result,
+        base_property=base,
+        changes=changes,
+    )
 
 
 @app.route('/comparables', methods=['GET', 'POST'])
@@ -475,9 +480,11 @@ def experiments():
     experiments_data = {}
     models_dir = os.path.join(BASE_DIR, '..', 'models')
 
-    for exp_name, exp_label in [('experiment_a', 'Experiment A: Hyderabad Only'),
-                                  ('experiment_b', 'Experiment B: India-Wide'),
-                                  ('experiment_c', 'Experiment C: Hybrid')]:
+    for exp_name, exp_label in [
+        ('experiment_a', 'Experiment A: Hyderabad Only'),
+        ('experiment_b', 'Experiment B: India-Wide'),
+        ('experiment_c', 'Experiment C: Hybrid'),
+    ]:
         exp_dir = os.path.join(models_dir, exp_name)
         exp_data = {'label': exp_label, 'models': {}}
         if os.path.exists(exp_dir):
@@ -534,7 +541,8 @@ def admin_dashboard():
 
     dropdown_data = DROPDOWN_DATA or {}
 
-    return render_template('admin_dashboard.html',
+    return render_template(
+        'admin_dashboard.html',
         total_users=total_users,
         total_predictions=total_predictions,
         unique_viewed_users=unique_viewed_users,
@@ -543,7 +551,8 @@ def admin_dashboard():
         predictions_by_city=predictions_by_city,
         predictions_by_reliability=predictions_by_reliability,
         predictions=all_predictions_dict,
-        dropdown=dropdown_data)
+        dropdown=dropdown_data,
+    )
 
 
 @app.route('/admin/users')
@@ -583,7 +592,8 @@ def admin_analytics():
 
     avg_prediction = db.session.query(db.func.avg(Prediction.predicted_price)).scalar() or 0
 
-    return render_template('admin_analytics.html',
+    return render_template(
+        'admin_analytics.html',
         total_users=total_users,
         total_predictions=total_predictions,
         total_activities=total_activities,
@@ -591,7 +601,8 @@ def admin_analytics():
         property_views=property_views,
         location_views=location_views,
         locality_views=locality_views,
-        avg_prediction=avg_prediction)
+        avg_prediction=avg_prediction,
+    )
 
 
 @app.route('/admin/audit')
@@ -615,3 +626,11 @@ if __name__ == '__main__':
     init_engine()
     print("PropWise AI starting on http://localhost:5000")
     app.run(debug=True, port=5000)
+
+
+try:
+    from app.controllers import register_blueprints
+
+    register_blueprints(app)
+except Exception:
+    pass

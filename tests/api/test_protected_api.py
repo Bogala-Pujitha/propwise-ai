@@ -1,4 +1,4 @@
-from app import app, db
+from app import app
 
 
 def test_user_profile_requires_login():

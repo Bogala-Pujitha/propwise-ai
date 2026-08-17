@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify
-from flask_login import login_required, current_user
+from flask_login import current_user
 
 from app.services.auth_service import is_admin
 from app.services.activity_service import record_audit

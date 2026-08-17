@@ -16,7 +16,7 @@ class ModelRouter:
     def _load_models(self):
         try:
             self.feature_engineer = joblib.load(os.path.join(self.models_dir, 'feature_engineer.joblib'))
-        except:
+        except Exception:
             self.feature_engineer = None
 
         for ptype in ['apartment', 'house', 'villa', 'plot']:
@@ -277,7 +277,7 @@ class LocationIntelligenceEngine:
         R = 6371
         dlat = np.radians(lat2 - lat1)
         dlon = np.radians(lon2 - lon1)
-        a = np.sin(dlat/2)**2 + np.cos(np.radians(lat1)) * np.cos(np.radians(lat2)) * np.sin(dlon/2)**2
+        a = np.sin(dlat / 2) ** 2 + np.cos(np.radians(lat1)) * np.cos(np.radians(lat2)) * np.sin(dlon / 2) ** 2
         c = 2 * np.arcsin(np.sqrt(a))
         return R * c
 

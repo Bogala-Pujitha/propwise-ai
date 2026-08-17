@@ -1,5 +1,4 @@
 """Authentication helpers built on the repository's existing Flask-Login/Bcrypt stack."""
-from typing import Optional, Tuple
 
 from flask_login import login_user, logout_user
 

@@ -8,7 +8,11 @@ def app():
         TESTING=True,
         SECRET_KEY="test-secret-key",
     )
-    yield flask_app
+    with flask_app.app_context():
+        from app import db
+        db.create_all()
+        yield flask_app
+        db.session.remove()
 
 
 def test_analytics_service_returns_contract(app):

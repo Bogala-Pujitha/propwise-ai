@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import Blueprint, current_app, jsonify, request, session
+from flask import Blueprint, jsonify, request, session
 from flask_login import current_user, login_required
 
 from app.services.auth_service import register_user, authenticate_user, logout_account, is_admin

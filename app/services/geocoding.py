@@ -1,6 +1,3 @@
-import pandas as pd
-import os
-
 CITY_COORDS = {
     'Hyderabad': {'lat': 17.3850, 'lon': 78.4867},
     'Bengaluru': {'lat': 12.9716, 'lon': 77.5946},
@@ -45,7 +42,6 @@ LOCALITY_COORDS = {
         'Mehdipatnam': {'lat': 17.3950, 'lon': 78.4100},
         'Abids': {'lat': 17.3900, 'lon': 78.4750},
         'Sanathnagar': {'lat': 17.4200, 'lon': 78.4600},
-        'Ameerpet': {'lat': 17.4374, 'lon': 78.4487},
         'SR Nagar': {'lat': 17.4350, 'lon': 78.4450},
         'Erragadda': {'lat': 17.4450, 'lon': 78.4450},
         'Borabanda': {'lat': 17.4500, 'lon': 78.4350},
@@ -70,7 +66,6 @@ LOCALITY_COORDS = {
         'Marathahalli': {'lat': 12.9592, 'lon': 77.6974},
         'Silk Board': {'lat': 12.9170, 'lon': 77.6220},
         'Indiranagar': {'lat': 12.9784, 'lon': 77.6408},
-        'HSR Layout': {'lat': 12.9116, 'lon': 77.6380},
         'JP Nagar': {'lat': 12.8920, 'lon': 77.5850},
         'Banashankari': {'lat': 12.9250, 'lon': 77.5500},
         'Rajajinagar': {'lat': 12.9900, 'lon': 77.5500},
@@ -151,7 +146,6 @@ LOCALITY_COORDS = {
         'Viman Nagar': {'lat': 18.5700, 'lon': 73.8900},
         'Kalyani Nagar': {'lat': 18.5600, 'lon': 73.9000},
         'Aundh': {'lat': 18.5500, 'lon': 73.8000},
-        'Baner': {'lat': 18.5600, 'lon': 73.7800},
         'Balewadi': {'lat': 18.5700, 'lon': 73.7700},
         'Sus': {'lat': 18.5900, 'lon': 73.7600},
         'Mahalunge': {'lat': 18.5800, 'lon': 73.7500},
