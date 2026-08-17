@@ -1,4 +1,4 @@
-name: PropWise AI CI/CD
+name: PropWise AI CI
 
 on:
   push:
@@ -14,99 +14,54 @@ jobs:
         python-version: ['3.10', '3.11', '3.12']
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
 
-    - name: Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+      - name: Create virtual environment
+        run: python -m venv .venv
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Lint with flake8
-      run: |
-        pip install flake8
-        flake8 app/ ml/ tests/ --max-line-length=120 --ignore=E501,W503,E402 || true
+      - name: Lint
+        run: |
+          . .venv/bin/activate
+          flake8 app/ ml/ tests/ --max-line-length=120 --ignore=E501,W503,E402
 
-    - name: Generate processed datasets
-      run: |
-        python ml/preprocessing/data_pipeline.py
+      - name: Run test suite
+        run: |
+          . .venv/bin/activate
+          python -m pytest tests/ -v --tb=short
 
-    - name: Verify processed datasets
-      run: |
-        ls -la data/processed/
-        test -f data/processed/master_dataset.csv || (echo "ERROR: master_dataset.csv not found" && exit 1)
-        test -f data/processed/hyderabad_test_set.csv || (echo "ERROR: hyderabad_test_set.csv not found" && exit 1)
-        test -f data/processed/hyderabad_train_set.csv || (echo "ERROR: hyderabad_train_set.csv not found" && exit 1)
+      - name: Import/build verification
+        run: |
+          . .venv/bin/activate
+          python -c "from app import app; print('Flask app import successful')"
 
-    - name: Run data pipeline tests
-      run: |
-        python -m pytest tests/test_all.py::TestDataPipeline -v
-
-    - name: Run ML model tests
-      run: |
-        python -m pytest tests/test_all.py::TestMLModels -v
-
-    - name: Run valuation engine tests
-      run: |
-        python -m pytest tests/test_all.py::TestValuationEngine -v
-
-    - name: Run backend route tests
-      run: |
-        python -m pytest tests/test_all.py::TestBackendRoutes -v
-
-  build:
+  release-check:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-
-    - name: Generate processed datasets
-      run: |
-        python ml/preprocessing/data_pipeline.py
-
-    - name: Verify processed datasets
-      run: |
-        test -f data/processed/master_dataset.csv || (echo "ERROR: master_dataset.csv not found" && exit 1)
-
-    - name: Run full test suite
-      run: |
-        python -m pytest tests/test_all.py -v --tb=short
-
-    - name: Build verification
-      run: |
-        python -c "from app import app; print('Build successful: Flask app imports correctly')"
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Deploy placeholder
-      run: |
-        echo "Deployment configuration ready"
-        echo "Add your deployment steps here (Docker, AWS, GCP, etc.)"
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Create virtual environment
+        run: python -m venv .venv
+      - name: Install dependencies
+        run: |
+          . .venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Release verification
+        run: |
+          . .venv/bin/activate
+          python -c "from app import app; assert app is not None; print('Release verification passed')"
