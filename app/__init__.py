@@ -1,5 +1,9 @@
 import os
 import sys
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(BASE_DIR))
+
 import json
 import pandas as pd
 from datetime import datetime, timedelta
@@ -29,10 +33,6 @@ from flask_cors import CORS
 
 # PostgreSQL configuration
 from app.config.database import configure_database
-
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(BASE_DIR))
 
 
 # ---------------------------------------------------------

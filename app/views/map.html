@@ -1,180 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Property Map - PropWise AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <style>
-        #map { height: calc(100vh - 200px); min-height: 500px; border-radius: var(--radius); z-index: 1; }
-        .map-container { position: relative; }
-        .map-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .map-controls input {
-            flex: 1;
-            min-width: 200px;
-            padding: 12px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: var(--radius-sm);
-            font-size: 0.95rem;
-            font-family: inherit;
-        }
-        .map-controls input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        .map-legend {
-            background: white;
-            padding: 15px;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow);
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-            font-size: 0.85rem;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 5px;
-        }
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Map - PropWise AI</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ui_overhaul.css') }}">
+<style>
+.map-filters{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+.map-field label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--pw-text)}
+.map-field select{width:100%;padding:12px;border:1px solid var(--pw-border);border-radius:8px;background:#fff;color:var(--pw-text)}
+#pwMap{height:620px;border:1px solid var(--pw-border);border-radius:12px;overflow:hidden;background:var(--pw-soft)}
+.map-status{margin:10px 0;color:var(--pw-muted);font-size:.9rem}
+.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}
+.legend span{display:flex;align-items:center;gap:7px;font-size:.84rem}
+.dot{width:11px;height:11px;border-radius:50%}
+@media(max-width:800px){.map-filters{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-    <nav class="navbar scrolled">
-        <div class="nav-container">
-            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
-            <div class="nav-links">
-                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
-                <a href="/logout" class="btn-nav-login">Logout</a>
-            </div>
-        </div>
-    </nav>
+<nav class="navbar scrolled">
+<div class="nav-container">
+<a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+<div class="nav-links"><span>Welcome, <strong>{{ current_user.username }}</strong></span><a href="/logout" class="btn-nav-login">Logout</a></div>
+</div></nav>
 
-    <div class="dashboard-layout">
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
-                <small>{{ current_user.role }}</small>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="/dashboard"><i class="fas fa-home"></i> Valuation</a>
-                <a href="/what-if"><i class="fas fa-exchange-alt"></i> What-If</a>
-                <a href="/comparables"><i class="fas fa-balance-scale"></i> Comparables</a>
-                <a href="/bulk-valuation"><i class="fas fa-file-csv"></i> Bulk Valuation</a>
-                <a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
-                <a href="/map" class="active"><i class="fas fa-map-marked-alt"></i> Map</a>
-                <a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
-            </nav>
-        </aside>
+<div class="dashboard-layout">
+<aside class="sidebar">
+<div class="sidebar-header"><h3><i class="fas fa-map"></i> Property Map</h3><small>{{ current_user.role }}</small></div>
+<nav class="sidebar-nav">
+<a href="/dashboard"><i class="fas fa-calculator"></i> Valuation</a>
+<a href="/what-if"><i class="fas fa-sliders-h"></i> What-If</a>
+<a href="/comparables"><i class="fas fa-balance-scale"></i> Comparables</a>
+<a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
+<a href="/map" class="active"><i class="fas fa-map"></i> Map</a>
+<a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
+<a href="/experiments"><i class="fas fa-flask"></i> Experiments</a>
+{% if current_user.role=="admin" %}<a href="/admin"><i class="fas fa-user-shield"></i> Admin</a>{% endif %}
+</nav></aside>
 
-        <main class="main-content">
-            <div class="content-header">
-                <h1><i class="fas fa-map-marked-alt" style="color:var(--primary);"></i> Property Map</h1>
-                <p>Visualize properties and comparables on an interactive map</p>
-            </div>
+<main class="main-content">
+<div class="content-header"><h1><i class="fas fa-map-marker-alt" style="color:var(--pw-primary)"></i> Property Map</h1><p>Select a city and area to see property types available in that location.</p></div>
 
-            <div class="map-container animate-on-scroll">
-                <div class="map-controls">
-                    <input type="text" id="searchLocation" placeholder="Search location (e.g. Gachibowli, Hyderabad)">
-                    <button type="button" class="btn-primary" onclick="searchLocation()"><i class="fas fa-search"></i> Search</button>
-                </div>
+<section class="prediction-form-card">
+<div class="map-filters">
+<div class="map-field"><label for="pwCity">City</label><select id="pwCity"></select></div>
+<div class="map-field"><label for="pwArea">Area / Locality</label><select id="pwArea"><option value="">All areas</option></select></div>
+<button class="btn-primary" id="pwApply" type="button"><i class="fas fa-map-marker-alt"></i> Show Properties</button>
+</div>
+<div class="map-status" id="pwStatus">Loading locations...</div>
+<div id="pwMap"></div>
+<div class="legend">
+<span><i class="dot" style="background:#2F6F66"></i>Apartment</span>
+<span><i class="dot" style="background:#3F6D8F"></i>House</span>
+<span><i class="dot" style="background:#B85C38"></i>Villa</span>
+<span><i class="dot" style="background:#B68B2E"></i>Plot</span>
+</div>
+</section></main></div>
 
-                <div id="map"></div>
+<script>window.PROPWISE_GOOGLE_MAPS_KEY={{ config.get("GOOGLE_MAPS_API_KEY","")|tojson }};</script>
+<script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
+<script>
+let optionsData=null;
+const citySelect=document.getElementById("pwCity");
+const areaSelect=document.getElementById("pwArea");
+const statusEl=document.getElementById("pwStatus");
 
-                <div class="map-legend">
-                    <strong>Legend</strong>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background:#4f46e5;"></div>
-                        <span>Searched Location</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background:#4f46e5;"></div>
-                        <span>Comparable Properties</span>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+function fillAreas(){
+  areaSelect.innerHTML='<option value="">All areas</option>';
+  ((optionsData.localities||{})[citySelect.value]||[]).forEach(function(area){
+    const option=document.createElement("option");
+    option.value=area; option.textContent=area; areaSelect.appendChild(option);
+  });
+}
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const map = L.map('map').setView([17.385, 78.4867], 12);
+async function loadOptions(){
+  const response=await fetch("/api/map/options");
+  optionsData=await response.json();
+  citySelect.innerHTML="";
+  (optionsData.cities||[]).forEach(function(city,index){
+    const option=document.createElement("option");
+    option.value=city; option.textContent=city; if(index===0) option.selected=true;
+    citySelect.appendChild(option);
+  });
+  fillAreas();
+}
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+async function showProperties(){
+  const params=new URLSearchParams({city:citySelect.value});
+  if(areaSelect.value) params.set("locality",areaSelect.value);
+  const response=await fetch("/api/map/properties?"+params.toString());
+  const data=await response.json();
+  statusEl.textContent=(data.count||0)+" properties shown"+(areaSelect.value?" in "+areaSelect.value:" in "+citySelect.value);
+  try{
+    await window.PW_renderStandaloneMap("pwMap",data.properties||[]);
+  }catch(error){
+    document.getElementById("pwMap").innerHTML='<div class="map-api-message"><strong>Google Maps setup required.</strong><br>Add GOOGLE_MAPS_API_KEY to your .env.</div>';
+  }
+}
 
-        let markers = [];
-        let searchMarker = null;
-
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-
-        async function searchLocation() {
-            const query = document.getElementById('searchLocation').value;
-            if (!query) return;
-
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-            if (searchMarker) map.removeLayer(searchMarker);
-
-            try {
-                const response = await fetch('/api/map/search', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({query})
-                });
-                const data = await response.json();
-
-                if (data.lat && data.lng) {
-                    map.setView([data.lat, data.lng], 14);
-                    searchMarker = L.marker([data.lat, data.lng])
-                        .addTo(map)
-                        .bindPopup('<strong>Searched Location</strong><br>' + query);
-                }
-
-                if (data.comparables) {
-                    data.comparables.forEach(c => {
-                        const marker = L.marker([c.lat, c.lng])
-                            .addTo(map)
-                            .bindPopup(
-                                '<strong>' + c.locality + '</strong><br>' +
-                                c.area_sqft + ' sqft<br>' +
-                                '₹' + Number(c.price).toLocaleString() + '<br>' +
-                                '₹' + Number(c.price_per_sqft).toLocaleString() + '/sqft'
-                            );
-                        markers.push(marker);
-                    });
-                }
-            } catch(err) {
-                console.error('Search failed:', err);
-            }
-        }
-
-        document.getElementById('searchLocation').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchLocation();
-        });
-    </script>
+citySelect.addEventListener("change",fillAreas);
+document.getElementById("pwApply").addEventListener("click",showProperties);
+(async function(){try{await loadOptions();await showProperties();}catch(error){statusEl.textContent="Unable to load property locations.";}})();
+</script>
 </body>
 </html>

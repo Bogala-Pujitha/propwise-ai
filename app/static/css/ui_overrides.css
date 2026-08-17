@@ -1,0 +1,187 @@
+:root {
+  --ui-primary: #2F6F66;
+  --ui-primary-dark: #25574F;
+  --ui-primary-soft: #E4EFEC;
+  --ui-blue: #3F6D8F;
+  --ui-terracotta: #B85C38;
+  --ui-ochre: #B68B2E;
+  --ui-success: #2E7D32;
+  --ui-danger: #A63D40;
+  --ui-bg: #F6F7F4;
+  --ui-surface: #FFFFFF;
+  --ui-surface-soft: #F0F3F1;
+  --ui-text: #25313B;
+  --ui-muted: #647078;
+  --ui-border: #D8DEDB;
+  --ui-shadow: 0 8px 24px rgba(37,49,59,.08);
+  --ui-radius: 12px;
+}
+html { scroll-behavior: auto !important; }
+*, *::before, *::after {
+  animation: none !important;
+  transition: none !important;
+}
+.hero-particles, .scroll-indicator { display: none !important; }
+.animate-on-scroll, .glass-card {
+  opacity: 1 !important;
+  transform: none !important;
+  backdrop-filter: none !important;
+}
+body { background: var(--ui-bg) !important; color: var(--ui-text) !important; }
+.gradient-text {
+  background: none !important;
+  color: var(--ui-text) !important;
+  -webkit-text-fill-color: var(--ui-text) !important;
+}
+.navbar, .navbar.scrolled {
+  background: #F6F7F4 !important;
+  box-shadow: 0 1px 0 var(--ui-border) !important;
+  backdrop-filter: none !important;
+}
+.nav-logo, .nav-logo span { color: var(--ui-primary) !important; }
+.nav-links a, .nav-links span { color: var(--ui-text) !important; }
+.btn-nav-login, .btn-primary, .btn-predict {
+  background: var(--ui-primary) !important;
+  color: #fff !important;
+  border: 1px solid var(--ui-primary) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.btn-nav-login:hover, .btn-primary:hover, .btn-predict:hover, .btn-secondary:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+.btn-secondary {
+  background: #fff !important;
+  color: var(--ui-primary) !important;
+  border: 1px solid var(--ui-primary) !important;
+  box-shadow: none !important;
+}
+.hero, .features, .property-types { background: var(--ui-bg) !important; }
+.hero-text h1 { color: var(--ui-text) !important; }
+.hero-subtitle, .section-header p, .about-card p, .feature-card p, .step-card p, .property-card p {
+  color: var(--ui-muted) !important;
+}
+.stat-number, .stat-suffix, .price-value { color: var(--ui-primary) !important; }
+.prediction-demo, .prediction-form-card, .chart-card, .metric-card, .model-type-card, .admin-stat, .section, .trend-card, .comp-card {
+  background: var(--ui-surface) !important;
+  border: 1px solid var(--ui-border) !important;
+  box-shadow: var(--ui-shadow) !important;
+  border-radius: var(--ui-radius) !important;
+}
+.demo-header { background: var(--ui-primary) !important; }
+.demo-price { background: var(--ui-surface-soft) !important; }
+.feature-tag, .section-tag {
+  background: var(--ui-primary-soft) !important;
+  color: var(--ui-primary-dark) !important;
+}
+.sidebar {
+  background: #FBFCFB !important;
+  border-right: 1px solid var(--ui-border) !important;
+}
+.sidebar-header { border-bottom: 1px solid var(--ui-border) !important; }
+.sidebar-nav a {
+  color: var(--ui-text) !important;
+  border-left: 3px solid transparent !important;
+}
+.sidebar-nav a:hover, .sidebar-nav a.active {
+  background: var(--ui-primary-soft) !important;
+  color: var(--ui-primary-dark) !important;
+  border-left-color: var(--ui-primary) !important;
+}
+.main-content { background: var(--ui-bg) !important; }
+.content-header h1, .content-header h2, .prediction-form-card h2 {
+  color: var(--ui-text) !important;
+}
+.content-header p { color: var(--ui-muted) !important; }
+input, select, textarea, .dropdown-select {
+  background: #fff !important;
+  color: var(--ui-text) !important;
+  border: 1px solid var(--ui-border) !important;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid var(--ui-primary-soft) !important;
+  border-color: var(--ui-primary) !important;
+}
+.comparables-table th {
+  background: var(--ui-surface-soft) !important;
+  color: var(--ui-text) !important;
+}
+.comparables-table td { color: var(--ui-text) !important; }
+.comparables-table tr:hover { background: #fff !important; }
+.reliability-high, .trend-up {
+  background: #E6F2E7 !important;
+  color: var(--ui-success) !important;
+}
+.reliability-medium {
+  background: #F8F0DD !important;
+  color: #866417 !important;
+}
+.reliability-low, .sanity-warn, .ood-warning {
+  background: #FBE9E6 !important;
+  color: var(--ui-danger) !important;
+}
+.trend-down {
+  background: #FBE9E6 !important;
+  color: var(--ui-danger) !important;
+}
+#map, #mapContainer {
+  border: 1px solid var(--ui-border) !important;
+  border-radius: var(--ui-radius) !important;
+  overflow: hidden !important;
+}
+.admin-topbar {
+  background: #24313A !important;
+  color: #fff !important;
+}
+.admin-sidebar {
+  background: #2B3942 !important;
+  color: #F6F7F4 !important;
+}
+.admin-sidebar a { color: #E6ECE9 !important; }
+.admin-sidebar a.active, .admin-sidebar a:hover {
+  background: #385158 !important;
+  color: #fff !important;
+}
+.admin-content { background: #F3F5F2 !important; }
+.admin-card {
+  background: #fff !important;
+  border: 1px solid var(--ui-border) !important;
+  box-shadow: var(--ui-shadow) !important;
+  border-radius: var(--ui-radius) !important;
+}
+.admin-tool-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 14px;
+}
+.admin-tool-card {
+  display: block;
+  padding: 18px;
+  background: #fff;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  color: var(--ui-text);
+  text-decoration: none;
+  box-shadow: var(--ui-shadow);
+}
+.admin-tool-card strong { display: block; margin-top: 8px; }
+.admin-tool-card span { color: var(--ui-muted); font-size: .88rem; }
+.map-api-message {
+  min-height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px;
+  color: var(--ui-muted);
+  background: var(--ui-surface-soft);
+}
+@media (max-width:1100px) {
+  .admin-tool-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:800px) {
+  .dashboard-layout { display:block !important; }
+  .sidebar { width:100% !important; position:static !important; height:auto !important; }
+  .admin-tool-grid { grid-template-columns:1fr; }
+}
