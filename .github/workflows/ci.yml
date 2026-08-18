@@ -12,24 +12,27 @@ permissions:
   contents: read
 
 env:
-  PYTHON_VERSION: "3.11"
   SECRET_KEY: "ci-test-secret-key"
   FLASK_ENV: "testing"
   TESTING: "true"
 
 jobs:
   test:
-    name: Run Tests
+    name: Run Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
@@ -46,18 +49,22 @@ jobs:
           python -m pytest -q
 
   smoke-import:
-    name: Smoke Test
+    name: Smoke Test (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     needs: test
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
