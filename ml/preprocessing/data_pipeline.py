@@ -76,7 +76,10 @@ class DataQualityAuditor:
         }
 
     def assess_temporal_coverage(self, df):
-        date_cols = [c for c in df.columns if any(k in c.lower() for k in ['date', 'year', 'month', 'time', 'posted', 'transaction'])]
+        date_cols = [
+            c for c in df.columns
+            if any(k in c.lower() for k in ['date', 'year', 'month', 'time', 'posted', 'transaction'])
+        ]
         return {
             'has_temporal_columns': len(date_cols) > 0,
             'temporal_columns': date_cols,
@@ -112,10 +115,16 @@ class DataQualityAuditor:
 
         near_dups = 0
         if len(df) > 1 and len(df) < 5000:
-            str_cols = [c for c in df.select_dtypes(include='object').columns if c in ['locality', 'city', 'property_type']]
+            str_cols = [
+                c for c in df.select_dtypes(include='object').columns
+                if c in ['locality', 'city', 'property_type']
+            ]
             if str_cols:
                 sample = df[str_cols].head(min(1000, len(df)))
-                hashes = sample.apply(lambda x: x.str.lower().str.strip(), axis=1).apply(lambda x: hash(tuple(x.astype(str))), axis=1)
+                hashes = (
+                    sample.apply(lambda x: x.str.lower().str.strip(), axis=1)
+                    .apply(lambda x: hash(tuple(x.astype(str))), axis=1)
+                )
                 near_dups = len(hashes) - len(hashes.unique())
 
         source_rel = self.assess_source_reliability(name, df)
@@ -288,7 +297,10 @@ class DataCleaner:
 
     def remove_near_duplicates(self, df):
         before = len(df)
-        hash_cols = [c for c in ['locality', 'city', 'property_type', 'area_sqft', 'bhk', 'bathrooms', 'price'] if c in df.columns]
+        hash_cols = [
+            c for c in ['locality', 'city', 'property_type', 'area_sqft', 'bhk', 'bathrooms', 'price']
+            if c in df.columns
+        ]
         if hash_cols:
             df['_hash'] = df[hash_cols].apply(lambda x: hash(tuple(x.astype(str).str.lower().str.strip())), axis=1)
             df = df.drop_duplicates(subset=['_hash'])

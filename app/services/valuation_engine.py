@@ -61,7 +61,11 @@ class OODDetector:
         if 'area_sqft' in property_data and property_data['area_sqft']:
             area = property_data['area_sqft']
             if area < self.training_stats['area_sqft']['min'] or area > self.training_stats['area_sqft']['max']:
-                warnings.append(f"Area {area} sqft outside training range ({self.training_stats['area_sqft']['min']}-{self.training_stats['area_sqft']['max']})")
+                warnings.append(
+                    f"Area {area} sqft outside training range "
+                    f"({self.training_stats['area_sqft']['min']}-"
+                    f"{self.training_stats['area_sqft']['max']})"
+                )
                 is_ood = True
 
         if 'bhk' in property_data and property_data['bhk']:

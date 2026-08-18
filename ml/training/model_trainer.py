@@ -319,7 +319,11 @@ def select_best_experiment(all_results, models_dir):
         for exp_name in ['experiment_a', 'experiment_b', 'experiment_c']:
             if exp_name in all_results and all_results[exp_name] and pt in all_results[exp_name]:
                 m = all_results[exp_name][pt]['metrics']
-                print(f"  {exp_name:<20} {m['R2']:<10.4f} {m['MAE']:<15,.0f} {m['MAPE']:<10.1f} {m['within_10_pct']:<10.1f} {m['within_20_pct']:<10.1f}")
+                print(
+                    f"  {exp_name:<20} {m['R2']:<10.4f} {m['MAE']:<15,.0f} "
+                    f"{m['MAPE']:<10.1f} {m['within_10_pct']:<10.1f} "
+                    f"{m['within_20_pct']:<10.1f}"
+                )
 
                 if m['R2'] > best_r2:
                     best_r2 = m['R2']

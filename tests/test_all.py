@@ -96,10 +96,11 @@ class TestMLModels(unittest.TestCase):
 
 class TestValuationEngine(unittest.TestCase):
     def setUp(self):
-        sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        sys.path.insert(0, base_dir)
         from app.services.valuation_engine import ValuationEngine
-        models_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'models')
-        master_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'processed', 'master_dataset.csv')
+        models_dir = os.path.join(base_dir, 'models')
+        master_path = os.path.join(base_dir, 'data', 'processed', 'master_dataset.csv')
         master_df = pd.read_csv(master_path) if os.path.exists(master_path) else None
         self.engine = ValuationEngine(models_dir, master_df)
 

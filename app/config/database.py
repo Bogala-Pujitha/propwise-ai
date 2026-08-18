@@ -1,5 +1,6 @@
 import os
 
+
 def get_database_url() -> str:
     url = os.environ.get("DATABASE_URL")
     if not url:
@@ -13,6 +14,7 @@ def get_database_url() -> str:
     if not url.startswith("postgresql+psycopg2://"):
         raise RuntimeError("DATABASE_URL must use PostgreSQL. SQLite is not supported.")
     return url
+
 
 def configure_database(app) -> None:
     app.config["SQLALCHEMY_DATABASE_URI"] = get_database_url()
