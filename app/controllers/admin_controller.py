@@ -1,16 +1,13 @@
 from flask import Blueprint, jsonify
 from flask_login import current_user
 
+from app.extensions import db
+from app.models import Activity, AuditLog, Prediction, User
 from app.services.auth_service import is_admin
 from app.services.activity_service import record_audit
 from app.services.analytics import build_admin_summary
 
 admin_bp = Blueprint("admin_api", __name__, url_prefix="/api/admin")
-
-
-def _deps():
-    from app import db, User, Prediction, Activity, AuditLog
-    return db, User, Prediction, Activity, AuditLog
 
 
 def _admin_only():
@@ -25,7 +22,6 @@ def require_admin():
 
 @admin_bp.get("/users")
 def users():
-    db, User, Prediction, Activity, AuditLog = _deps()
     rows = []
     for user in User.query.order_by(User.created_at.desc()).all():
         rows.append({
@@ -44,7 +40,6 @@ def users():
 
 @admin_bp.get("/dashboard")
 def dashboard():
-    db, User, Prediction, Activity, AuditLog = _deps()
     summary = build_admin_summary(db, User, Prediction, Activity)
     record_audit(db, AuditLog, current_user.id, "view_dashboard", "Viewed admin dashboard API")
     db.session.commit()
@@ -62,7 +57,6 @@ def dashboard():
 
 @admin_bp.get("/audit")
 def audit():
-    db, User, Prediction, Activity, AuditLog = _deps()
     logs = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(100).all()
     return jsonify({
         "logs": [

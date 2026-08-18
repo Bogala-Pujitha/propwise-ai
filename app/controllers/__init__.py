@@ -12,14 +12,24 @@ from .valuation_controller import valuation_bp
 from .comparable_controller import comparable_bp
 from .what_if_controller import what_if_bp
 from .behavior_controller import behavior_bp
+from .map_controller import map_bp
+from .password_reset_controller import password_reset_bp
 
 
 def register_blueprints(app):
-    app.register_blueprint(auth_bp)
-    app.register_blueprint(user_bp)
-    app.register_blueprint(admin_bp)
-    app.register_blueprint(analytics_bp)
-    app.register_blueprint(valuation_bp)
-    app.register_blueprint(comparable_bp)
-    app.register_blueprint(what_if_bp)
-    app.register_blueprint(behavior_bp)
+    """Register every API controller once for this application instance."""
+    blueprints = (
+        auth_bp,
+        user_bp,
+        admin_bp,
+        analytics_bp,
+        valuation_bp,
+        comparable_bp,
+        what_if_bp,
+        behavior_bp,
+        map_bp,
+        password_reset_bp,
+    )
+    for blueprint in blueprints:
+        if blueprint.name not in app.blueprints:
+            app.register_blueprint(blueprint)

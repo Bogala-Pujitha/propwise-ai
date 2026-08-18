@@ -1,6 +1,27 @@
-"""Production security helpers for the Flask application."""
+"""Production security and authorization helpers for the Flask application."""
 
 from __future__ import annotations
+
+from functools import wraps
+
+from flask import flash, redirect, url_for
+from flask_login import current_user
+
+
+def admin_required(view_func):
+    """Protect browser routes while preserving the legacy login redirect UX."""
+
+    @wraps(view_func)
+    def wrapped(*args, **kwargs):
+        if (
+            not current_user.is_authenticated
+            or getattr(current_user, "role", None) != "admin"
+        ):
+            flash("Admin access required", "error")
+            return redirect(url_for("login"))
+        return view_func(*args, **kwargs)
+
+    return wrapped
 
 
 def configure_security(app):

@@ -11,14 +11,12 @@ from typing import Any
 
 from flask_login import current_user
 
+from app.extensions import db
+from app.models import Activity
+
 
 def _deps():
-    try:
-        from app.models.database import Activity, db
-        return db, Activity
-    except (ImportError, AttributeError):
-        from app import Activity, db
-        return db, Activity
+    return db, Activity
 
 
 def track(

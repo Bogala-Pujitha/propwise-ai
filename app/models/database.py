@@ -1,9 +1,11 @@
-from app import db, User, Prediction, Activity, AuditLog
+"""Compatibility imports for code using the former monolithic model module."""
 
-__all__ = [
-    "db",
-    "User",
-    "Prediction",
-    "Activity",
-    "AuditLog",
-]
+from app.extensions import db
+from .activity import Activity
+from .audit import AuditLog
+from .prediction import Prediction
+from .user import User
+
+Admin = User
+
+__all__ = ["db", "User", "Prediction", "Activity", "AuditLog", "Admin"]

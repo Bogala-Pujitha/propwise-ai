@@ -1,6 +1,9 @@
 from flask import request
 from flask_login import current_user
 
+from app.extensions import db
+from app.models import AuditLog
+
 ACTIONS = {
     "/admin": (
         "view_admin_dashboard",
@@ -32,8 +35,6 @@ def register_admin_audit_hooks(app):
             and getattr(current_user, "role", None) == "admin"
         ):
             try:
-                from app import db, AuditLog
-
                 action, details = ACTIONS[path]
 
                 db.session.add(
@@ -48,7 +49,6 @@ def register_admin_audit_hooks(app):
 
             except Exception:
                 try:
-                    from app import db
                     db.session.rollback()
                 except Exception:
                     pass

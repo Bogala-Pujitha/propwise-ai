@@ -7,6 +7,8 @@ import os
 from flask import Blueprint, jsonify, request, url_for
 from werkzeug.security import generate_password_hash
 
+from app.extensions import bcrypt, db
+from app.models import User
 from app.services.email_service import send_password_reset_email
 from app.services.password_reset import generate_reset_token, verify_reset_token
 
@@ -17,18 +19,8 @@ password_reset_bp = Blueprint(
 )
 
 
-def _deps():
-    try:
-        from app.models.database import User, db
-        return User, db
-    except (ImportError, AttributeError):
-        from app import User, db
-        return User, db
-
-
 @password_reset_bp.post("/forgot-password")
 def forgot_password():
-    User, _db = _deps()
     data = request.get_json(silent=True) or request.form
     email = str(data.get("email", "")).strip().lower()
 
@@ -71,7 +63,6 @@ def forgot_password():
 
 @password_reset_bp.post("/reset-password")
 def reset_password():
-    User, db = _deps()
     data = request.get_json(silent=True) or request.form
     token = str(data.get("token", "")).strip()
     password = str(data.get("password", ""))
@@ -96,7 +87,6 @@ def reset_password():
     # The project's canonical authentication stack uses bcrypt. Import it here
     # so the password remains compatible with existing login().
     try:
-        from app import bcrypt
         user.password_hash = bcrypt.generate_password_hash(password).decode("utf-8")
     except Exception:
         user.password_hash = generate_password_hash(password)

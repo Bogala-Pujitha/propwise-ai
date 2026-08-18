@@ -1,15 +1,12 @@
 from flask import Blueprint, jsonify
 from flask_login import current_user, login_required
 
+from app.extensions import db
+from app.models import Activity, Prediction, User
 from app.services.analytics import build_user_summary
 from app.services.activity_service import record_activity
 
 user_bp = Blueprint("user_api", __name__, url_prefix="/api/user")
-
-
-def _deps():
-    from app import db, User, Prediction, Activity
-    return db, User, Prediction, Activity
 
 
 @user_bp.get("/profile")
@@ -27,7 +24,6 @@ def profile():
 @user_bp.get("/history")
 @login_required
 def history():
-    db, User, Prediction, Activity = _deps()
     summary = build_user_summary(User, Prediction, Activity, current_user.id)
     return jsonify({
         "prediction_count": summary["prediction_count"],
@@ -59,7 +55,6 @@ def history():
 @user_bp.post("/track")
 @login_required
 def track():
-    db, _, _, Activity = _deps()
     record_activity(db, Activity, current_user.id, "ui_event", "User dashboard event")
     db.session.commit()
     return jsonify({"success": True})

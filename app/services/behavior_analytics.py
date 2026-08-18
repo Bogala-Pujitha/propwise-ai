@@ -11,6 +11,9 @@ from collections import Counter
 from datetime import datetime, timedelta
 from typing import Any
 
+from app.extensions import db
+from app.models import Activity, User
+
 
 PROPERTY_EVENTS = {"property_view", "comparable_search", "similar_property_search"}
 LOCATION_EVENTS = {"location_view", "property_view", "comparable_search"}
@@ -18,12 +21,7 @@ SEARCH_EVENTS = {"comparable_search", "similar_property_search", "what_if_run"}
 
 
 def _deps():
-    try:
-        from app.models.database import Activity, User, db
-        return db, Activity, User
-    except (ImportError, AttributeError):
-        from app import Activity, User, db
-        return db, Activity, User
+    return db, Activity, User
 
 
 def _parse_details(raw: str | None) -> dict[str, Any]:

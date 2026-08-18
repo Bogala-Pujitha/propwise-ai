@@ -1,15 +1,12 @@
 from flask import Blueprint, jsonify
 from flask_login import login_required, current_user
 
+from app.extensions import db
+from app.models import Activity, Prediction, User
 from app.services.auth_service import is_admin
 from app.services.analytics import build_admin_summary
 
 analytics_bp = Blueprint("analytics_api", __name__, url_prefix="/api/analytics")
-
-
-def _deps():
-    from app import db, User, Prediction, Activity
-    return db, User, Prediction, Activity
 
 
 @analytics_bp.get("/admin/summary")
@@ -17,7 +14,6 @@ def _deps():
 def admin_summary():
     if not is_admin(current_user):
         return jsonify({"success": False, "error": "Admin access required"}), 403
-    db, User, Prediction, Activity = _deps()
     summary = build_admin_summary(db, User, Prediction, Activity)
     return jsonify({
         "total_users": summary["total_users"],

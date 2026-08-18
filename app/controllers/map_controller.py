@@ -5,6 +5,7 @@ from app.services.geocoding import (
     get_city_coords,
     get_locality_coords,
 )
+from app.runtime import get_runtime
 
 map_bp = Blueprint(
     "map_api",
@@ -14,10 +15,10 @@ map_bp = Blueprint(
 
 
 def _df():
-    from app import MASTER_DF, init_engine
-    if MASTER_DF is None:
-        init_engine()
-    return MASTER_DF
+    runtime = get_runtime()
+    if runtime.master_df is None:
+        runtime.initialize()
+    return runtime.master_df
 
 
 def _normalise_type(value):

@@ -8,14 +8,12 @@ from datetime import datetime, timedelta
 
 from sqlalchemy import func
 
+from app.extensions import db
+from app.models import Activity, Prediction, User
+
 
 def _models():
-    try:
-        from app.models.database import Activity, Prediction, User, db
-        return db, User, Prediction, Activity
-    except (ImportError, AttributeError):
-        from app import db, User, Prediction, Activity
-        return db, User, Prediction, Activity
+    return db, User, Prediction, Activity
 
 
 def admin_summary(days=30):

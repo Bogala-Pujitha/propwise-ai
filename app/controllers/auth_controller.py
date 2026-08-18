@@ -2,6 +2,8 @@ from datetime import datetime
 from flask import Blueprint, jsonify, request, session
 from flask_login import current_user, login_required
 
+from app.extensions import bcrypt, db
+from app.models import Activity, User
 from app.services.auth_service import register_user, authenticate_user, logout_account, is_admin
 from app.services.activity_service import record_activity
 
@@ -9,14 +11,8 @@ from app.services.activity_service import record_activity
 auth_bp = Blueprint("auth_api", __name__, url_prefix="/api/auth")
 
 
-def _deps():
-    from app import db, bcrypt, User, Activity
-    return db, bcrypt, User, Activity
-
-
 @auth_bp.post("/register")
 def api_register():
-    db, bcrypt, User, Activity = _deps()
     data = request.get_json(silent=True) or request.form
     try:
         user = register_user(
@@ -35,10 +31,7 @@ def api_register():
 
 @auth_bp.post("/login")
 def api_login():
-    db, _, User, Activity = _deps()
     data = request.get_json(silent=True) or request.form
-    # bcrypt instance is imported in the dependency helper below for testability.
-    _, bcrypt, _, _ = _deps()
     user = authenticate_user(
         User, bcrypt,
         username=data.get("username", ""),
@@ -57,7 +50,6 @@ def api_login():
 @auth_bp.post("/logout")
 @login_required
 def api_logout():
-    db, _, _, Activity = _deps()
     record_activity(db, Activity, current_user.id, "logout", "API logout")
     db.session.commit()
     logout_account()

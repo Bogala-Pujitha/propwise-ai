@@ -1,25 +1,28 @@
-"""
-Central activity/event tracking for PropWise AI.
-
-Uses the existing Activity model from app.models.database when available,
-or the legacy model exported from app.__init__ in the current application.
-"""
+"""Central activity and audit persistence for PropWise AI."""
 import json
 
 from flask_login import current_user
 
+from app.extensions import db as extension_db
+from app.models import Activity, AuditLog
+
 
 def _models():
-    try:
-        from app.models.database import Activity, db
-        return db, Activity
-    except (ImportError, AttributeError):
-        from app import db, Activity
-        return db, Activity
+    return extension_db, Activity
 
 
-def record_activity(db, model_class, user_id, activity_type, details=None, commit=True):
+def record_activity(
+    db=None,
+    model_class=None,
+    user_id=None,
+    activity_type=None,
+    details=None,
+    commit=True,
+):
     """Persist a normalized activity record."""
+    default_db, default_model = _models()
+    db = db or default_db
+    model_class = model_class or default_model
     resolved_user_id = user_id
     if resolved_user_id is None and current_user.is_authenticated:
         resolved_user_id = current_user.id
@@ -36,7 +39,7 @@ def record_activity(db, model_class, user_id, activity_type, details=None, commi
 
     activity = model_class(
         user_id=resolved_user_id,
-        activity_type=str(activity_type)[:50],
+        activity_type=str(activity_type or "")[:50],
         details=payload,
     )
     db.session.add(activity)
@@ -47,8 +50,17 @@ def record_activity(db, model_class, user_id, activity_type, details=None, commi
     return activity
 
 
-def record_audit(db, model_class, admin_id, action, details=None, commit=True):
+def record_audit(
+    db=None,
+    model_class=None,
+    admin_id=None,
+    action=None,
+    details=None,
+    commit=True,
+):
     """Persist an audit log entry for an admin action."""
+    db = db or extension_db
+    model_class = model_class or AuditLog
     if isinstance(details, (dict, list)):
         payload = json.dumps(details, default=str)
     elif details is None:
@@ -58,7 +70,7 @@ def record_audit(db, model_class, admin_id, action, details=None, commit=True):
 
     entry = model_class(
         admin_id=admin_id,
-        action=str(action)[:100],
+        action=str(action or "")[:100],
         details=payload,
     )
     db.session.add(entry)
