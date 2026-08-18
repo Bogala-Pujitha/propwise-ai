@@ -436,6 +436,19 @@ tr:hover td {
     color: #991B1B;
 }
 
+/* WHAT-IF FORMS */
+.whatif-forms-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .whatif-forms-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* MAP */
 .map-container {
     height: 400px;

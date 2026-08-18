@@ -17,6 +17,59 @@
             border-bottom: 1px solid var(--border);
             margin-bottom: 0;
         }
+
+        /* =========================================================
+   USER HEADER
+   Visible only for normal users
+========================================================= */
+
+.user-header {
+    height: 64px;
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 28px;
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid #e2e8f0;
+
+    position: sticky;
+    top: 0;
+
+    z-index: 1000;
+}
+
+
+.user-header-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    color: #4338CA;
+
+    text-decoration: none;
+
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+
+.user-header-logo i {
+    font-size: 1.15rem;
+}
+
+
+.user-header-text {
+    color: #64748B;
+
+    font-size: 0.88rem;
+    font-weight: 500;
+}
         .admin-stat {
             display: flex;
             align-items: center;
@@ -69,6 +122,52 @@
             height: calc(100vh - 120px);
             overflow-y: auto;
         }
+
+        .user-dashboard-page .dashboard-layout {
+    min-height: calc(100vh - 64px);
+}
+
+
+.user-dashboard-page .sidebar {
+    top: 64px;
+    height: calc(100vh - 64px);
+}
+
+.visualization-legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 14px;
+
+    margin-top: 12px;
+    padding-top: 10px;
+
+    border-top: 1px solid var(--border);
+}
+
+
+.visualization-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+
+.visualization-legend-dot {
+    width: 9px;
+    height: 9px;
+
+    border-radius: 50%;
+
+    display: inline-block;
+}
+
         .sidebar-title {
             padding: 0 20px 15px;
             font-size: 11px;
@@ -522,37 +621,88 @@
         }
     </style>
 </head>
-<body>
+<body class="{% if current_user.role == 'admin' %}admin-dashboard-page{% else %}user-dashboard-page{% endif %}">
+    {% if current_user.role == 'admin' %}
+    
+    <!-- =========================================================
+             ADMIN HEADER / STATS
+             Visible only to administrators
+        ========================================================== -->
+    
     <div class="admin-stats-bar">
+    
         <div class="admin-stat">
-            <div class="admin-stat-icon users">👥</div>
+            <div class="admin-stat-icon users">
+                👥
+            </div>
+    
             <div class="admin-stat-info">
                 <h4>{{ total_users }}</h4>
                 <p>Total Users</p>
             </div>
         </div>
+    
+    
         <div class="admin-stat">
-            <div class="admin-stat-icon predictions">📊</div>
+            <div class="admin-stat-icon predictions">
+                📊
+            </div>
+    
             <div class="admin-stat-info">
                 <h4>{{ total_predictions }}</h4>
                 <p>Total Predictions</p>
             </div>
         </div>
+    
+    
         <div class="admin-stat">
-            <div class="admin-stat-icon types">🏢</div>
+            <div class="admin-stat-icon types">
+                🏢
+            </div>
+    
             <div class="admin-stat-info">
                 <h4>{{ unique_viewed_users }}</h4>
                 <p>Unique Viewed Users</p>
             </div>
         </div>
+    
+    
         <div class="admin-stat">
-            <div class="admin-stat-icon cities">🏙️</div>
+            <div class="admin-stat-icon cities">
+                🏙️
+            </div>
+    
             <div class="admin-stat-info">
                 <h4>{{ predictions|length }}</h4>
                 <p>Recent Predictions</p>
             </div>
         </div>
+    
     </div>
+    
+    {% else %}
+    
+    <!-- =========================================================
+             USER HEADER
+             Similar branding to the login page
+        ========================================================== -->
+    
+    <header class="user-header">
+    
+        <a href="/" class="user-header-logo">
+            <i class="fas fa-home"></i>
+            <span>PropWise AI</span>
+        </a>
+    
+        <div class="user-header-right">
+            <span class="user-header-text">
+                Property Valuation
+            </span>
+        </div>
+    
+    </header>
+    
+    {% endif %}
 
     <div class="dashboard-layout">
         <div class="sidebar">
@@ -567,18 +717,49 @@
             <a href="#comparables-section">🏠 Comparables</a>
             <a href="#whatif-section">🔮 What-If</a>
             <a href="#history-section">🕐 History</a>
-            <div class="divider"></div>
-            <div class="section-label">Admin Tools</div>
-            <a href="/bulk-valuation">📦 Bulk Valuation</a>
-            <a href="/market-intelligence">🧠 Market Intel</a>
-            <a href="/experiments">🧪 Experiments</a>
-            <a href="/model-performance">⚡ Models</a>
-            <div class="divider"></div>
-            <div class="section-label">Admin Panel</div>
-            <a href="/admin/users">👥 Users</a>
-            <a href="/admin/analytics">📈 Analytics</a>
-            <a href="/admin/audit">🔒 Audit</a>
-        </div>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+
+    <div class="divider"></div>
+
+    <div class="section-label">
+        Admin Tools
+    </div>
+
+    <a href="/bulk-valuation">
+        📦 Bulk Valuation
+    </a>
+
+    <a href="/market-intelligence">
+        🧠 Market Intel
+    </a>
+
+    <a href="/experiments">
+        🧪 Experiments
+    </a>
+
+    <a href="/model-performance">
+        ⚡ Models
+    </a>
+
+    <div class="divider"></div>
+
+    <div class="section-label">
+        Admin Panel
+    </div>
+
+    <a href="/admin/users">
+        👥 Users
+    </a>
+
+    <a href="/admin/analytics">
+        📈 Analytics
+    </a>
+
+    <a href="/admin/audit">
+        🔒 Audit
+    </a>
+
+{% endif %}        </div>
 
         <div class="main-content">
             <div class="section" id="valuation">
@@ -595,8 +776,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Locality</label>
-                            <select class="dropdown-select" id="locality" name="locality">
+                            <label>Locality <span style="color:#DC2626;">*</span></label>                            <select class="dropdown-select" id="locality" name="locality">
                                 <option value="">Select Locality</option>
                             </select>
                         </div>
@@ -609,8 +789,7 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Area (sq ft)</label>
-                            <select class="dropdown-select" id="area" name="area">
+                            <label>Area (sq ft) <span style="color:#DC2626;">*</span></label>                            <select class="dropdown-select" id="area" name="area">
                                 {% for ar in dropdown.get('area_ranges', []) %}
                                 <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
                                 {% endfor %}
@@ -700,9 +879,36 @@
                     <h2>Price Analysis</h2>
                     <div class="charts-grid">
                         <div class="chart-card">
+                        
                             <h3>Price by Property Type</h3>
-                            <div style="position:relative;height:180px;"><canvas id="priceBarChart"></canvas></div>
-                        </div>
+                        
+                            <div style="position:relative;height:180px;">
+                                <canvas id="priceBarChart"></canvas>
+                            </div>
+                        
+                            <div class="visualization-legend">
+                        
+                                <div class="visualization-legend-item">
+                                    <span class="visualization-legend-dot" style="background:#1E3A8A;"></span>
+                                    <span>Apartment</span>
+                                </div>
+                        
+                                <div class="visualization-legend-item">
+                                    <span class="visualization-legend-dot" style="background:#475569;"></span>
+                                    <span>House</span>
+                                </div>
+                        
+                                <div class="visualization-legend-item">
+                                    <span class="visualization-legend-dot" style="background:#B85C38;"></span>
+                                    <span>Villa</span>
+                                </div>
+                        
+                                <div class="visualization-legend-item">
+                                    <span class="visualization-legend-dot" style="background:#B68B2E;"></span>
+                                    <span>Plot</span>
+                                </div>
+                        
+                            </div>                  </div>
                         <div class="chart-card">
                             <h3>Value Distribution</h3>
                             <div style="position:relative;height:180px;"><canvas id="valueDoughnut"></canvas></div>
@@ -734,12 +940,7 @@
                         </select>
                     </div>
                     <div class="map-container" id="mapContainer" style="height: 300px;"></div>
-                    <div class="map-legend">
-                        <div class="legend-item"><span class="legend-dot" style="background: #1E3A8A;"></span> Apartment</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #475569;"></span> House</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #B85C38;"></span> Villa</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #B68B2E;"></span> Plot</div>
-                    </div>
+                    
                 </div>
 
                 <div class="section" id="shap-section">
@@ -851,12 +1052,64 @@
     </div>
 
     <script>
-    const MARKER_COLORS = {
-        'Apartment': '#1E3A8A',
-        'House': '#475569',
-        'Villa': '#B85C38',
-        'Plot': '#B68B2E'
+   /* =========================================================
+    PROPERTY TYPE COLORS
+    Single source of truth for every visualization.
+ ========================================================= */
+
+    const PROPERTY_TYPE_COLORS = {
+        Apartment: '#1E3A8A',  // Blue
+        House: '#475569',      // Slate
+        Villa: '#B85C38',      // Brown
+        Plot: '#B68B2E'         // Gold
     };
+
+
+    /* Normalize property type values coming from backend/data. */
+    function normalizePropertyType(type) {
+
+        const value = String(type || '')
+            .trim()
+            .toLowerCase()
+            .replace(/[\s_-]+/g, '');
+
+        if (value === 'apartment' || value === 'flat') {
+            return 'Apartment';
+        }
+
+        if (
+            value === 'house' ||
+            value === 'independenthouse'
+        ) {
+            return 'House';
+        }
+
+        if (value === 'villa') {
+            return 'Villa';
+        }
+
+        if (
+            value === 'plot' ||
+            value === 'land'
+        ) {
+            return 'Plot';
+        }
+
+        return 'Apartment';
+    }
+
+
+    /* Get the correct color for any property type. */
+    function getPropertyTypeColor(type) {
+
+        const normalizedType =
+            normalizePropertyType(type);
+
+        return (
+            PROPERTY_TYPE_COLORS[normalizedType] ||
+            PROPERTY_TYPE_COLORS.Apartment
+        );
+    }
 
         const FUTURE_TREND_GROWTH = {
             'Hyderabad': 1.2,
@@ -882,40 +1135,405 @@
         let map = null;
         let mapMarkers = [];
 
-        async function predict() {
-            const form = document.getElementById('valuationForm');
-            const formData = new FormData(form);
-            const formDataObj = {};
-            formData.forEach(function(value, key) { formDataObj[key] = value; });
+        function showPredictionValidationMessage(message) {
+                let messageElement =
+                    document.getElementById('predictionValidationMessage');
 
-            const payload = {
-                property_type: formDataObj.property_type || 'Apartment',
-                city: formDataObj.city || 'Hyderabad',
-                locality: formDataObj.locality || '',
-                area_sqft: parseFloat(formDataObj.area) || 0,
-                bhk: parseInt(formDataObj.bedrooms) || 2,
-                bathrooms: parseInt(formDataObj.bathrooms) || 2,
-                property_age: parseInt(formDataObj.age) || 5,
-                furnishing: formDataObj.furnishing || '',
-                facing: formDataObj.facing || '',
-                floor: parseInt(formDataObj.floor) || 0,
-                total_floors: parseInt(formDataObj.total_floors) || 0,
-                parking: formDataObj.parking || '',
-            };
+                // Create the message container once.
+                if (!messageElement) {
+                    messageElement = document.createElement('div');
 
-            try {
-                const response = await fetch('/api/valuation/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                predictionData = await response.json();
-                renderPrediction();
-            } catch (err) {
-                console.error('Prediction failed:', err);
+                    messageElement.id = 'predictionValidationMessage';
+
+                    messageElement.style.marginTop = '12px';
+                    messageElement.style.padding = '12px 16px';
+                    messageElement.style.border = '1px solid #FECACA';
+                    messageElement.style.background = '#FEF2F2';
+                    messageElement.style.color = '#991B1B';
+                    messageElement.style.borderRadius = '8px';
+                    messageElement.style.fontSize = '14px';
+                    messageElement.style.fontWeight = '600';
+
+                    const valuationForm =
+                        document.getElementById('valuationForm');
+
+                    if (valuationForm) {
+                        valuationForm.parentNode.insertBefore(
+                            messageElement,
+                            valuationForm.nextSibling
+                        );
+                    }
+                }
+
+                messageElement.textContent = '⚠️ ' + message;
+                messageElement.style.display = 'block';
+
+                // Highlight the missing fields.
+                const localityElement =
+                    document.getElementById('locality');
+
+                const areaElement =
+                    document.getElementById('area');
+
+                if (localityElement) {
+                    localityElement.style.borderColor =
+                        !localityElement.value
+                            ? '#DC2626'
+                            : '';
+                }
+
+                if (areaElement) {
+                    const areaValue =
+                        parseFloat(areaElement.value);
+
+                    areaElement.style.borderColor =
+                        (!areaElement.value ||
+                            Number.isNaN(areaValue) ||
+                            areaValue <= 0)
+                            ? '#DC2626'
+                            : '';
+                }
             }
-        }
 
+
+            function clearPredictionValidationMessage() {
+                const messageElement =
+                    document.getElementById('predictionValidationMessage');
+
+                if (messageElement) {
+                    messageElement.style.display = 'none';
+                }
+
+                const localityElement =
+                    document.getElementById('locality');
+
+                const areaElement =
+                    document.getElementById('area');
+
+                if (localityElement) {
+                    localityElement.style.borderColor = '';
+                }
+
+                if (areaElement) {
+                    areaElement.style.borderColor = '';
+                }
+            }
+
+            async function predict() {
+                    const form = document.getElementById('valuationForm');
+
+                    const localityElement =
+                        document.getElementById('locality');
+
+                    const areaElement =
+                        document.getElementById('area');
+
+                    const locality =
+                        (localityElement.value || '').trim();
+
+                    const areaRaw =
+                        (areaElement.value || '').trim();
+
+                    let areaValid = false;
+
+                    if (areaRaw !== '') {
+                        const areaValue = parseFloat(areaRaw);
+
+                        if (
+                            !Number.isNaN(areaValue) &&
+                            areaValue > 0
+                        ) {
+                            areaValid = true;
+                        }
+                    }
+
+                    // ============================================================
+                    // STOP BEFORE API CALL
+                    // ============================================================
+
+                    if (!locality || !areaValid) {
+
+                        predictionData = null;
+
+                        const predictionResult =
+                            document.getElementById(
+                                'predictionResult'
+                            );
+
+                        if (predictionResult) {
+                            predictionResult.style.display =
+                                'none';
+                        }
+
+                        showPredictionValidationMessage(
+                            'Please enter locality and area.'
+                        );
+
+                        return;
+                    }
+
+                    clearPredictionValidationMessage();
+
+                    const formData =
+                        new FormData(form);
+
+                    const formDataObj = {};
+
+                    formData.forEach(
+                        function (value, key) {
+                            formDataObj[key] = value;
+                        }
+                    );
+
+                    const payload = {
+                        property_type:
+                            formDataObj.property_type ||
+                            'Apartment',
+
+                        city:
+                            formDataObj.city ||
+                            'Hyderabad',
+
+                        locality:
+                            locality,
+
+                        area_sqft:
+                            parseFloat(areaRaw),
+
+                        bhk:
+                            parseInt(
+                                formDataObj.bedrooms
+                            ) || 2,
+
+                        bathrooms:
+                            parseInt(
+                                formDataObj.bathrooms
+                            ) || 2,
+
+                        property_age:
+                            parseInt(
+                                formDataObj.age
+                            ) || 5,
+
+                        furnishing:
+                            formDataObj.furnishing || '',
+
+                        facing:
+                            formDataObj.facing || '',
+
+                        floor:
+                            parseInt(
+                                formDataObj.floor
+                            ) || 0,
+
+                        total_floors:
+                            parseInt(
+                                formDataObj.total_floors
+                            ) || 0,
+
+                        parking:
+                            formDataObj.parking || '',
+                    };
+
+                    try {
+
+                        const response =
+                            await fetch(
+                                '/api/valuation/predict',
+                                {
+                                    method: 'POST',
+
+                                    headers: {
+                                        'Content-Type':
+                                            'application/json'
+                                    },
+
+                                    body:
+                                        JSON.stringify(payload)
+                                }
+                            );
+
+                        const data =
+                            await response.json();
+
+                        if (!response.ok) {
+
+                            predictionData = null;
+
+                            const predictionResult =
+                                document.getElementById(
+                                    'predictionResult'
+                                );
+
+                            if (predictionResult) {
+                                predictionResult.style.display =
+                                    'none';
+                            }
+
+                            showPredictionValidationMessage(
+                                data.error ||
+                                'Please enter locality and area.'
+                            );
+
+                            return;
+                        }
+
+                        predictionData = data;
+
+                        renderPrediction();
+
+                    } catch (err) {
+
+                        console.error(
+                            'Prediction failed:',
+                            err
+                        );
+
+                        predictionData = null;
+
+                        const predictionResult =
+                            document.getElementById(
+                                'predictionResult'
+                            );
+
+                        if (predictionResult) {
+                            predictionResult.style.display =
+                                'none';
+                        }
+
+                        showPredictionValidationMessage(
+                            'Unable to get the valuation. Please try again.'
+                        );
+                    }
+                }
+
+                function showPredictionValidationMessage(message) {
+                        let messageElement =
+                            document.getElementById(
+                                'predictionValidationMessage'
+                            );
+
+                        if (!messageElement) {
+
+                            messageElement =
+                                document.createElement('div');
+
+                            messageElement.id =
+                                'predictionValidationMessage';
+
+                            messageElement.style.marginTop =
+                                '12px';
+
+                            messageElement.style.padding =
+                                '12px 16px';
+
+                            messageElement.style.border =
+                                '1px solid #FECACA';
+
+                            messageElement.style.background =
+                                '#FEF2F2';
+
+                            messageElement.style.color =
+                                '#991B1B';
+
+                            messageElement.style.borderRadius =
+                                '8px';
+
+                            messageElement.style.fontSize =
+                                '14px';
+
+                            messageElement.style.fontWeight =
+                                '600';
+
+                            const form =
+                                document.getElementById(
+                                    'valuationForm'
+                                );
+
+                            if (form) {
+                                form.parentNode.insertBefore(
+                                    messageElement,
+                                    form.nextSibling
+                                );
+                            }
+                        }
+
+                        messageElement.textContent =
+                            '⚠️ ' + message;
+
+                        messageElement.style.display =
+                            'block';
+
+                        const localityElement =
+                            document.getElementById(
+                                'locality'
+                            );
+
+                        const areaElement =
+                            document.getElementById(
+                                'area'
+                            );
+
+                        if (localityElement) {
+
+                            localityElement.style.borderColor =
+                                !localityElement.value
+                                    ? '#DC2626'
+                                    : '';
+                        }
+
+                        if (areaElement) {
+
+                            const areaValue =
+                                parseFloat(
+                                    areaElement.value
+                                );
+
+                            areaElement.style.borderColor =
+                                (
+                                    !areaElement.value ||
+                                    Number.isNaN(areaValue) ||
+                                    areaValue <= 0
+                                )
+                                    ? '#DC2626'
+                                    : '';
+                        }
+                    }
+
+
+                    function clearPredictionValidationMessage() {
+                        const messageElement =
+                            document.getElementById(
+                                'predictionValidationMessage'
+                            );
+
+                        if (messageElement) {
+                            messageElement.style.display =
+                                'none';
+                        }
+
+                        const localityElement =
+                            document.getElementById(
+                                'locality'
+                            );
+
+                        const areaElement =
+                            document.getElementById(
+                                'area'
+                            );
+
+                        if (localityElement) {
+                            localityElement.style.borderColor =
+                                '';
+                        }
+
+                        if (areaElement) {
+                            areaElement.style.borderColor =
+                                '';
+                        }
+                    }
+
+                    
         function renderPrediction() {
             if (!predictionData) return;
             document.getElementById('predictionResult').style.display = 'block';
@@ -998,45 +1616,204 @@
         }
 
         function renderPriceBarChart() {
-            const ctx = document.getElementById('priceBarChart').getContext('2d');
-            if (window.priceBarInstance) window.priceBarInstance.destroy();
-            const labels = ['Your Property'];
-            const values = [predictionData.predicted_price || 0];
-            const colors = ['#F59E0B'];
 
-            if (predictionData.comparables && predictionData.comparables.length > 0) {
-                predictionData.comparables.forEach(function(c, i) {
-                    labels.push('Comp ' + (i + 1));
-                    values.push(c.price || 0);
-                    colors.push(c.property_type === 'House' ? '#475569' : c.property_type === 'Villa' ? '#B85C38' : c.property_type === 'Plot' ? '#B68B2E' : '#1E3A8A');
-                });
-            }
+                const canvas =
+                    document.getElementById('priceBarChart');
 
-            window.priceBarInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Price (INR)',
-                        data: values,
-                        backgroundColor: colors,
-                        borderColor: colors,
-                        borderWidth: 1,
-                        borderRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' }, beginAtZero: true },
-                        x: { ticks: { color: '#64748b' }, grid: { display: false } }
-                    }
+                if (!canvas) {
+                    return;
                 }
-            });
-        }
 
+                const ctx =
+                    canvas.getContext('2d');
+
+                if (window.priceBarInstance) {
+                    window.priceBarInstance.destroy();
+                }
+
+
+                /* ---------------------------------------------------------
+                   YOUR PROPERTY
+                --------------------------------------------------------- */
+
+                const yourPropertyType =
+                    normalizePropertyType(
+                        predictionData.property_type
+                    );
+
+                const yourPropertyColor =
+                    getPropertyTypeColor(
+                        yourPropertyType
+                    );
+
+
+                const labels = [
+                    'Your Property'
+                ];
+
+                const values = [
+                    predictionData.predicted_price || 0
+                ];
+
+                const colors = [
+                    yourPropertyColor
+                ];
+
+
+                /* ---------------------------------------------------------
+                   COMPARABLE PROPERTIES
+                --------------------------------------------------------- */
+
+                if (
+                    predictionData.comparables &&
+                    predictionData.comparables.length > 0
+                ) {
+
+                    predictionData.comparables.forEach(
+                        function (c, i) {
+
+                            const comparableType =
+                                normalizePropertyType(
+                                    c.property_type
+                                );
+
+                            const comparableColor =
+                                getPropertyTypeColor(
+                                    comparableType
+                                );
+
+                            labels.push(
+                                'Comp ' + (i + 1)
+                            );
+
+                            values.push(
+                                c.price || 0
+                            );
+
+                            colors.push(
+                                comparableColor
+                            );
+                        }
+                    );
+                }
+
+
+                /* ---------------------------------------------------------
+                   CHART
+                --------------------------------------------------------- */
+
+                window.priceBarInstance =
+                    new Chart(
+                        ctx,
+                        {
+                            type: 'bar',
+
+                            data: {
+                                labels: labels,
+
+                                datasets: [
+                                    {
+                                        label: 'Price (INR)',
+
+                                        data: values,
+
+                                        backgroundColor:
+                                            colors,
+
+                                        borderColor:
+                                            colors,
+
+                                        borderWidth: 1,
+
+                                        borderRadius: 6
+                                    }
+                                ]
+                            },
+
+                            options: {
+
+                                responsive: true,
+
+                                maintainAspectRatio:
+                                    false,
+
+                                plugins: {
+
+                                    legend: {
+                                        display: false
+                                    },
+
+                                    tooltip: {
+
+                                        callbacks: {
+
+                                            label: function (context) {
+
+                                                const index =
+                                                    context.dataIndex;
+
+                                                let propertyType = '';
+
+                                                if (index === 0) {
+
+                                                    propertyType =
+                                                        yourPropertyType;
+
+                                                } else if (
+                                                    predictionData.comparables &&
+                                                    predictionData.comparables[index - 1]
+                                                ) {
+
+                                                    propertyType =
+                                                        normalizePropertyType(
+                                                            predictionData
+                                                                .comparables[index - 1]
+                                                                .property_type
+                                                        );
+                                                }
+
+                                                return (
+                                                    propertyType +
+                                                    ': ₹' +
+                                                    formatNumber(
+                                                        context.raw
+                                                    )
+                                                );
+                                            }
+                                        }
+                                    }
+                                },
+
+                                scales: {
+
+                                    y: {
+
+                                        ticks: {
+                                            color: '#64748b'
+                                        },
+
+                                        grid: {
+                                            color: '#e2e8f0'
+                                        },
+
+                                        beginAtZero: true
+                                    },
+
+                                    x: {
+
+                                        ticks: {
+                                            color: '#64748b'
+                                        },
+
+                                        grid: {
+                                            display: false
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    );
+            }
         function renderValueDoughnut() {
             const ctx = document.getElementById('valueDoughnut').getContext('2d');
             if (window.valueDoughnutInstance) window.valueDoughnutInstance.destroy();
@@ -1151,16 +1928,52 @@
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            const city = predictionData.city || 'Hyderabad';
-            const propType = predictionData.property_type || 'Apartment';
+            const propType =
+                normalizePropertyType(
+                    predictionData.property_type
+                );
 
-            const selectedIcon = L.divIcon({
-                className: 'selected-marker',
-                html: '<div style="background:#F59E0B;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">INR ' + formatNumber(predictionData.predicted_price) + '</div>',
-                iconSize: [130, 30],
-                iconAnchor: [65, 15]
-            });
+            const selectedPropertyColor =
+                getPropertyTypeColor(
+                    propType
+                );
 
+
+            const selectedIcon =
+                L.divIcon({
+
+                    className:
+                        'selected-marker',
+
+                    html:
+                        '<div style="' +
+                        'background:' +
+                        selectedPropertyColor +
+                        ';' +
+                        'color:white;' +
+                        'padding:6px 12px;' +
+                        'border-radius:20px;' +
+                        'font-weight:700;' +
+                        'font-size:12px;' +
+                        'white-space:nowrap;' +
+                        'box-shadow:0 2px 8px rgba(0,0,0,0.25);' +
+                        '">' +
+                        'INR ' +
+                        formatNumber(
+                            predictionData.predicted_price
+                        ) +
+                        '</div>',
+
+                    iconSize: [
+                        130,
+                        30
+                    ],
+
+                    iconAnchor: [
+                        65,
+                        15
+                    ]
+                });
             const selectedMarker = L.marker([center.lat, center.lng], {icon: selectedIcon}).addTo(map);
             selectedMarker.bindPopup('<b>Your Property</b><br>' + propType + ' in ' + (predictionData.locality || city) + '<br>INR ' + formatNumber(predictionData.predicted_price));
 
@@ -1177,8 +1990,13 @@
                         const pLng = Number(prop.longitude);
                         if (!Number.isFinite(pLat) || !Number.isFinite(pLng)) return;
 
-                        const pType = prop.property_type || 'Apartment';
-                        const pColor = MARKER_COLORS[pType] || '#1E3A8A';
+                        const pType =
+                            normalizePropertyType(
+                                prop.property_type
+                            );
+
+                        const pColor =
+                            getPropertyTypeColor(pType);
 
                         const compIcon = L.divIcon({
                             className: 'comp-marker',
@@ -1247,21 +2065,82 @@
         }
 
         function renderComparables() {
-            const el = document.getElementById('comparablesList');
-            const comps = predictionData.comparables || [];
-            const colors = ['#1E3A8A', '#475569', '#B85C38', '#B68B2E', '#64748b'];
-            el.innerHTML = comps.map((c, i) => `
-                <div class="comp-card">
-                    <div class="comp-icon" style="background: ${colors[i % colors.length]};">🏠</div>
-                    <div class="comp-info">
-                        <h4>${c.locality || 'N/A'}, ${c.city || 'N/A'}</h4>
-                        <p>${c.area || 0} sqft • ${c.bedrooms || 0} BHK • ${c.property_type || 'N/A'}</p>
-                    </div>
-                    <div class="comp-price">₹${formatNumber(c.price || 0)}</div>
-                </div>
-            `).join('');
-        }
 
+                const el =
+                    document.getElementById(
+                        'comparablesList'
+                    );
+
+                const comps =
+                    predictionData.comparables || [];
+
+
+                if (!comps.length) {
+
+                    el.innerHTML =
+                        '<p style="color:var(--text-light);">' +
+                        'No comparable properties found.' +
+                        '</p>';
+
+                    return;
+                }
+
+
+                el.innerHTML =
+                    comps.map(
+                        function (c) {
+
+                            const propertyType =
+                                normalizePropertyType(
+                                    c.property_type
+                                );
+
+                            const propertyColor =
+                                getPropertyTypeColor(
+                                    propertyType
+                                );
+
+
+                            return `
+                <div class="comp-card">
+
+                    <div
+                        class="comp-icon"
+                        style="
+                            background:${propertyColor};
+                        "
+                    >
+                        🏠
+                    </div>
+
+                    <div class="comp-info">
+
+                        <h4>
+                            ${c.locality || 'N/A'},
+                            ${c.city || 'N/A'}
+                        </h4>
+
+                        <p>
+                            ${c.area || c.area_sqft || 0}
+                            sqft •
+                            ${c.bedrooms || c.bhk || 0}
+                            BHK •
+                            ${propertyType}
+                        </p>
+
+                    </div>
+
+                    <div class="comp-price">
+                        ₹${formatNumber(
+                                c.price || 0
+                            )}
+                    </div>
+
+                </div>
+            `;
+                        }
+                    ).join('');
+            }
         function renderWhatIf() {
             const resultsEl = document.getElementById('whatifResults');
             const p = predictionData;
@@ -1424,19 +2303,52 @@
         }
 
         function filterMap() {
-            if (!map) return;
-            const cityFilter = document.getElementById('mapCityFilter').value;
-            const typeFilter = document.getElementById('mapTypeFilter').value;
-            mapMarkers.forEach(m => {
-                const showCity = cityFilter === 'all' || m.city === cityFilter;
-                const showType = typeFilter === 'all' || m.propertyType === typeFilter;
-                if (showCity && showType) {
-                    m.addTo(map);
-                } else {
-                    map.removeLayer(m);
-                }
-            });
-        }
+                const cityFilter =
+                    document.getElementById(
+                        'mapCityFilter'
+                    ).value;
+
+                const typeFilter =
+                    document.getElementById(
+                        'mapTypeFilter'
+                    ).value;
+
+                mapMarkers.forEach(function (marker) {
+
+                    const markerCity =
+                        String(marker.city || '')
+                            .trim()
+                            .toLowerCase();
+
+                    const markerType =
+                        normalizePropertyType(
+                            marker.propertyType
+                        );
+
+                    const cityMatches =
+                        cityFilter === 'all' ||
+                        markerCity ===
+                        cityFilter
+                            .trim()
+                            .toLowerCase();
+
+                    const typeMatches =
+                        typeFilter === 'all' ||
+                        markerType ===
+                        normalizePropertyType(
+                            typeFilter
+                        );
+
+                    if (
+                        cityMatches &&
+                        typeMatches
+                    ) {
+                        marker.addTo(map);
+                    } else {
+                        map.removeLayer(marker);
+                    }
+                });
+            }
 
         function formatNumber(num) {
             return Number(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });

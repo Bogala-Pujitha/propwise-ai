@@ -1023,6 +1023,19 @@ section { padding: 100px 0; }
     transform: translateY(0);
 }
 
+.sidebar-section {
+    padding: 8px 0;
+}
+
+.sidebar-section-label {
+    padding: 0 20px 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
 /* WHAT-IF ANALYSIS */
 .whatif-section {
     padding: 12px 0;
@@ -1048,6 +1061,14 @@ section { padding: 100px 0; }
 .whatif-controls-row > div {
     flex: 1 1 110px;
     min-width: 100px;
+}
+
+.whatif-field label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-light);
+    margin-bottom: 4px;
 }
 
 .whatif-results {

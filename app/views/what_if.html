@@ -52,104 +52,106 @@
             {% endif %}
             {% endwith %}
 
-            <div class="prediction-form-card">
-                <h2><i class="fas fa-edit" style="color:var(--primary);"></i> Base Property</h2>
-                <form id="whatIfForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Property Type</label>
-                            <select name="property_type">
-                                <option value="Apartment">Apartment</option>
-                                <option value="House">House</option>
-                                <option value="Villa">Villa</option>
-                                <option value="Plot">Plot</option>
-                            </select>
+            <div class="whatif-forms-grid">
+                <div class="prediction-form-card">
+                    <h2><i class="fas fa-edit" style="color:var(--primary);"></i> Base Property</h2>
+                    <form id="whatIfForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Property Type</label>
+                                <select name="property_type">
+                                    <option value="Apartment">Apartment</option>
+                                    <option value="House">House</option>
+                                    <option value="Villa">Villa</option>
+                                    <option value="Plot">Plot</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>City</label>
+                                <select name="city">
+                                    <option value="Ahmedabad">Ahmedabad</option>
+                                    <option value="Bengaluru">Bengaluru</option>
+                                    <option value="Chandigarh">Chandigarh</option>
+                                    <option value="Chennai">Chennai</option>
+                                    <option value="Coimbatore">Coimbatore</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Ghaziabad">Ghaziabad</option>
+                                    <option value="Gurgaon">Gurgaon</option>
+                                    <option value="Hyderabad" selected>Hyderabad</option>
+                                    <option value="Indore">Indore</option>
+                                    <option value="Jaipur">Jaipur</option>
+                                    <option value="Kochi">Kochi</option>
+                                    <option value="Kolkata">Kolkata</option>
+                                    <option value="Lucknow">Lucknow</option>
+                                    <option value="Mumbai">Mumbai</option>
+                                    <option value="Nagpur">Nagpur</option>
+                                    <option value="Pune">Pune</option>
+                                    <option value="Visakhapatnam">Visakhapatnam</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Locality</label>
+                                <input type="text" name="locality" placeholder="e.g. Gachibowli">
+                            </div>
+                            <div class="form-group">
+                                <label>Area (sqft)</label>
+                                <input type="number" name="area_sqft" placeholder="e.g. 1500" required min="100">
+                            </div>
+                            <div class="form-group">
+                                <label>BHK</label>
+                                <select name="bhk">
+                                    <option value="1">1 BHK</option>
+                                    <option value="2">2 BHK</option>
+                                    <option value="3" selected>3 BHK</option>
+                                    <option value="4">4 BHK</option>
+                                    <option value="5">5 BHK</option>
+                                    <option value="6">6 BHK</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Bathrooms</label>
+                                <select name="bathrooms">
+                                    <option value="1">1</option>
+                                    <option value="2" selected>2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Property Age (years)</label>
+                                <input type="number" name="property_age" placeholder="e.g. 5" min="0" max="100">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>City</label>
-                            <select name="city">
-                                <option value="Ahmedabad">Ahmedabad</option>
-                                <option value="Bengaluru">Bengaluru</option>
-                                <option value="Chandigarh">Chandigarh</option>
-                                <option value="Chennai">Chennai</option>
-                                <option value="Coimbatore">Coimbatore</option>
-                                <option value="Delhi">Delhi</option>
-                                <option value="Ghaziabad">Ghaziabad</option>
-                                <option value="Gurgaon">Gurgaon</option>
-                                <option value="Hyderabad" selected>Hyderabad</option>
-                                <option value="Indore">Indore</option>
-                                <option value="Jaipur">Jaipur</option>
-                                <option value="Kochi">Kochi</option>
-                                <option value="Kolkata">Kolkata</option>
-                                <option value="Lucknow">Lucknow</option>
-                                <option value="Mumbai">Mumbai</option>
-                                <option value="Nagpur">Nagpur</option>
-                                <option value="Pune">Pune</option>
-                                <option value="Visakhapatnam">Visakhapatnam</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Locality</label>
-                            <input type="text" name="locality" placeholder="e.g. Gachibowli">
-                        </div>
-                        <div class="form-group">
-                            <label>Area (sqft)</label>
-                            <input type="number" name="area_sqft" placeholder="e.g. 1500" required min="100">
-                        </div>
-                        <div class="form-group">
-                            <label>BHK</label>
-                            <select name="bhk">
-                                <option value="1">1 BHK</option>
-                                <option value="2">2 BHK</option>
-                                <option value="3" selected>3 BHK</option>
-                                <option value="4">4 BHK</option>
-                                <option value="5">5 BHK</option>
-                                <option value="6">6 BHK</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Bathrooms</label>
-                            <select name="bathrooms">
-                                <option value="1">1</option>
-                                <option value="2" selected>2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                                <option value="5">5</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Property Age (years)</label>
-                            <input type="number" name="property_age" placeholder="e.g. 5" min="0" max="100">
-                        </div>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>
 
-            <div class="prediction-form-card">
-                <h2><i class="fas fa-sliders-h" style="color:var(--primary);"></i> Proposed Changes</h2>
-                <form id="changesForm">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>Change BHK (+/-)</label>
-                            <input type="number" name="change_bhk" placeholder="e.g. +1 or -1" step="1">
+                <div class="prediction-form-card">
+                    <h2><i class="fas fa-sliders-h" style="color:var(--primary);"></i> Proposed Changes</h2>
+                    <form id="changesForm">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label>Change BHK (+/-)</label>
+                                <input type="number" name="change_bhk" placeholder="e.g. +1 or -1" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Change Area (sqft +/-)</label>
+                                <input type="number" name="change_area" placeholder="e.g. +200 or -100">
+                            </div>
+                            <div class="form-group">
+                                <label>Change Bathrooms (+/-)</label>
+                                <input type="number" name="change_bathrooms" placeholder="e.g. +1" step="1">
+                            </div>
+                            <div class="form-group">
+                                <label>Change Age (years +/-)</label>
+                                <input type="number" name="change_age" placeholder="e.g. -2" step="1">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label>Change Area (sqft +/-)</label>
-                            <input type="number" name="change_area" placeholder="e.g. +200 or -100">
+                        <div class="form-actions">
+                            <button type="button" class="btn-primary" onclick="runWhatIf()"><i class="fas fa-calculator"></i> Compare Predictions</button>
                         </div>
-                        <div class="form-group">
-                            <label>Change Bathrooms (+/-)</label>
-                            <input type="number" name="change_bathrooms" placeholder="e.g. +1" step="1">
-                        </div>
-                        <div class="form-group">
-                            <label>Change Age (years +/-)</label>
-                            <input type="number" name="change_age" placeholder="e.g. -2" step="1">
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button type="button" class="btn-primary" onclick="runWhatIf()"><i class="fas fa-calculator"></i> Compare Predictions</button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
 
             <div id="whatIfResult"></div>

@@ -87,58 +87,8 @@
             <div class="nav-links">
                 <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
                 <a href="/logout" class="btn-nav-login">Logout</a>
-                        </div>
-                        <div class="form-group">
-                            <label>Property Age (years)</label>
-                            <input type="number" name="property_age" id="propertyAge" placeholder="e.g. 5" min="0" max="100" value="5" class="dropdown-select">
-                        </div>
-                        <div class="form-group">
-                            <label>Parking</label>
-                            <select name="parking" id="parking" class="dropdown-select">
-                                <option value="">None</option>
-                                <option value="Car">Car</option>
-                                <option value="Bike">Bike</option>
-                                <option value="Car and Bike">Car and Bike</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Furnishing</label>
-                            <select name="furnishing" id="furnishing" class="dropdown-select">
-                                <option value="">Select</option>
-                                <option value="Unfurnished">Unfurnished</option>
-                                <option value="Semi-Furnished">Semi-Furnished</option>
-                                <option value="Fully Furnished">Fully Furnished</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Facing</label>
-                            <select name="facing" id="facing" class="dropdown-select">
-                                <option value="">Select</option>
-                                <option value="North">North</option>
-                                <option value="South">South</option>
-                                <option value="East">East</option>
-                                <option value="West">West</option>
-                                <option value="North-East">North-East</option>
-                                <option value="North-West">North-West</option>
-                                <option value="South-East">South-East</option>
-                                <option value="South-West">South-West</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Balconies</label>
-                            <select name="balconies" id="balconies" class="dropdown-select">
-                                <option value="0">0</option>
-                                <option value="1">1</option>
-                                <option value="2" selected>2</option>
-                                <option value="3">3</option>
-                                <option value="4">4</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Floor</label>
-                            <input type="number" name="floor" id="floor" placeholder="e.g. 5" min="0" max="100" value="5" class="dropdown-select">
-                        </div>
-                    </div>
+            </div>
+        </div>
     </nav>
 
     <div class="dashboard-layout">
@@ -151,14 +101,20 @@
                 <a href="#valuation-section" class="active"><i class="fas fa-calculator"></i> Valuation</a>
                 <a href="#result-section" id="navResult" style="display:none;"><i class="fas fa-chart-line"></i> Result</a>
                 <a href="#charts-section" id="navCharts" style="display:none;"><i class="fas fa-chart-bar"></i> Charts</a>
+                <a href="#trend-section" id="navTrend" style="display:none;"><i class="fas fa-chart-area"></i> Trend</a>
                 <a href="#map-section" id="navMap" style="display:none;"><i class="fas fa-map"></i> Map</a>
                 <a href="#shap-section" id="navShap" style="display:none;"><i class="fas fa-lightbulb"></i> SHAP</a>
                 <a href="#location-section" id="navLocation" style="display:none;"><i class="fas fa-map-marker-alt"></i> Location</a>
                 <a href="#comparables-section" id="navComp" style="display:none;"><i class="fas fa-balance-scale"></i> Comparables</a>
                 <a href="#whatif-section" id="navWhatif" style="display:none;"><i class="fas fa-exchange-alt"></i> What-If</a>
                 <a href="#history-section"><i class="fas fa-history"></i> History</a>
-                <a href="/market-intelligence"><i class="fas fa-chart-bar"></i> Market Intel</a>
-                <a href="/experiments"><i class="fas fa-flask"></i> Experiments</a>
+                <div class="sidebar-divider" aria-hidden="true"></div>
+                <div class="sidebar-section">
+                    <p class="sidebar-section-label">Insights &amp; tools</p>
+                    <a href="/market-intelligence"><i class="fas fa-chart-bar"></i> Market Intel</a>
+                    <a href="/experiments"><i class="fas fa-flask"></i> Experiments</a>
+                    <a href="/model-performance"><i class="fas fa-bolt"></i> Models</a>
+                </div>
             </nav>
         </aside>
 
@@ -361,9 +317,9 @@
                 <div id="whatif-section" class="prediction-form-card">
                     <div class="section-title"><i class="fas fa-exchange-alt"></i> What-If Analysis</div>
                     <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:15px;">Change features to instantly see price impact</p>
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px;">
-                        <div style="flex:1 1 120px;min-width:110px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">BHK</label>
+                    <div class="whatif-controls-row">
+                        <div class="whatif-field">
+                            <label>BHK</label>
                             <select id="whatifBhk" class="dropdown-select">
                                 <option value="">Same</option>
                                 <option value="1">1 BHK</option>
@@ -373,8 +329,8 @@
                                 <option value="5">5 BHK</option>
                             </select>
                         </div>
-                        <div style="flex:1 1 140px;min-width:130px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Area (sqft)</label>
+                        <div class="whatif-field">
+                            <label>Area (sqft)</label>
                             <select id="whatifArea" class="dropdown-select">
                                 <option value="">Same</option>
                                 {% for ar in dropdown.get('area_ranges', []) %}
@@ -382,8 +338,8 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div style="flex:1 1 100px;min-width:90px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Bathrooms</label>
+                        <div class="whatif-field">
+                            <label>Bathrooms</label>
                             <select id="whatifBath" class="dropdown-select">
                                 <option value="">Same</option>
                                 {% for b in dropdown.get('bathroom_options', [1,2,3,4]) %}
@@ -391,8 +347,8 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div style="flex:1 1 130px;min-width:120px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Furnishing</label>
+                        <div class="whatif-field">
+                            <label>Furnishing</label>
                             <select id="whatifFurnishing" class="dropdown-select">
                                 <option value="">Same</option>
                                 <option value="Unfurnished">Unfurnished</option>
@@ -400,8 +356,8 @@
                                 <option value="Fully Furnished">Fully Furnished</option>
                             </select>
                         </div>
-                        <div style="flex:1 1 110px;min-width:100px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Facing</label>
+                        <div class="whatif-field">
+                            <label>Facing</label>
                             <select id="whatifFacing" class="dropdown-select">
                                 <option value="">Same</option>
                                 <option value="North">North</option>
@@ -414,8 +370,8 @@
                                 <option value="South-West">South-West</option>
                             </select>
                         </div>
-                        <div style="flex:1 1 110px;min-width:100px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Property Age</label>
+                        <div class="whatif-field">
+                            <label>Property Age</label>
                             <select id="whatifAge" class="dropdown-select">
                                 <option value="">Same</option>
                                 {% for a in range(0, 21) %}
@@ -570,9 +526,9 @@
     });
 
     function showSidebarLinks() {
-        var ids = ['navResult','navCharts','navMap','navShap','navLocation','navComp','navWhatif'];
+        var ids = ['navResult','navCharts','navTrend','navMap','navShap','navLocation','navComp','navWhatif'];
         ids.forEach(function(id) {
-            document.getElementById(id).style.display = 'block';
+            document.getElementById(id).style.removeProperty('display');
         });
     }
 
@@ -1089,4 +1045,3 @@
     </script>
 </body>
 </html>
-
