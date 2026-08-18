@@ -1,1071 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PropWise AI - Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-        .admin-stats-bar {
-            display: flex;
-            gap: 20px;
-            padding: 16px 24px;
-            background: var(--surface-alt);
-            border-bottom: 1px solid var(--border);
-            margin-bottom: 0;
-        }
+<script>
 
-        /* =========================================================
-   USER HEADER
-   Visible only for normal users
-========================================================= */
-
-.user-header {
-    height: 64px;
-    width: 100%;
-
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
-    padding: 0 28px;
-    box-sizing: border-box;
-
-    background: #ffffff;
-
-    border-bottom: 1px solid #e2e8f0;
-
-    position: sticky;
-    top: 0;
-
-    z-index: 1000;
-}
-
-
-.user-header-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-
-    color: #4338CA;
-
-    text-decoration: none;
-
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-
-.user-header-logo i {
-    font-size: 1.15rem;
-}
-
-
-.user-header-text {
-    color: #64748B;
-
-    font-size: 0.88rem;
-    font-weight: 500;
-}
-        .admin-stat {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 18px;
-            background: var(--surface);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            flex: 1;
-        }
-        .admin-stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: var(--primary);
-            background: var(--surface-alt);
-        }
-        .admin-stat-icon.users { background: var(--surface-alt); color: var(--primary); }
-        .admin-stat-icon.predictions { background: var(--surface-alt); color: var(--primary); }
-        .admin-stat-icon.types { background: var(--surface-alt); color: var(--primary); }
-        .admin-stat-icon.cities { background: var(--surface-alt); color: var(--primary); }
-        .admin-stat-info h4 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .admin-stat-info p {
-            margin: 0;
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .dashboard-layout {
-            display: flex;
-            min-height: calc(100vh - 120px);
-        }
-        .sidebar {
-            width: 240px;
-            background: var(--surface);
-            border-right: 1px solid var(--border);
-            padding: 20px 0;
-            position: sticky;
-            top: 0;
-            height: calc(100vh - 120px);
-            overflow-y: auto;
-        }
-
-        .user-dashboard-page .dashboard-layout {
-    min-height: calc(100vh - 64px);
-}
-
-
-.user-dashboard-page .sidebar {
-    top: 64px;
-    height: calc(100vh - 64px);
-}
-
-.visualization-legend {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    flex-wrap: wrap;
-
-    gap: 14px;
-
-    margin-top: 12px;
-    padding-top: 10px;
-
-    border-top: 1px solid var(--border);
-}
-
-
-.visualization-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-
-    font-size: 11px;
-    color: var(--text-muted);
-}
-
-
-.visualization-legend-dot {
-    width: 9px;
-    height: 9px;
-
-    border-radius: 50%;
-
-    display: inline-block;
-}
-
-        .sidebar-title {
-            padding: 0 20px 15px;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        .sidebar a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 20px;
-            color: var(--text-muted);
-            text-decoration: none;
-            font-size: 14px;
-            border-left: 3px solid transparent;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background: var(--surface-alt);
-            color: var(--primary);
-            border-left-color: var(--primary);
-        }
-        .sidebar .divider {
-            height: 1px;
-            background: var(--border);
-            margin: 10px 20px;
-        }
-        .sidebar .section-label {
-            padding: 10px 20px 5px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-        .main-content {
-            flex: 1;
-            padding: 24px;
-            max-width: calc(100% - 240px);
-        }
-        .section {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 20px;
-        }
-        .section h2 {
-            margin: 0 0 16px;
-            font-size: 18px;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-            gap: 16px;
-        }
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .form-group label {
-            font-size: 13px;
-            color: var(--text);
-            font-weight: 500;
-        }
-        .dropdown-select {
-            padding: 10px 12px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            color: var(--text);
-            font-size: 14px;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-        .dropdown-select:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-        .btn-predict {
-            padding: 12px 32px;
-            background: var(--primary);
-            color: #fff;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 10px;
-        }
-        .btn-predict:hover {
-            background: var(--primary-dark);
-        }
-        .result-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-        .result-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-        }
-        .result-card h4 {
-            margin: 0 0 4px;
-            font-size: 12px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .result-card .value {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .result-card .sub {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
-        .model-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: var(--radius);
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .ood-warning {
-            background: var(--surface-alt);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 12px 16px;
-            color: var(--primary);
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .sanity-ok {
-            background: #EFF6FF;
-            border: 1px solid #BFDBFE;
-            border-radius: var(--radius);
-            padding: 12px 16px;
-            color: var(--primary);
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .sanity-warn {
-            background: #FEF2F2;
-            border: 1px solid #FECACA;
-            border-radius: var(--radius);
-            padding: 12px 16px;
-            color: #991B1B;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        .metric-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 16px;
-        }
-        .metric-mini {
-            flex: 1;
-            min-width: 100px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 12px;
-            text-align: center;
-        }
-        .metric-mini h5 {
-            margin: 0 0 4px;
-            font-size: 11px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-        .metric-mini .val {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text);
-        }
-        .charts-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .chart-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 14px;
-        }
-        .chart-card h3 {
-            margin: 0 0 10px;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-        .trend-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 14px;
-            margin-bottom: 16px;
-        }
-        .trend-card h3 {
-            margin: 0 0 10px;
-            font-size: 0.85rem;
-            color: var(--text);
-        }
-        .trend-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: var(--radius);
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .trend-up {
-            background: var(--surface-alt);
-            color: var(--primary);
-        }
-        .trend-down {
-            background: var(--surface-alt);
-            color: var(--primary);
-        }
-        .map-container {
-            position: relative;
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 1px solid var(--border);
-        }
-        .map-controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-        .map-controls select {
-            padding: 8px 12px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            color: var(--text);
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .map-legend {
-            display: flex;
-            gap: 16px;
-            margin-top: 10px;
-            padding: 10px 14px;
-            background: var(--surface-alt);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .legend-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-        }
-        .shap-bar-container {
-            margin-bottom: 10px;
-        }
-        .shap-label {
-            font-size: 13px;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .shap-bar-bg {
-            height: 24px;
-            background: var(--surface-alt);
-            border-radius: var(--radius);
-            position: relative;
-            overflow: hidden;
-        }
-        .shap-bar-pos {
-            height: 100%;
-            background: var(--primary);
-            border-radius: var(--radius);
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transition: width 0.5s ease;
-        }
-        .shap-bar-neg {
-            height: 100%;
-            background: var(--primary);
-            border-radius: var(--radius);
-            position: absolute;
-            top: 0;
-            right: 50%;
-            transition: width 0.5s ease;
-        }
-        .shap-value {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-align: right;
-            margin-top: 2px;
-        }
-        .location-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-        }
-        .loc-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 14px;
-            text-align: center;
-        }
-        .loc-item .loc-name {
-            font-size: 13px;
-            color: var(--text);
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-        .loc-item .loc-val {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .comp-card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            display: flex;
-            gap: 14px;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .comp-icon {
-            width: 44px;
-            height: 44px;
-            border-radius: var(--radius);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: #fff;
-            flex-shrink: 0;
-            background: var(--primary);
-        }
-        .comp-info {
-            flex: 1;
-        }
-        .comp-info h4 {
-            margin: 0 0 4px;
-            font-size: 14px;
-            color: var(--text);
-        }
-        .comp-info p {
-            margin: 0;
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-        .comp-price {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--primary);
-        }
-        .whatif-grid {
-            display: grid;
-            grid-template-columns: 1fr 60px 1fr;
-            gap: 12px;
-            align-items: end;
-            margin-bottom: 16px;
-        }
-        .whatif-arrow {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: 20px;
-            padding-bottom: 10px;
-        }
-        .diff-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: var(--radius);
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .diff-badge.positive {
-            background: var(--surface-alt);
-            color: var(--primary);
-        }
-        .diff-badge.negative {
-            background: var(--surface-alt);
-            color: var(--primary);
-        }
-        .history-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .history-table th {
-            text-align: left;
-            padding: 10px 14px;
-            background: var(--surface-alt);
-            color: var(--text-muted);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            border-bottom: 1px solid var(--border);
-        }
-        .history-table td {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--border);
-            font-size: 13px;
-            color: var(--text);
-        }
-        .history-table tr:hover td {
-            background: var(--surface-alt);
-        }
-        #shapContainer {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .main-content { overflow-x: hidden; max-width: 100%; }
-        .chart-card canvas, .trend-card canvas { max-width: 100%; }
-        @media (max-width: 900px) {
-            .charts-grid { grid-template-columns: 1fr; }
-            .sidebar { display: none; }
-            .main-content { max-width: 100%; }
-            .admin-stats-bar { flex-wrap: wrap; }
-        }
-    </style>
-</head>
-<body class="{% if current_user.role == 'admin' %}admin-dashboard-page{% else %}user-dashboard-page{% endif %}">
-    {% if current_user.role == 'admin' %}
-    
-    <!-- =========================================================
-             ADMIN HEADER / STATS
-             Visible only to administrators
-        ========================================================== -->
-    
-    <div class="admin-stats-bar">
-    
-        <div class="admin-stat">
-            <div class="admin-stat-icon users">
-                👥
-            </div>
-    
-            <div class="admin-stat-info">
-                <h4>{{ total_users }}</h4>
-                <p>Total Users</p>
-            </div>
-        </div>
-    
-    
-        <div class="admin-stat">
-            <div class="admin-stat-icon predictions">
-                📊
-            </div>
-    
-            <div class="admin-stat-info">
-                <h4>{{ total_predictions }}</h4>
-                <p>Total Predictions</p>
-            </div>
-        </div>
-    
-    
-        <div class="admin-stat">
-            <div class="admin-stat-icon types">
-                🏢
-            </div>
-    
-            <div class="admin-stat-info">
-                <h4>{{ unique_viewed_users }}</h4>
-                <p>Unique Viewed Users</p>
-            </div>
-        </div>
-    
-    
-        <div class="admin-stat">
-            <div class="admin-stat-icon cities">
-                🏙️
-            </div>
-    
-            <div class="admin-stat-info">
-                <h4>{{ predictions|length }}</h4>
-                <p>Recent Predictions</p>
-            </div>
-        </div>
-    
-    </div>
-    
-    {% else %}
-    
-    <!-- =========================================================
-             USER HEADER
-             Similar branding to the login page
-        ========================================================== -->
-    
-    <header class="user-header">
-    
-        <a href="/" class="user-header-logo">
-            <i class="fas fa-home"></i>
-            <span>PropWise AI</span>
-        </a>
-    
-        <div class="user-header-right">
-            <span class="user-header-text">
-                Property Valuation
-            </span>
-        </div>
-    
-    </header>
-    
-    {% endif %}
-
-    <div class="dashboard-layout">
-        <div class="sidebar">
-            <div class="sidebar-title">PropWise AI</div>
-            <a href="#valuation" class="active">📋 Valuation</a>
-            <a href="#result-section">📊 Result</a>
-            <a href="#charts-section">📈 Charts</a>
-            <a href="#trend-section">📉 Trend</a>
-            <a href="#map-section">🗺️ Map</a>
-            <a href="#shap-section">🔍 SHAP</a>
-            <a href="#location-section">📍 Location</a>
-            <a href="#comparables-section">🏠 Comparables</a>
-            <a href="#whatif-section">🔮 What-If</a>
-            <a href="#history-section">🕐 History</a>
-            {% if current_user.is_authenticated and current_user.role == 'admin' %}
-
-    <div class="divider"></div>
-
-    <div class="section-label">
-        Admin Tools
-    </div>
-
-    <a href="/bulk-valuation">
-        📦 Bulk Valuation
-    </a>
-
-    <a href="/market-intelligence">
-        🧠 Market Intel
-    </a>
-
-    <a href="/experiments">
-        🧪 Experiments
-    </a>
-
-    <a href="/model-performance">
-        ⚡ Models
-    </a>
-
-    <div class="divider"></div>
-
-    <div class="section-label">
-        Admin Panel
-    </div>
-
-    <a href="/admin/users">
-        👥 Users
-    </a>
-
-    <a href="/admin/analytics">
-        📈 Analytics
-    </a>
-
-    <a href="/admin/audit">
-        🔒 Audit
-    </a>
-
-{% endif %}        </div>
-
-        <div class="main-content">
-            <div class="section" id="valuation">
-                <h2>📋 Property Valuation</h2>
-                <form id="valuationForm" onsubmit="return false;">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label>City</label>
-                            <select class="dropdown-select" id="city" name="city">
-                                <option value="">Select City</option>
-                                {% for item in dropdown.cities %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Locality <span style="color:#DC2626;">*</span></label>                            <select class="dropdown-select" id="locality" name="locality">
-                                <option value="">Select Locality</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Property Type</label>
-                            <select class="dropdown-select" id="property_type" name="property_type">
-                                {% for item in dropdown.property_types %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Area (sq ft) <span style="color:#DC2626;">*</span></label>                            <select class="dropdown-select" id="area" name="area">
-                                {% for ar in dropdown.get('area_ranges', []) %}
-                                <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Bedrooms</label>
-                            <select class="dropdown-select" id="bedrooms" name="bedrooms">
-                                {% for b in dropdown.get('bhk_options', range(1, 6)) %}
-                                <option value="{{ b }}">{{ b }} BHK</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Bathrooms</label>
-                            <select class="dropdown-select" id="bathrooms" name="bathrooms">
-                                {% for b in dropdown.get('bathroom_options', range(1, 6)) %}
-                                <option value="{{ b }}">{{ b }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Furnishing</label>
-                            <select class="dropdown-select" id="furnishing" name="furnishing">
-                                {% for item in dropdown.get('furnishing_options', ['Unfurnished','Semi-Furnished','Fully Furnished']) %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Facing</label>
-                            <select class="dropdown-select" id="facing" name="facing">
-                                {% for item in dropdown.get('facing_options', ['North','South','East','West','North-East','North-West','South-East','South-West']) %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Age of Property</label>
-                            <select class="dropdown-select" id="age" name="age">
-                                {% for item in dropdown.get('ages', range(0, 21)) %}
-                                <option value="{{ item }}">{{ item }} years</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Floor</label>
-                            <select class="dropdown-select" id="floor" name="floor">
-                                {% for item in dropdown.get('floors', range(1, 21)) %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Total Floors</label>
-                            <select class="dropdown-select" id="total_floors" name="total_floors">
-                                {% for item in dropdown.get('total_floors', range(1, 21)) %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Parking</label>
-                            <select class="dropdown-select" id="parking" name="parking">
-                                {% for item in dropdown.get('parkings', ['None','Car','Bike','Car and Bike']) %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div style="text-align: center; margin-top: 16px;">
-                        <button type="button" class="btn-predict" onclick="predict()">Get Valuation</button>
-                    </div>
-                </form>
-            </div>
-
-            <div id="predictionResult" style="display: none;">
-                <div class="section" id="result-section">
-                    <h2>📊 Prediction Result</h2>
-                    <div id="oodWarning"></div>
-                    <div id="sanityCheck"></div>
-                    <div class="result-cards" id="resultCards"></div>
-                    <div class="metric-row" id="modelMetrics"></div>
-                </div>
-
-                <div class="section" id="charts-section">
-                    <h2>Price Analysis</h2>
-                    <div class="charts-grid">
-                        <div class="chart-card">
-                        
-                            <h3>Price by Property Type</h3>
-                        
-                            <div style="position:relative;height:180px;">
-                                <canvas id="priceBarChart"></canvas>
-                            </div>
-                        
-                            <div class="visualization-legend">
-                        
-                                <div class="visualization-legend-item">
-                                    <span class="visualization-legend-dot" style="background:#1E3A8A;"></span>
-                                    <span>Apartment</span>
-                                </div>
-                        
-                                <div class="visualization-legend-item">
-                                    <span class="visualization-legend-dot" style="background:#475569;"></span>
-                                    <span>House</span>
-                                </div>
-                        
-                                <div class="visualization-legend-item">
-                                    <span class="visualization-legend-dot" style="background:#B85C38;"></span>
-                                    <span>Villa</span>
-                                </div>
-                        
-                                <div class="visualization-legend-item">
-                                    <span class="visualization-legend-dot" style="background:#B68B2E;"></span>
-                                    <span>Plot</span>
-                                </div>
-                        
-                            </div>                  </div>
-                        <div class="chart-card">
-                            <h3>Value Distribution</h3>
-                            <div style="position:relative;height:180px;"><canvas id="valueDoughnut"></canvas></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section" id="trend-section">
-                    <h2>12-Month Price Trend</h2>
-                    <div class="trend-card">
-                        <div style="position:relative;height:160px;"><canvas id="trendLine"></canvas></div>
-                    </div>
-                </div>
-
-                <div class="section" id="map-section">
-                    <h2>🗺️ Property Map</h2>
-                    <div class="map-controls">
-                        <select id="mapCityFilter" onchange="filterMap()">
-                            <option value="all">All Cities</option>
-                            {% for item in dropdown.cities %}
-                            <option value="{{ item }}">{{ item }}</option>
-                            {% endfor %}
-                        </select>
-                        <select id="mapTypeFilter" onchange="filterMap()">
-                            <option value="all">All Types</option>
-                            {% for item in dropdown.property_types %}
-                            <option value="{{ item }}">{{ item }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="map-container" id="mapContainer" style="height: 300px;"></div>
-                    
-                </div>
-
-                <div class="section" id="shap-section">
-                    <h2>🔍 SHAP Feature Importance</h2>
-                    <div id="shapContainer"></div>
-                </div>
-
-                <div class="section" id="location-section">
-                    <h2>📍 Location Intelligence</h2>
-                    <div class="location-grid" id="locationGrid"></div>
-                </div>
-
-                <div class="section" id="comparables-section">
-                    <h2>🏠 Comparable Properties</h2>
-                    <div id="comparablesList"></div>
-                </div>
-
-                <div class="section" id="whatif-section">
-                    <h2>🔮 What-If Analysis</h2>
-                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:15px;">Change features to instantly see price impact</p>
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px;">
-                        <div style="flex:1 1 120px;min-width:110px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">BHK</label>
-                            <select id="whatifBhk" class="dropdown-select">
-                                <option value="">Same</option>
-                                <option value="1">1 BHK</option>
-                                <option value="2">2 BHK</option>
-                                <option value="3">3 BHK</option>
-                                <option value="4">4 BHK</option>
-                                <option value="5">5 BHK</option>
-                            </select>
-                        </div>
-                        <div style="flex:1 1 140px;min-width:130px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Area (sqft)</label>
-                            <select id="whatifArea" class="dropdown-select">
-                                <option value="">Same</option>
-                                {% for ar in dropdown.get('area_ranges', []) %}
-                                <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div style="flex:1 1 100px;min-width:90px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Bathrooms</label>
-                            <select id="whatifBath" class="dropdown-select">
-                                <option value="">Same</option>
-                                {% for b in dropdown.get('bathroom_options', [1,2,3,4,5,6]) %}
-                                <option value="{{ b }}">{{ b }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div style="flex:1 1 130px;min-width:120px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Furnishing</label>
-                            <select id="whatifFurnishing" class="dropdown-select">
-                                <option value="">Same</option>
-                                <option value="Unfurnished">Unfurnished</option>
-                                <option value="Semi-Furnished">Semi-Furnished</option>
-                                <option value="Fully Furnished">Fully Furnished</option>
-                            </select>
-                        </div>
-                        <div style="flex:1 1 110px;min-width:100px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Facing</label>
-                            <select id="whatifFacing" class="dropdown-select">
-                                <option value="">Same</option>
-                                <option value="North">North</option>
-                                <option value="South">South</option>
-                                <option value="East">East</option>
-                                <option value="West">West</option>
-                                <option value="North-East">North-East</option>
-                                <option value="North-West">North-West</option>
-                                <option value="South-East">South-East</option>
-                                <option value="South-West">South-West</option>
-                            </select>
-                        </div>
-                        <div style="flex:1 1 110px;min-width:100px;">
-                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Property Age</label>
-                            <select id="whatifAge" class="dropdown-select">
-                                <option value="">Same</option>
-                                {% for a in range(0, 21) %}
-                                <option value="{{ a }}">{{ a }} yrs</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="whatif-results" id="whatifResults"></div>
-                </div>
-
-                <div class="section" id="history-section">
-                    <h2>🕐 Recent Prediction History</h2>
-                    <div style="overflow-x: auto;">
-                        <table class="history-table" id="historyTable">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>City</th>
-                                    <th>Locality</th>
-                                    <th>Type</th>
-                                    <th>Area</th>
-                                    <th>Predicted Price</th>
-                                    <th>Model</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody id="historyBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-   /* =========================================================
-    PROPERTY TYPE COLORS
-    Single source of truth for every visualization.
- ========================================================= */
+    /* =========================================================
+       PROPERTY TYPE COLORS
+       SINGLE SOURCE OF TRUTH
+    ========================================================= */
 
     const PROPERTY_TYPE_COLORS = {
         Apartment: '#1E3A8A',  // Blue
         House: '#475569',      // Slate
         Villa: '#B85C38',      // Brown
-        Plot: '#B68B2E'         // Gold
+        Plot: '#B68B2E'        // Gold
     };
 
 
-    /* Normalize property type values coming from backend/data. */
+    /* =========================================================
+       PROPERTY TYPE NORMALIZATION
+    ========================================================= */
+
     function normalizePropertyType(type) {
 
         const value = String(type || '')
@@ -1073,7 +24,10 @@
             .toLowerCase()
             .replace(/[\s_-]+/g, '');
 
-        if (value === 'apartment' || value === 'flat') {
+        if (
+            value === 'apartment' ||
+            value === 'flat'
+        ) {
             return 'Apartment';
         }
 
@@ -1099,7 +53,10 @@
     }
 
 
-    /* Get the correct color for any property type. */
+    /* =========================================================
+       PROPERTY TYPE COLOR
+    ========================================================= */
+
     function getPropertyTypeColor(type) {
 
         const normalizedType =
@@ -1111,1282 +68,1437 @@
         );
     }
 
-        const FUTURE_TREND_GROWTH = {
-            'Hyderabad': 1.2,
-            'Bengaluru': 1.0,
-            'Mumbai': 0.8,
-            'Chennai': 0.9,
-            'Kolkata': 0.7,
-            'Pune': 1.1,
-            'Delhi': 0.6,
-            'Gurgaon': 0.9,
-            'Ahmedabad': 0.75,
-            'Jaipur': 0.65,
-            'Lucknow': 0.6,
-            'Kochi': 0.78,
-            'Indore': 0.6,
-            'Coimbatore': 0.72,
-            'Nagpur': 0.5,
-            'Visakhapatnam': 0.7,
-            'Chandigarh': 0.7
+
+    /* =========================================================
+       GLOBAL MAP VARIABLES
+    ========================================================= */
+
+    let predictionData = null;
+
+    let selectedPropertyMap = null;
+
+    let comparisonPropertyMap = null;
+
+    let propertyTypesMap = null;
+
+    let propertyTypeMapMarkers = [];
+
+
+    /* =========================================================
+       SAFE NUMBER HELPER
+    ========================================================= */
+
+    function safeNumber(value, fallback = null) {
+
+        if (
+            value === null ||
+            value === undefined ||
+            value === ''
+        ) {
+            return fallback;
+        }
+
+        const number =
+            Number(value);
+
+        return Number.isFinite(number)
+            ? number
+            : fallback;
+    }
+
+
+    /* =========================================================
+       MAP MARKER CREATOR
+    ========================================================= */
+
+    function createPropertyMarker(
+        color,
+        label,
+        price
+    ) {
+
+        let priceHtml = '';
+
+        if (
+            price !== null &&
+            price !== undefined &&
+            Number.isFinite(
+                Number(price)
+            )
+        ) {
+
+            priceHtml =
+                '<br>₹' +
+                formatNumber(
+                    Number(price)
+                );
+        }
+
+        return L.divIcon({
+
+            className:
+                'property-map-marker',
+
+            html:
+                '<div style="' +
+                'background:' + color + ';' +
+                'color:white;' +
+                'padding:5px 9px;' +
+                'border-radius:14px;' +
+                'font-size:10px;' +
+                'font-weight:700;' +
+                'line-height:1.25;' +
+                'white-space:nowrap;' +
+                'box-shadow:0 2px 6px rgba(0,0,0,.18);' +
+                '">' +
+                (label || '') +
+                priceHtml +
+                '</div>',
+
+            iconSize: [
+                125,
+                40
+            ],
+
+            iconAnchor: [
+                62,
+                20
+            ]
+        });
+    }
+
+
+    /* =========================================================
+       SELECTED PROPERTY MARKER
+       Uses the SAME property color system
+    ========================================================= */
+
+    function createSelectedMarker(
+        propertyType,
+        price
+    ) {
+
+        const color =
+            getPropertyTypeColor(
+                propertyType
+            );
+
+        let priceHtml = '';
+
+        if (
+            price !== null &&
+            price !== undefined &&
+            Number.isFinite(
+                Number(price)
+            )
+        ) {
+
+            priceHtml =
+                '<br>₹' +
+                formatNumber(
+                    Number(price)
+                );
+        }
+
+        return L.divIcon({
+
+            className:
+                'selected-property-marker',
+
+            html:
+                '<div style="' +
+                'background:' + color + ';' +
+                'border:2px solid #111827;' +
+                'color:#ffffff;' +
+                'padding:6px 10px;' +
+                'border-radius:16px;' +
+                'font-size:10px;' +
+                'font-weight:700;' +
+                'line-height:1.25;' +
+                'white-space:nowrap;' +
+                'box-shadow:0 2px 8px rgba(0,0,0,.28);' +
+                '">' +
+                'SELECTED ' +
+                normalizePropertyType(
+                    propertyType
+                ) +
+                priceHtml +
+                '</div>',
+
+            iconSize: [
+                145,
+                44
+            ],
+
+            iconAnchor: [
+                72,
+                22
+            ]
+        });
+    }
+
+
+    /* =========================================================
+       GET SELECTED PROPERTY COORDINATES
+    ========================================================= */
+
+    function getSelectedPropertyCoordinates() {
+
+        if (!predictionData) {
+            return null;
+        }
+
+        const location =
+            predictionData.location_features || {};
+
+        const latitude =
+            safeNumber(
+                location.latitude
+            );
+
+        const longitude =
+            safeNumber(
+                location.longitude
+            );
+
+        if (
+            latitude === null ||
+            longitude === null
+        ) {
+            return null;
+        }
+
+        return {
+            latitude: latitude,
+            longitude: longitude
         };
+    }
 
-        let predictionData = null;
-        let map = null;
-        let mapMarkers = [];
 
-        function showPredictionValidationMessage(message) {
-                let messageElement =
-                    document.getElementById('predictionValidationMessage');
+    /* =========================================================
+       MAP 1
+       EXACT / RETURNED LOCATION OF SELECTED PROPERTY
+    ========================================================= */
 
-                // Create the message container once.
-                if (!messageElement) {
-                    messageElement = document.createElement('div');
+    function renderSelectedPropertyMap() {
 
-                    messageElement.id = 'predictionValidationMessage';
+        const container =
+            document.getElementById(
+                'selectedPropertyMap'
+            );
 
-                    messageElement.style.marginTop = '12px';
-                    messageElement.style.padding = '12px 16px';
-                    messageElement.style.border = '1px solid #FECACA';
-                    messageElement.style.background = '#FEF2F2';
-                    messageElement.style.color = '#991B1B';
-                    messageElement.style.borderRadius = '8px';
-                    messageElement.style.fontSize = '14px';
-                    messageElement.style.fontWeight = '600';
+        if (
+            !container ||
+            !predictionData
+        ) {
+            return;
+        }
 
-                    const valuationForm =
-                        document.getElementById('valuationForm');
 
-                    if (valuationForm) {
-                        valuationForm.parentNode.insertBefore(
-                            messageElement,
-                            valuationForm.nextSibling
-                        );
-                    }
-                }
+        /* Remove previous map */
 
-                messageElement.textContent = '⚠️ ' + message;
-                messageElement.style.display = 'block';
+        if (selectedPropertyMap) {
 
-                // Highlight the missing fields.
-                const localityElement =
-                    document.getElementById('locality');
+            selectedPropertyMap.remove();
 
-                const areaElement =
-                    document.getElementById('area');
+            selectedPropertyMap = null;
+        }
 
-                if (localityElement) {
-                    localityElement.style.borderColor =
-                        !localityElement.value
-                            ? '#DC2626'
-                            : '';
-                }
 
-                if (areaElement) {
-                    const areaValue =
-                        parseFloat(areaElement.value);
+        /* Get coordinates */
 
-                    areaElement.style.borderColor =
-                        (!areaElement.value ||
-                            Number.isNaN(areaValue) ||
-                            areaValue <= 0)
-                            ? '#DC2626'
-                            : '';
-                }
+        const coordinates =
+            getSelectedPropertyCoordinates();
+
+
+        if (!coordinates) {
+
+            container.innerHTML =
+                '<div style="' +
+                'padding:20px;' +
+                'color:#64748b;' +
+                'font-size:13px;' +
+                '">' +
+                'Location coordinates are not available for this property.' +
+                '</div>';
+
+            return;
+        }
+
+
+        const latitude =
+            coordinates.latitude;
+
+        const longitude =
+            coordinates.longitude;
+
+
+        /* Create map */
+
+        selectedPropertyMap =
+            L.map(
+                'selectedPropertyMap'
+            ).setView(
+                [
+                    latitude,
+                    longitude
+                ],
+                15
+            );
+
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution:
+                    '&copy; OpenStreetMap contributors',
+
+                maxZoom: 19
             }
+        ).addTo(
+            selectedPropertyMap
+        );
 
 
-            function clearPredictionValidationMessage() {
-                const messageElement =
-                    document.getElementById('predictionValidationMessage');
+        const propertyType =
+            normalizePropertyType(
+                predictionData.property_type
+            );
 
-                if (messageElement) {
-                    messageElement.style.display = 'none';
+
+        /* Selected property marker */
+
+        const marker =
+            L.marker(
+                [
+                    latitude,
+                    longitude
+                ],
+                {
+                    icon:
+                        createSelectedMarker(
+                            propertyType,
+                            predictionData.predicted_price
+                        )
                 }
-
-                const localityElement =
-                    document.getElementById('locality');
-
-                const areaElement =
-                    document.getElementById('area');
-
-                if (localityElement) {
-                    localityElement.style.borderColor = '';
-                }
-
-                if (areaElement) {
-                    areaElement.style.borderColor = '';
-                }
-            }
-
-            async function predict() {
-                    const form = document.getElementById('valuationForm');
-
-                    const localityElement =
-                        document.getElementById('locality');
-
-                    const areaElement =
-                        document.getElementById('area');
-
-                    const locality =
-                        (localityElement.value || '').trim();
-
-                    const areaRaw =
-                        (areaElement.value || '').trim();
-
-                    let areaValid = false;
-
-                    if (areaRaw !== '') {
-                        const areaValue = parseFloat(areaRaw);
-
-                        if (
-                            !Number.isNaN(areaValue) &&
-                            areaValue > 0
-                        ) {
-                            areaValid = true;
-                        }
-                    }
-
-                    // ============================================================
-                    // STOP BEFORE API CALL
-                    // ============================================================
-
-                    if (!locality || !areaValid) {
-
-                        predictionData = null;
-
-                        const predictionResult =
-                            document.getElementById(
-                                'predictionResult'
-                            );
-
-                        if (predictionResult) {
-                            predictionResult.style.display =
-                                'none';
-                        }
-
-                        showPredictionValidationMessage(
-                            'Please enter locality and area.'
-                        );
-
-                        return;
-                    }
-
-                    clearPredictionValidationMessage();
-
-                    const formData =
-                        new FormData(form);
-
-                    const formDataObj = {};
-
-                    formData.forEach(
-                        function (value, key) {
-                            formDataObj[key] = value;
-                        }
-                    );
-
-                    const payload = {
-                        property_type:
-                            formDataObj.property_type ||
-                            'Apartment',
-
-                        city:
-                            formDataObj.city ||
-                            'Hyderabad',
-
-                        locality:
-                            locality,
-
-                        area_sqft:
-                            parseFloat(areaRaw),
-
-                        bhk:
-                            parseInt(
-                                formDataObj.bedrooms
-                            ) || 2,
-
-                        bathrooms:
-                            parseInt(
-                                formDataObj.bathrooms
-                            ) || 2,
-
-                        property_age:
-                            parseInt(
-                                formDataObj.age
-                            ) || 5,
-
-                        furnishing:
-                            formDataObj.furnishing || '',
-
-                        facing:
-                            formDataObj.facing || '',
-
-                        floor:
-                            parseInt(
-                                formDataObj.floor
-                            ) || 0,
-
-                        total_floors:
-                            parseInt(
-                                formDataObj.total_floors
-                            ) || 0,
-
-                        parking:
-                            formDataObj.parking || '',
-                    };
-
-                    try {
-
-                        const response =
-                            await fetch(
-                                '/api/valuation/predict',
-                                {
-                                    method: 'POST',
-
-                                    headers: {
-                                        'Content-Type':
-                                            'application/json'
-                                    },
-
-                                    body:
-                                        JSON.stringify(payload)
-                                }
-                            );
-
-                        const data =
-                            await response.json();
-
-                        if (!response.ok) {
-
-                            predictionData = null;
-
-                            const predictionResult =
-                                document.getElementById(
-                                    'predictionResult'
-                                );
-
-                            if (predictionResult) {
-                                predictionResult.style.display =
-                                    'none';
-                            }
-
-                            showPredictionValidationMessage(
-                                data.error ||
-                                'Please enter locality and area.'
-                            );
-
-                            return;
-                        }
-
-                        predictionData = data;
-
-                        renderPrediction();
-
-                    } catch (err) {
-
-                        console.error(
-                            'Prediction failed:',
-                            err
-                        );
-
-                        predictionData = null;
-
-                        const predictionResult =
-                            document.getElementById(
-                                'predictionResult'
-                            );
-
-                        if (predictionResult) {
-                            predictionResult.style.display =
-                                'none';
-                        }
-
-                        showPredictionValidationMessage(
-                            'Unable to get the valuation. Please try again.'
-                        );
-                    }
-                }
-
-                function showPredictionValidationMessage(message) {
-                        let messageElement =
-                            document.getElementById(
-                                'predictionValidationMessage'
-                            );
-
-                        if (!messageElement) {
-
-                            messageElement =
-                                document.createElement('div');
-
-                            messageElement.id =
-                                'predictionValidationMessage';
-
-                            messageElement.style.marginTop =
-                                '12px';
-
-                            messageElement.style.padding =
-                                '12px 16px';
-
-                            messageElement.style.border =
-                                '1px solid #FECACA';
-
-                            messageElement.style.background =
-                                '#FEF2F2';
-
-                            messageElement.style.color =
-                                '#991B1B';
-
-                            messageElement.style.borderRadius =
-                                '8px';
-
-                            messageElement.style.fontSize =
-                                '14px';
-
-                            messageElement.style.fontWeight =
-                                '600';
-
-                            const form =
-                                document.getElementById(
-                                    'valuationForm'
-                                );
-
-                            if (form) {
-                                form.parentNode.insertBefore(
-                                    messageElement,
-                                    form.nextSibling
-                                );
-                            }
-                        }
-
-                        messageElement.textContent =
-                            '⚠️ ' + message;
-
-                        messageElement.style.display =
-                            'block';
-
-                        const localityElement =
-                            document.getElementById(
-                                'locality'
-                            );
-
-                        const areaElement =
-                            document.getElementById(
-                                'area'
-                            );
-
-                        if (localityElement) {
-
-                            localityElement.style.borderColor =
-                                !localityElement.value
-                                    ? '#DC2626'
-                                    : '';
-                        }
-
-                        if (areaElement) {
-
-                            const areaValue =
-                                parseFloat(
-                                    areaElement.value
-                                );
-
-                            areaElement.style.borderColor =
-                                (
-                                    !areaElement.value ||
-                                    Number.isNaN(areaValue) ||
-                                    areaValue <= 0
-                                )
-                                    ? '#DC2626'
-                                    : '';
-                        }
-                    }
-
-
-                    function clearPredictionValidationMessage() {
-                        const messageElement =
-                            document.getElementById(
-                                'predictionValidationMessage'
-                            );
-
-                        if (messageElement) {
-                            messageElement.style.display =
-                                'none';
-                        }
-
-                        const localityElement =
-                            document.getElementById(
-                                'locality'
-                            );
-
-                        const areaElement =
-                            document.getElementById(
-                                'area'
-                            );
-
-                        if (localityElement) {
-                            localityElement.style.borderColor =
-                                '';
-                        }
-
-                        if (areaElement) {
-                            areaElement.style.borderColor =
-                                '';
-                        }
-                    }
-
-                    
-        function renderPrediction() {
-            if (!predictionData) return;
-            document.getElementById('predictionResult').style.display = 'block';
-
-            renderOODWarning();
-            renderSanityCheck();
-            renderResultCards();
-            renderModelMetrics();
-            renderPriceBarChart();
-            renderValueDoughnut();
-            renderTrendLine();
-            renderMap();
-            renderSHAP();
-            renderLocation();
-            renderComparables();
-            renderWhatIf();
-            renderHistory();
+            ).addTo(
+                selectedPropertyMap
+            );
+
+
+        marker.bindPopup(
+            '<b>Selected Property</b><br>' +
+
+            'Type: ' +
+            propertyType +
+            '<br>' +
+
+            'City: ' +
+            (
+                predictionData.city ||
+                'N/A'
+            ) +
+            '<br>' +
+
+            'Locality: ' +
+            (
+                predictionData.locality ||
+                'N/A'
+            ) +
+            '<br>' +
+
+            'Coordinates: ' +
+            latitude.toFixed(6) +
+            ', ' +
+            longitude.toFixed(6)
+        );
+
+
+        /* Update information below the map */
+
+        const propertyLabel =
+            document.getElementById(
+                'selectedMapPropertyLabel'
+            );
+
+        if (propertyLabel) {
+
+            propertyLabel.textContent =
+                propertyType +
+                ' — ' +
+                (
+                    predictionData.locality ||
+                    predictionData.city ||
+                    'Selected property'
+                );
         }
 
-        function renderOODWarning() {
-            const el = document.getElementById('oodWarning');
-            if (predictionData.ood_warning) {
-                el.innerHTML = `<div class="ood-warning">⚠️ ${predictionData.ood_warning}</div>`;
-            } else {
-                el.innerHTML = '';
-            }
+
+        const coordinateLabel =
+            document.getElementById(
+                'selectedMapCoordinates'
+            );
+
+        if (coordinateLabel) {
+
+            coordinateLabel.textContent =
+                latitude.toFixed(6) +
+                ', ' +
+                longitude.toFixed(6);
         }
 
-        function renderSanityCheck() {
-            const el = document.getElementById('sanityCheck');
-            if (predictionData.sanity_status === 'ok') {
-                el.innerHTML = `<div class="sanity-ok">✅ Sanity check passed</div>`;
-            } else if (predictionData.sanity_status === 'warn') {
-                el.innerHTML = `<div class="sanity-warn">⚠️ Sanity check warning: ${predictionData.sanity_message || 'Result may be unusual'}</div>`;
-            } else {
-                el.innerHTML = '';
-            }
-        }
 
-        function renderResultCards() {
-            const el = document.getElementById('resultCards');
-            const p = predictionData;
-            const rel = p.reliability || {};
-            const confidence = (rel.score || 0) / 100;
-            const confidenceLabel = rel.level || 'Model confidence';
-            el.innerHTML = `
-                <div class="result-card">
-                    <h4>Predicted Price</h4>
-                    <div class="value">₹${formatNumber(p.predicted_price)}</div>
-                    <div class="sub">Per unit</div>
-                </div>
-                <div class="result-card">
-                    <h4>Price / sqft</h4>
-                    <div class="value">₹${formatNumber(p.price_per_sqft)}</div>
-                    <div class="sub">Per sq ft</div>
-                </div>
-                <div class="result-card">
-                    <h4>Confidence</h4>
-                    <div class="value">${(confidence * 100).toFixed(1)}%</div>
-                    <div class="sub">${confidenceLabel}</div>
-                </div>
-                <div class="result-card">
-                    <h4>Reliability</h4>
-                    <div class="value"><span class="model-badge" style="background: ${getReliabilityColor(rel.level)}; color: #fff;">${rel.level || 'N/A'}</span></div>
-                    <div class="sub">Prediction reliability</div>
-                </div>
-            `;
-        }
-
-        function renderModelMetrics() {
-            const el = document.getElementById('modelMetrics');
-            const m = (predictionData.model_info && predictionData.model_info.metrics) || {};
-            el.innerHTML = `
-                <div class="metric-mini"><h5>R²</h5><div class="val">${(m.R2 || 0).toFixed(4)}</div></div>
-                <div class="metric-mini"><h5>MAE</h5><div class="val">${formatNumber(m.MAE || 0)}</div></div>
-                <div class="metric-mini"><h5>RMSE</h5><div class="val">${formatNumber(m.RMSE || 0)}</div></div>
-                <div class="metric-mini"><h5>MAPE</h5><div class="val">${(m.MAPE || 0).toFixed(2)}%</div></div>
-                <div class="metric-mini"><h5>Model</h5><div class="val">${(predictionData.model_info && predictionData.model_info.algorithm) || 'N/A'}</div></div>
-            `;
-        }
-
-        function renderPriceBarChart() {
-
-                const canvas =
-                    document.getElementById('priceBarChart');
-
-                if (!canvas) {
-                    return;
-                }
-
-                const ctx =
-                    canvas.getContext('2d');
-
-                if (window.priceBarInstance) {
-                    window.priceBarInstance.destroy();
-                }
-
-
-                /* ---------------------------------------------------------
-                   YOUR PROPERTY
-                --------------------------------------------------------- */
-
-                const yourPropertyType =
-                    normalizePropertyType(
-                        predictionData.property_type
-                    );
-
-                const yourPropertyColor =
-                    getPropertyTypeColor(
-                        yourPropertyType
-                    );
-
-
-                const labels = [
-                    'Your Property'
-                ];
-
-                const values = [
-                    predictionData.predicted_price || 0
-                ];
-
-                const colors = [
-                    yourPropertyColor
-                ];
-
-
-                /* ---------------------------------------------------------
-                   COMPARABLE PROPERTIES
-                --------------------------------------------------------- */
+        setTimeout(
+            function () {
 
                 if (
-                    predictionData.comparables &&
-                    predictionData.comparables.length > 0
+                    selectedPropertyMap
                 ) {
 
-                    predictionData.comparables.forEach(
-                        function (c, i) {
-
-                            const comparableType =
-                                normalizePropertyType(
-                                    c.property_type
-                                );
-
-                            const comparableColor =
-                                getPropertyTypeColor(
-                                    comparableType
-                                );
-
-                            labels.push(
-                                'Comp ' + (i + 1)
-                            );
-
-                            values.push(
-                                c.price || 0
-                            );
-
-                            colors.push(
-                                comparableColor
-                            );
-                        }
-                    );
+                    selectedPropertyMap
+                        .invalidateSize();
                 }
 
+            },
+            150
+        );
+    }
 
-                /* ---------------------------------------------------------
-                   CHART
-                --------------------------------------------------------- */
 
-                window.priceBarInstance =
-                    new Chart(
-                        ctx,
+    /* =========================================================
+       BUILD COMPARABLE PAYLOAD
+    ========================================================= */
+
+    function buildComparablePayload() {
+
+        if (!predictionData) {
+            return null;
+        }
+
+
+        const areaElement =
+            document.getElementById(
+                'area'
+            );
+
+        const bedroomsElement =
+            document.getElementById(
+                'bedrooms'
+            );
+
+        const bathroomsElement =
+            document.getElementById(
+                'bathrooms'
+            );
+
+        const ageElement =
+            document.getElementById(
+                'age'
+            );
+
+
+        const areaValue =
+            safeNumber(
+                predictionData.area_sqft,
+                safeNumber(
+                    areaElement
+                        ? areaElement.value
+                        : null,
+                    0
+                )
+            );
+
+
+        const bhkValue =
+            safeNumber(
+                predictionData.bhk,
+                safeNumber(
+                    bedroomsElement
+                        ? bedroomsElement.value
+                        : null,
+                    2
+                )
+            );
+
+
+        const bathroomValue =
+            safeNumber(
+                predictionData.bathrooms,
+                safeNumber(
+                    bathroomsElement
+                        ? bathroomsElement.value
+                        : null,
+                    2
+                )
+            );
+
+
+        const ageValue =
+            safeNumber(
+                predictionData.property_age,
+                safeNumber(
+                    ageElement
+                        ? ageElement.value
+                        : null,
+                    5
+                )
+            );
+
+
+        return {
+
+            property_type:
+                predictionData.property_type ||
+                'Apartment',
+
+            city:
+                predictionData.city ||
+                'Hyderabad',
+
+            locality:
+                predictionData.locality ||
+                '',
+
+            area_sqft:
+                areaValue,
+
+            bhk:
+                bhkValue,
+
+            bathrooms:
+                bathroomValue,
+
+            property_age:
+                ageValue
+        };
+    }
+
+
+    /* =========================================================
+       MAP 2
+       SELECTED PROPERTY + COMPARABLE PROPERTIES
+    ========================================================= */
+
+    async function renderComparisonPropertyMap() {
+
+        const container =
+            document.getElementById(
+                'comparisonPropertyMap'
+            );
+
+        if (
+            !container ||
+            !predictionData
+        ) {
+            return;
+        }
+
+
+        if (comparisonPropertyMap) {
+
+            comparisonPropertyMap.remove();
+
+            comparisonPropertyMap = null;
+        }
+
+
+        const coordinates =
+            getSelectedPropertyCoordinates();
+
+
+        if (!coordinates) {
+
+            container.innerHTML =
+                '<div style="' +
+                'padding:20px;' +
+                'color:#64748b;' +
+                'font-size:13px;' +
+                '">' +
+                'Selected property coordinates are unavailable.' +
+                '</div>';
+
+            return;
+        }
+
+
+        const selectedLatitude =
+            coordinates.latitude;
+
+        const selectedLongitude =
+            coordinates.longitude;
+
+
+        comparisonPropertyMap =
+            L.map(
+                'comparisonPropertyMap'
+            ).setView(
+                [
+                    selectedLatitude,
+                    selectedLongitude
+                ],
+                14
+            );
+
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution:
+                    '&copy; OpenStreetMap contributors',
+
+                maxZoom: 19
+            }
+        ).addTo(
+            comparisonPropertyMap
+        );
+
+
+        const bounds = [];
+
+
+        /* ---------------------------------------------------------
+           SELECTED PROPERTY
+        --------------------------------------------------------- */
+
+        const selectedType =
+            normalizePropertyType(
+                predictionData.property_type
+            );
+
+
+        const selectedMarker =
+            L.marker(
+                [
+                    selectedLatitude,
+                    selectedLongitude
+                ],
+                {
+                    icon:
+                        createSelectedMarker(
+                            selectedType,
+                            predictionData.predicted_price
+                        )
+                }
+            ).addTo(
+                comparisonPropertyMap
+            );
+
+
+        selectedMarker.bindPopup(
+            '<b>Selected Property</b><br>' +
+
+            'Type: ' +
+            selectedType +
+            '<br>' +
+
+            'City: ' +
+            (
+                predictionData.city ||
+                'N/A'
+            ) +
+            '<br>' +
+
+            'Locality: ' +
+            (
+                predictionData.locality ||
+                'N/A'
+            )
+        );
+
+
+        bounds.push(
+            [
+                selectedLatitude,
+                selectedLongitude
+            ]
+        );
+
+
+        /* ---------------------------------------------------------
+           FIRST SOURCE:
+           COMPARABLES ALREADY RETURNED BY PREDICTION
+        --------------------------------------------------------- */
+
+        let comparableData = [];
+
+
+        if (
+            Array.isArray(
+                predictionData.comparables
+            )
+        ) {
+
+            comparableData =
+                predictionData.comparables;
+        }
+
+
+        /* ---------------------------------------------------------
+           FALLBACK:
+           REQUEST COMPARABLE MAP DATA
+        --------------------------------------------------------- */
+
+        if (
+            comparableData.length === 0
+        ) {
+
+            try {
+
+                const payload =
+                    buildComparablePayload();
+
+
+                const response =
+                    await fetch(
+                        '/api/map/comparables',
                         {
-                            type: 'bar',
+                            method: 'POST',
 
-                            data: {
-                                labels: labels,
-
-                                datasets: [
-                                    {
-                                        label: 'Price (INR)',
-
-                                        data: values,
-
-                                        backgroundColor:
-                                            colors,
-
-                                        borderColor:
-                                            colors,
-
-                                        borderWidth: 1,
-
-                                        borderRadius: 6
-                                    }
-                                ]
+                            headers: {
+                                'Content-Type':
+                                    'application/json'
                             },
 
-                            options: {
-
-                                responsive: true,
-
-                                maintainAspectRatio:
-                                    false,
-
-                                plugins: {
-
-                                    legend: {
-                                        display: false
-                                    },
-
-                                    tooltip: {
-
-                                        callbacks: {
-
-                                            label: function (context) {
-
-                                                const index =
-                                                    context.dataIndex;
-
-                                                let propertyType = '';
-
-                                                if (index === 0) {
-
-                                                    propertyType =
-                                                        yourPropertyType;
-
-                                                } else if (
-                                                    predictionData.comparables &&
-                                                    predictionData.comparables[index - 1]
-                                                ) {
-
-                                                    propertyType =
-                                                        normalizePropertyType(
-                                                            predictionData
-                                                                .comparables[index - 1]
-                                                                .property_type
-                                                        );
-                                                }
-
-                                                return (
-                                                    propertyType +
-                                                    ': ₹' +
-                                                    formatNumber(
-                                                        context.raw
-                                                    )
-                                                );
-                                            }
-                                        }
-                                    }
-                                },
-
-                                scales: {
-
-                                    y: {
-
-                                        ticks: {
-                                            color: '#64748b'
-                                        },
-
-                                        grid: {
-                                            color: '#e2e8f0'
-                                        },
-
-                                        beginAtZero: true
-                                    },
-
-                                    x: {
-
-                                        ticks: {
-                                            color: '#64748b'
-                                        },
-
-                                        grid: {
-                                            display: false
-                                        }
-                                    }
-                                }
-                            }
+                            body:
+                                JSON.stringify(
+                                    payload
+                                )
                         }
                     );
-            }
-        function renderValueDoughnut() {
-            const ctx = document.getElementById('valueDoughnut').getContext('2d');
-            if (window.valueDoughnutInstance) window.valueDoughnutInstance.destroy();
-            const p = predictionData;
-            const lower = p.uncertainty && p.uncertainty.lower_bound ? p.uncertainty.lower_bound : (p.predicted_price * 0.9);
-            const upper = p.uncertainty && p.uncertainty.upper_bound ? p.uncertainty.upper_bound : (p.predicted_price * 1.1);
-            const segments = [
-                lower,
-                p.predicted_price || 0,
-                upper
-            ];
-            window.valueDoughnutInstance = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Lower Bound', 'Predicted', 'Upper Bound'],
-                    datasets: [{
-                        data: segments,
-                        backgroundColor: ['#EF4444', '#2563EB', '#10B981'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#64748b', font: { size: 11 } } } },
-                    cutout: '60%'
+
+
+                if (response.ok) {
+
+                    const data =
+                        await response.json();
+
+                    comparableData =
+                        Array.isArray(
+                            data.properties
+                        )
+                            ? data.properties
+                            : [];
                 }
-            });
+
+            } catch (error) {
+
+                console.warn(
+                    'Comparable map endpoint unavailable:',
+                    error
+                );
+            }
         }
 
-        function renderTrendLine() {
-            const ctx = document.getElementById('trendLine').getContext('2d');
-            if (window.trendLineInstance) window.trendLineInstance.destroy();
-            const p = predictionData;
-            const city = p.city || 'Hyderabad';
-            const growthRate = (FUTURE_TREND_GROWTH[city] || 1.0) / 100;
-            const basePrice = p.predicted_price || 1000000;
-            const months = [];
-            const historical = [];
-            const forecast = [];
-            const now = new Date();
 
-            for (let i = -6; i <= 6; i++) {
-                const d = new Date(now);
-                d.setMonth(d.getMonth() + i);
-                months.push(d.toLocaleString('default', { month: 'short', year: '2-digit' }));
-                if (i <= 0) {
-                    historical.push(Math.round(basePrice * (1 - growthRate * i)));
-                    forecast.push(null);
-                } else {
-                    historical.push(null);
-                    forecast.push(Math.round(basePrice * (1 + growthRate * i)));
+        /* ---------------------------------------------------------
+           COMPARABLE MARKERS
+        --------------------------------------------------------- */
+
+        comparableData.forEach(
+            function (
+                property,
+                index
+            ) {
+
+                if (
+                    !property ||
+                    typeof property !==
+                    'object'
+                ) {
+                    return;
                 }
-            }
 
-            window.trendLineInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: months,
-                    datasets: [
+
+                const latitude =
+                    safeNumber(
+                        property.latitude
+                    );
+
+                const longitude =
+                    safeNumber(
+                        property.longitude
+                    );
+
+
+                /*
+                    A comparable without coordinates
+                    cannot be drawn on a map.
+                */
+
+                if (
+                    latitude === null ||
+                    longitude === null
+                ) {
+                    return;
+                }
+
+
+                const propertyType =
+                    normalizePropertyType(
+                        property.property_type
+                    );
+
+
+                const marker =
+                    L.marker(
+                        [
+                            latitude,
+                            longitude
+                        ],
                         {
-                            label: 'Historical',
-                            data: historical,
-                            borderColor: '#4f46e5',
-                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 3
-                        },
-                        {
-                            label: 'Forecast',
-                            data: forecast,
-                            borderColor: '#4f46e5',
-                            borderDash: [5, 5],
-                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            pointRadius: 3
+                            icon:
+                                createPropertyMarker(
+                                    getPropertyTypeColor(
+                                        propertyType
+                                    ),
+                                    propertyType,
+                                    property.price
+                                )
                         }
+                    ).addTo(
+                        comparisonPropertyMap
+                    );
+
+
+                marker.bindPopup(
+                    '<b>Comparable #' +
+                    (
+                        index + 1
+                    ) +
+                    '</b><br>' +
+
+                    'Type: ' +
+                    propertyType +
+                    '<br>' +
+
+                    'City: ' +
+                    (
+                        property.city ||
+                        predictionData.city ||
+                        'N/A'
+                    ) +
+                    '<br>' +
+
+                    'Locality: ' +
+                    (
+                        property.locality ||
+                        'N/A'
+                    ) +
+                    '<br>' +
+
+                    'Area: ' +
+                    (
+                        property.area_sqft
+                            ? Number(
+                                property.area_sqft
+                            ).toLocaleString(
+                                'en-IN'
+                            ) +
+                            ' sqft'
+                            : 'N/A'
+                    ) +
+                    '<br>' +
+
+                    'BHK: ' +
+                    (
+                        property.bhk ||
+                        property.bedrooms ||
+                        'N/A'
+                    ) +
+                    '<br>' +
+
+                    'Price: ' +
+                    (
+                        property.price !== null &&
+                            property.price !== undefined
+                            ? '₹' +
+                            formatNumber(
+                                property.price
+                            )
+                            : 'N/A'
+                    )
+                );
+
+
+                bounds.push(
+                    [
+                        latitude,
+                        longitude
                     ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { labels: { color: '#64748b', font: { size: 11 } } }
-                    },
-                    scales: {
-                        y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' } },
-                        x: { ticks: { color: '#64748b' }, grid: { display: false } }
-                    }
-                }
-            });
-        }
-
-        function renderMap() {
-            const container = document.getElementById('mapContainer');
-            if (!container) return;
-
-            if (map) { map.remove(); }
-            map = null;
-
-            const lf = predictionData.location_features || {};
-            const center = {
-                lat: Number(lf.latitude || 17.385),
-                lng: Number(lf.longitude || 78.4867)
-            };
-
-            map = L.map('mapContainer').setView([center.lat, center.lng], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
-
-            const propType =
-                normalizePropertyType(
-                    predictionData.property_type
                 );
-
-            const selectedPropertyColor =
-                getPropertyTypeColor(
-                    propType
-                );
+            }
+        );
 
 
-            const selectedIcon =
-                L.divIcon({
+        /* ---------------------------------------------------------
+           MAP VIEW
+        --------------------------------------------------------- */
 
-                    className:
-                        'selected-marker',
+        if (
+            bounds.length > 1
+        ) {
 
-                    html:
-                        '<div style="' +
-                        'background:' +
-                        selectedPropertyColor +
-                        ';' +
-                        'color:white;' +
-                        'padding:6px 12px;' +
-                        'border-radius:20px;' +
-                        'font-weight:700;' +
-                        'font-size:12px;' +
-                        'white-space:nowrap;' +
-                        'box-shadow:0 2px 8px rgba(0,0,0,0.25);' +
-                        '">' +
-                        'INR ' +
-                        formatNumber(
-                            predictionData.predicted_price
-                        ) +
-                        '</div>',
-
-                    iconSize: [
-                        130,
+            comparisonPropertyMap.fitBounds(
+                bounds,
+                {
+                    padding: [
+                        30,
                         30
-                    ],
-
-                    iconAnchor: [
-                        65,
-                        15
                     ]
-                });
-            const selectedMarker = L.marker([center.lat, center.lng], {icon: selectedIcon}).addTo(map);
-            selectedMarker.bindPopup('<b>Your Property</b><br>' + propType + ' in ' + (predictionData.locality || city) + '<br>INR ' + formatNumber(predictionData.predicted_price));
+                }
+            );
 
-            mapMarkers = [];
+        } else {
 
-            const params = new URLSearchParams({city: city, locality: predictionData.locality || ''});
-            if (propType) params.set('property_type', propType);
-
-            fetch('/api/map/properties?' + params.toString())
-                .then(function(response) { return response.json(); })
-                .then(function(data) {
-                    (data.properties || []).forEach(function(prop, i) {
-                        const pLat = Number(prop.latitude);
-                        const pLng = Number(prop.longitude);
-                        if (!Number.isFinite(pLat) || !Number.isFinite(pLng)) return;
-
-                        const pType =
-                            normalizePropertyType(
-                                prop.property_type
-                            );
-
-                        const pColor =
-                            getPropertyTypeColor(pType);
-
-                        const compIcon = L.divIcon({
-                            className: 'comp-marker',
-                            html: '<div style="background:' + pColor + ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;">INR ' + formatNumber(prop.price) + '</div>',
-                            iconSize: [100, 22],
-                            iconAnchor: [50, 11]
-                        });
-
-                        const marker = L.marker([pLat, pLng], {icon: compIcon}).addTo(map);
-                        marker.bindPopup('<b>' + pType + '</b><br>' + (prop.locality || '') + '<br>' + (prop.area_sqft ? Number(prop.area_sqft).toLocaleString('en-IN') + ' sqft | ' : '') + (prop.bhk || '?') + ' BHK<br>INR ' + formatNumber(prop.price));
-
-                        marker.city = prop.city || city;
-                        marker.propertyType = pType;
-                        mapMarkers.push(marker);
-                    });
-
-                    populateMapFilters();
-                    filterMap();
-                })
-                .catch(function(error) {
-                    console.warn('Property map data unavailable:', error);
-                    populateMapFilters();
-                    filterMap();
-                });
-
-            setTimeout(function() { map.invalidateSize(); }, 100);
+            comparisonPropertyMap.setView(
+                [
+                    selectedLatitude,
+                    selectedLongitude
+                ],
+                15
+            );
         }
 
-        function renderSHAP() {
-            const el = document.getElementById('shapContainer');
-            const shap = predictionData.shap || [];
-            if (!shap.length) {
-                el.innerHTML = '<p style="color:var(--text-light);">No SHAP data available</p>';
-                return;
+
+        setTimeout(
+            function () {
+
+                if (
+                    comparisonPropertyMap
+                ) {
+
+                    comparisonPropertyMap
+                        .invalidateSize();
+                }
+
+            },
+            150
+        );
+    }
+
+
+    /* =========================================================
+       MAP 3
+       PROPERTY TYPES IN SELECTED CITY / LOCALITY
+    ========================================================= */
+
+    async function renderPropertyTypesMap() {
+
+        const container =
+            document.getElementById(
+                'propertyTypesMap'
+            );
+
+        if (
+            !container ||
+            !predictionData
+        ) {
+            return;
+        }
+
+
+        if (propertyTypesMap) {
+
+            propertyTypesMap.remove();
+
+            propertyTypesMap = null;
+        }
+
+
+        propertyTypeMapMarkers = [];
+
+
+        propertyTypesMap =
+            L.map(
+                'propertyTypesMap'
+            );
+
+
+        L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            {
+                attribution:
+                    '&copy; OpenStreetMap contributors',
+
+                maxZoom: 19
             }
-            const maxImp = Math.max(...shap.map(s => s.importance || 0), 1);
-            el.innerHTML = shap.map(s => {
-                const pct = (s.importance / maxImp) * 100;
-                const cls = s.direction === 'negative' ? 'shap-bar-neg' : 'shap-bar-pos';
-                const prefix = s.direction === 'negative' ? '-' : '+';
-                return '<div class="shap-bar-container">' +
-                    '<div class="shap-label">' + (s.feature || '').replace(/_/g, ' ') + '</div>' +
-                    '<div class="shap-bar-bg"><div class="' + cls + '" style="width:' + pct + '%"></div></div>' +
-                    '<div class="shap-value">' + prefix + ((s.importance || 0) * 100).toFixed(1) + '%</div></div>';
-            }).join('');
+        ).addTo(
+            propertyTypesMap
+        );
+
+
+        const city =
+            String(
+                predictionData.city ||
+                ''
+            ).trim();
+
+
+        const locality =
+            String(
+                predictionData.locality ||
+                ''
+            ).trim();
+
+
+        /*
+            No property_type parameter here.
+    
+            This intentionally asks the backend for:
+            Apartment + House + Villa + Plot
+        */
+
+        const params =
+            new URLSearchParams();
+
+
+        if (city) {
+
+            params.set(
+                'city',
+                city
+            );
         }
 
-        function renderLocation() {
-            const el = document.getElementById('locationGrid');
-            const lf = predictionData.location_features || {};
-            const items = [
-                {icon: 'fa-train', dist: lf.distance_to_metro, unit: 'km', name: 'Nearest Metro'},
-                {icon: 'fa-graduation-cap', dist: lf.distance_to_school, unit: 'km', name: 'Nearest School'},
-                {icon: 'fa-hospital', dist: lf.distance_to_hospital, unit: 'km', name: 'Nearest Hospital'},
-                {icon: 'fa-city', dist: lf.distance_to_it_hub, unit: 'km', name: 'IT Hub'},
-                {icon: 'fa-building', dist: lf.distance_to_city_center, unit: 'km', name: 'City Center'},
-                {icon: 'fa-map-pin', dist: null, unit: '', name: (lf.latitude || 0).toFixed(4) + ', ' + (lf.longitude || 0).toFixed(4)}
-            ];
-            let html = '';
-            items.forEach(function(it) {
-                html += '<div class="loc-item"><i class="fas ' + it.icon + '"></i>' +
-                    '<div class="loc-dist">' + (it.dist !== null ? it.dist + ' ' + it.unit : it.name) + '</div>' +
-                    '<div class="loc-name">' + (it.dist !== null ? it.name : 'Coordinates') + '</div></div>';
-            });
-            el.innerHTML = html;
+
+        if (locality) {
+
+            params.set(
+                'locality',
+                locality
+            );
         }
 
-        function renderComparables() {
 
-                const el =
-                    document.getElementById(
-                        'comparablesList'
+        let properties = [];
+
+
+        try {
+
+            const response =
+                await fetch(
+                    '/api/map/properties?' +
+                    params.toString()
+                );
+
+
+            if (response.ok) {
+
+                const data =
+                    await response.json();
+
+                properties =
+                    Array.isArray(
+                        data.properties
+                    )
+                        ? data.properties
+                        : [];
+            }
+
+        } catch (error) {
+
+            console.warn(
+                'Property type map request failed:',
+                error
+            );
+        }
+
+
+        const bounds = [];
+
+
+        /* ---------------------------------------------------------
+           PROPERTY TYPE MARKERS
+        --------------------------------------------------------- */
+
+        properties.forEach(
+            function (property) {
+
+                if (
+                    !property ||
+                    typeof property !==
+                    'object'
+                ) {
+                    return;
+                }
+
+
+                const latitude =
+                    safeNumber(
+                        property.latitude
                     );
 
-                const comps =
-                    predictionData.comparables || [];
+                const longitude =
+                    safeNumber(
+                        property.longitude
+                    );
 
 
-                if (!comps.length) {
-
-                    el.innerHTML =
-                        '<p style="color:var(--text-light);">' +
-                        'No comparable properties found.' +
-                        '</p>';
-
+                if (
+                    latitude === null ||
+                    longitude === null
+                ) {
                     return;
                 }
 
 
-                el.innerHTML =
-                    comps.map(
-                        function (c) {
-
-                            const propertyType =
-                                normalizePropertyType(
-                                    c.property_type
-                                );
-
-                            const propertyColor =
-                                getPropertyTypeColor(
-                                    propertyType
-                                );
+                const propertyType =
+                    normalizePropertyType(
+                        property.property_type
+                    );
 
 
-                            return `
-                <div class="comp-card">
-
-                    <div
-                        class="comp-icon"
-                        style="
-                            background:${propertyColor};
-                        "
-                    >
-                        🏠
-                    </div>
-
-                    <div class="comp-info">
-
-                        <h4>
-                            ${c.locality || 'N/A'},
-                            ${c.city || 'N/A'}
-                        </h4>
-
-                        <p>
-                            ${c.area || c.area_sqft || 0}
-                            sqft •
-                            ${c.bedrooms || c.bhk || 0}
-                            BHK •
-                            ${propertyType}
-                        </p>
-
-                    </div>
-
-                    <div class="comp-price">
-                        ₹${formatNumber(
-                                c.price || 0
-                            )}
-                    </div>
-
-                </div>
-            `;
+                const marker =
+                    L.marker(
+                        [
+                            latitude,
+                            longitude
+                        ],
+                        {
+                            icon:
+                                createPropertyMarker(
+                                    getPropertyTypeColor(
+                                        propertyType
+                                    ),
+                                    propertyType,
+                                    property.price
+                                )
                         }
-                    ).join('');
-            }
-        function renderWhatIf() {
-            const resultsEl = document.getElementById('whatifResults');
-            const p = predictionData;
+                    ).addTo(
+                        propertyTypesMap
+                    );
 
-            if (!p || !p.predicted_price) {
-                resultsEl.innerHTML = '<p style="color:var(--text-light);">Run a prediction first</p>';
-                return;
-            }
 
-            resultsEl.innerHTML = '<div class="whatif-grid" style="grid-template-columns: 1fr auto 1fr;">' +
-                '<div class="whatif-card">' +
-                    '<h4>Original Property</h4>' +
-                    '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (p.property_type || 'Property') + ' | ' + (p.locality || '') + ', ' + (p.city || '') + '</div>' +
-                    '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + (p.area_sqft || 0) + ' sqft | ' + (p.bhk || 0) + ' BHK | ' + (p.bathrooms || 0) + ' Bath</div>' +
-                    '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(p.predicted_price) + '</div>' +
-                '</div>' +
-                '<div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>' +
-                '<div class="whatif-card">' +
-                    '<h4>Modified Property</h4>' +
-                    '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">Change any feature above to see price impact</div>' +
-                    '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">Same as original until modified</div>' +
-                    '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(p.predicted_price) + '</div>' +
-                '</div>' +
-            '</div>';
+                marker.city =
+                    property.city ||
+                    city;
+
+
+                marker.locality =
+                    property.locality ||
+                    locality;
+
+
+                marker.propertyType =
+                    propertyType;
+
+
+                marker.bindPopup(
+                    '<b>' +
+                    propertyType +
+                    '</b><br>' +
+
+                    'City: ' +
+                    (
+                        property.city ||
+                        city ||
+                        'N/A'
+                    ) +
+                    '<br>' +
+
+                    'Locality: ' +
+                    (
+                        property.locality ||
+                        locality ||
+                        'N/A'
+                    ) +
+                    '<br>' +
+
+                    'Area: ' +
+                    (
+                        property.area_sqft
+                            ? Number(
+                                property.area_sqft
+                            ).toLocaleString(
+                                'en-IN'
+                            ) +
+                            ' sqft'
+                            : 'N/A'
+                    ) +
+                    '<br>' +
+
+                    'BHK: ' +
+                    (
+                        property.bhk ||
+                        property.bedrooms ||
+                        'N/A'
+                    ) +
+                    '<br>' +
+
+                    'Price: ' +
+                    (
+                        property.price !== null &&
+                            property.price !== undefined
+                            ? '₹' +
+                            formatNumber(
+                                property.price
+                            )
+                            : 'N/A'
+                    )
+                );
+
+
+                propertyTypeMapMarkers.push(
+                    marker
+                );
+
+
+                bounds.push(
+                    [
+                        latitude,
+                        longitude
+                    ]
+                );
+            }
+        );
+
+
+        /* ---------------------------------------------------------
+           MAP VIEW
+        --------------------------------------------------------- */
+
+        if (
+            bounds.length > 0
+        ) {
+
+            propertyTypesMap.fitBounds(
+                bounds,
+                {
+                    padding: [
+                        30,
+                        30
+                    ]
+                }
+            );
+
+        } else {
+
+            const coordinates =
+                getSelectedPropertyCoordinates();
+
+
+            if (coordinates) {
+
+                propertyTypesMap.setView(
+                    [
+                        coordinates.latitude,
+                        coordinates.longitude
+                    ],
+                    13
+                );
+
+            } else {
+
+                /*
+                    Hyderabad is used only as a last-resort
+                    fallback when there is no location data.
+                */
+
+                propertyTypesMap.setView(
+                    [
+                        17.3850,
+                        78.4867
+                    ],
+                    11
+                );
+            }
         }
 
-        function runAdminWhatIf() {
-            if (!predictionData || !predictionData.predicted_price) return;
 
-            const bhk = document.getElementById('whatifBhk').value;
-            const area = document.getElementById('whatifArea').value;
-            const bath = document.getElementById('whatifBath').value;
-            const furnishing = document.getElementById('whatifFurnishing').value;
-            const facing = document.getElementById('whatifFacing').value;
-            const age = document.getElementById('whatifAge').value;
+        updatePropertyTypeMapSummary();
 
-            const payload = {
-                property_type: predictionData.property_type || 'Apartment',
-                city: predictionData.city || 'Hyderabad',
-                locality: predictionData.locality || '',
-                area_sqft: area ? parseFloat(area) : (predictionData.area_sqft || 1500),
-                bhk: bhk ? parseInt(bhk) : (predictionData.bhk || 3),
-                bathrooms: bath ? parseInt(bath) : (predictionData.bathrooms || 2),
-                property_age: age ? parseInt(age) : (predictionData.property_age || 5),
-                furnishing: furnishing || '',
-                facing: facing || '',
-            };
 
-            const resultsEl = document.getElementById('whatifResults');
-            resultsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-light);"><i class="fas fa-spinner fa-spin"></i> Analyzing...</div>';
+        setTimeout(
+            function () {
 
-            fetch('/api/valuation/predict', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(res) {
-                if (res.error) {
-                    resultsEl.innerHTML = '<div style="color:red;">' + res.error + '</div>';
-                    return;
+                if (
+                    propertyTypesMap
+                ) {
+
+                    propertyTypesMap
+                        .invalidateSize();
                 }
 
-                const origPrice = predictionData.predicted_price;
-                const modPrice = res.predicted_price;
-                const diff = modPrice - origPrice;
-                const pct = origPrice ? ((diff / origPrice) * 100).toFixed(1) : 0;
-                const diffCls = diff > 0 ? 'diff-up' : diff < 0 ? 'diff-down' : 'diff-same';
-                const diffIcon = diff > 0 ? 'fa-arrow-up' : diff < 0 ? 'fa-arrow-down' : 'fa-equals';
+            },
+            150
+        );
+    }
 
-                const changes = [];
-                if (bhk && bhk != predictionData.bhk) changes.push('BHK: ' + bhk);
-                if (area && area != predictionData.area_sqft) changes.push('Area: ' + area + ' sqft');
-                if (bath && bath != predictionData.bathrooms) changes.push('Bath: ' + bath);
-                if (furnishing) changes.push('Furnishing: ' + furnishing);
-                if (facing) changes.push('Facing: ' + facing);
-                if (age && age != predictionData.property_age) changes.push('Age: ' + age + ' yrs');
 
-                resultsEl.innerHTML = '<div class="whatif-grid" style="grid-template-columns: 1fr auto 1fr;">' +
-                    '<div class="whatif-card">' +
-                        '<h4>Original Property</h4>' +
-                        '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (predictionData.property_type || 'Property') + ' | ' + (predictionData.locality || '') + ', ' + (predictionData.city || '') + '</div>' +
-                        '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + (predictionData.area_sqft || 0) + ' sqft | ' + (predictionData.bhk || 0) + ' BHK | ' + (predictionData.bathrooms || 0) + ' Bath</div>' +
-                        '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(origPrice) + '</div>' +
-                    '</div>' +
-                    '<div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>' +
-                    '<div class="whatif-card">' +
-                        '<h4>Modified Property</h4>' +
-                        '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (changes.length ? changes.join(' | ') : 'No changes') + '</div>' +
-                        '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + payload.area_sqft + ' sqft | ' + payload.bhk + ' BHK | ' + payload.bathrooms + ' Bath</div>' +
-                        '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(modPrice) + '</div>' +
-                        '<div style="margin-top:8px;"><span class="diff-badge ' + diffCls + '"><i class="fas ' + diffIcon + '"></i> ' + (diff >= 0 ? '+' : '') + formatNumber(diff) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)</span></div>' +
-                    '</div>' +
-                '</div>';
-            })
-            .catch(function(err) {
-                resultsEl.innerHTML = '<p style="color:red;">Error running what-if</p>';
-            });
+    /* =========================================================
+       MAP 3 FILTER
+    ========================================================= */
+
+    function filterPropertyTypeMap() {
+
+        if (!propertyTypesMap) {
+            return;
         }
 
-        function initAdminWhatIfListeners() {
-            ['whatifBhk', 'whatifArea', 'whatifBath', 'whatifFurnishing', 'whatifFacing', 'whatifAge'].forEach(function(id) {
-                const el = document.getElementById(id);
-                if (!el) return;
-                el.addEventListener('change', function() {
-                    if (predictionData && predictionData.predicted_price) {
-                        runAdminWhatIf();
-                    }
-                });
-            });
-        }
 
-        function renderHistory() {
-            const el = document.getElementById('historyBody');
-            const preds = {{ predictions | tojson }};
-            el.innerHTML = preds.map(p => `
-                <tr>
-                    <td>${p.id || 'N/A'}</td>
-                    <td>${p.city || 'N/A'}</td>
-                    <td>${p.locality || 'N/A'}</td>
-                    <td>${p.property_type || 'N/A'}</td>
-                    <td>${p.area_sqft || 'N/A'}</td>
-                    <td>₹${formatNumber(p.predicted_price || 0)}</td>
-                    <td>${p.reliability || 'N/A'}</td>
-                    <td>${p.created_at || 'N/A'}</td>
-                </tr>
-            `).join('');
-        }
+        const filter =
+            document.getElementById(
+                'propertyTypeMapFilter'
+            );
 
-        function populateMapFilters() {
-            const cityFilter = document.getElementById('mapCityFilter');
-            const typeFilter = document.getElementById('mapTypeFilter');
 
-            cityFilter.innerHTML = '<option value="all">All Cities</option>';
-            typeFilter.innerHTML = '<option value="all">All Types</option>';
+        const selectedType =
+            filter
+                ? filter.value
+                : 'all';
 
-            const cities = {};
-            const types = {};
-            if (predictionData.city) { cities[predictionData.city] = true; }
-            types[predictionData.property_type] = true;
 
-            mapMarkers.forEach(m => {
-                if (m.city) { cities[m.city] = true; }
-                if (m.propertyType) { types[m.propertyType] = true; }
-            });
+        propertyTypeMapMarkers.forEach(
+            function (marker) {
 
-            Object.keys(cities).sort().forEach(function(city) {
-                const opt = document.createElement('option');
-                opt.value = city;
-                opt.textContent = city;
-                cityFilter.appendChild(opt);
-            });
+                const markerType =
+                    normalizePropertyType(
+                        marker.propertyType
+                    );
 
-            Object.keys(types).sort().forEach(function(type) {
-                const opt = document.createElement('option');
-                opt.value = type;
-                opt.textContent = type;
-                typeFilter.appendChild(opt);
-            });
-        }
 
-        function filterMap() {
-                const cityFilter =
-                    document.getElementById(
-                        'mapCityFilter'
-                    ).value;
+                const shouldShow =
+                    selectedType === 'all' ||
+                    markerType ===
+                    normalizePropertyType(
+                        selectedType
+                    );
 
-                const typeFilter =
-                    document.getElementById(
-                        'mapTypeFilter'
-                    ).value;
 
-                mapMarkers.forEach(function (marker) {
+                if (shouldShow) {
 
-                    const markerCity =
-                        String(marker.city || '')
-                            .trim()
-                            .toLowerCase();
+                    marker.addTo(
+                        propertyTypesMap
+                    );
 
-                    const markerType =
-                        normalizePropertyType(
-                            marker.propertyType
-                        );
+                } else {
 
-                    const cityMatches =
-                        cityFilter === 'all' ||
-                        markerCity ===
-                        cityFilter
-                            .trim()
-                            .toLowerCase();
-
-                    const typeMatches =
-                        typeFilter === 'all' ||
-                        markerType ===
-                        normalizePropertyType(
-                            typeFilter
-                        );
-
-                    if (
-                        cityMatches &&
-                        typeMatches
-                    ) {
-                        marker.addTo(map);
-                    } else {
-                        map.removeLayer(marker);
-                    }
-                });
+                    propertyTypesMap.removeLayer(
+                        marker
+                    );
+                }
             }
+        );
 
-        function formatNumber(num) {
-            return Number(num).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+
+        updatePropertyTypeMapSummary();
+    }
+
+
+    /* =========================================================
+       MAP 3 SUMMARY
+    ========================================================= */
+
+    function updatePropertyTypeMapSummary() {
+
+        const summary =
+            document.getElementById(
+                'propertyTypeMapSummary'
+            );
+
+
+        if (!summary) {
+            return;
         }
 
-        function getReliabilityColor(r) {
-            const map = {
-                'HIGH': '#10B981',
-                'MEDIUM': '#F59E0B',
-                'LOW': '#EF4444'
-            };
-            return map[r] || '#64748b';
-        }
 
-        const dropdownData = {{ dropdown | tojson }};
+        const counts = {
+            Apartment: 0,
+            House: 0,
+            Villa: 0,
+            Plot: 0
+        };
 
-        document.getElementById('city').addEventListener('change', function() {
-            const city = this.value;
-            const localitySelect = document.getElementById('locality');
-            localitySelect.innerHTML = '<option value="">Select Locality</option>';
-            const localities = (dropdownData.localities && dropdownData.localities[city]) ? dropdownData.localities[city] : [];
-            localities.forEach(function(loc) {
-                const opt = document.createElement('option');
-                opt.value = loc;
-                opt.textContent = loc;
-                localitySelect.appendChild(opt);
-            });
-        });
 
-        document.querySelectorAll('.sidebar a').forEach(a => {
-            a.addEventListener('click', function() {
-                document.querySelectorAll('.sidebar a').forEach(l => l.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
+        propertyTypeMapMarkers.forEach(
+            function (marker) {
 
-        initAdminWhatIfListeners();
-    </script>
-    <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
-</body>
-</html>
+                const type =
+                    normalizePropertyType(
+                        marker.propertyType
+                    );
+
+
+                if (
+                    Object.prototype
+                        .hasOwnProperty
+                        .call(
+                            counts,
+                            type
+                        )
+                ) {
+
+                    counts[type] += 1;
+                }
+            }
+        );
+
+
+        summary.innerHTML =
+            Object.keys(
+                counts
+            ).map(
+                function (type) {
+
+                    return (
+                        '<div class="map-summary-item">' +
+
+                        '<span style="' +
+                        'display:inline-block;' +
+                        'width:8px;' +
+                        'height:8px;' +
+                        'border-radius:50%;' +
+                        'background:' +
+                        getPropertyTypeColor(
+                            type
+                        ) +
+                        ';' +
+                        'margin-right:5px;' +
+                        '"></span>' +
+
+                        '<strong>' +
+                        type +
+                        ':</strong> ' +
+
+                        counts[type] +
+
+                        '</div>'
+                    );
+                }
+            ).join('');
+    }
+
+
+    /* =========================================================
+       MASTER MAP RENDERER
+    ========================================================= */
+
+    function renderMap() {
+
+        /*
+            MAP 1:
+            Selected property
+        */
+
+        renderSelectedPropertyMap();
+
+
+        /*
+            MAP 2:
+            Selected property + comparables
+    
+            This function is async internally.
+        */
+
+        renderComparisonPropertyMap();
+
+
+        /*
+            MAP 3:
+            All property types in selected locality
+        */
+
+        renderPropertyTypesMap();
+    }
+
+</script>
