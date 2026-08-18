@@ -9,14 +9,13 @@ from sklearn.metrics import (
 )
 
 
-def regression_metrics(y_true, y_pred) -> dict[str, float]:
+def regression_metrics(y_true, y_pred):
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
 
+    positive = y_true > 0
     safe_true = np.where(y_true == 0, 1.0, y_true)
     pct_error = np.abs(y_true - y_pred) / safe_true
-
-    positive = y_true > 0
 
     return {
         "MAE": float(mean_absolute_error(y_true, y_pred)),

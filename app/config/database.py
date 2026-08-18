@@ -1,5 +1,3 @@
-"""MySQL database configuration for PropWise AI."""
-
 from __future__ import annotations
 
 import os
@@ -7,51 +5,28 @@ from urllib.parse import urlsplit, urlunsplit
 
 
 def get_database_url() -> str:
-    """Return a normalized SQLAlchemy MySQL URL.
+    if os.environ.get("PROPWISE_TESTING") == "1":
+        return "sqlite:///:memory:"
 
-    Accepted input forms:
-      mysql://user:password@host:3306/database
-      mysql+pymysql://user:password@host:3306/database
+    raw = os.environ.get("DATABASE_URL", "").strip()
+    if not raw:
+        raise RuntimeError("DATABASE_URL is required outside testing.")
 
-    The normalized output always uses mysql+pymysql.
-    """
-    url = os.environ.get("DATABASE_URL", "").strip()
+    if raw.startswith("mysql://"):
+        raw = "mysql+pymysql://" + raw[len("mysql://"):]
 
-    if not url:
-        raise RuntimeError(
-            "DATABASE_URL is required. Configure MySQL before starting "
-            "PropWise AI."
-        )
+    if not raw.startswith("mysql+pymysql://"):
+        raise RuntimeError("DATABASE_URL must be a MySQL/PyMySQL URL.")
 
-    if url.startswith("mysql://"):
-        url = "mysql+pymysql://" + url[len("mysql://") :]
-
-    if not url.startswith("mysql+pymysql://"):
-        raise RuntimeError(
-            "DATABASE_URL must use MySQL with PyMySQL "
-            "(mysql:// or mysql+pymysql://)."
-        )
-
-    # Ensure utf8mb4 is requested without destroying an existing query string.
-    parts = urlsplit(url)
+    parts = urlsplit(raw)
     query = parts.query
-
     if "charset=" not in query.lower():
         query = f"{query}&charset=utf8mb4" if query else "charset=utf8mb4"
 
-    return urlunsplit(
-        (
-            parts.scheme,
-            parts.netloc,
-            parts.path,
-            query,
-            parts.fragment,
-        )
-    )
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
 
 
 def configure_database(app) -> None:
-    """Apply MySQL settings to a Flask application."""
     app.config["SQLALCHEMY_DATABASE_URI"] = get_database_url()
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {

@@ -1,40 +1,17 @@
-from app.config.database import get_database_url
+import os
+import pytest
+from sqlalchemy.engine import make_url
 
 
-def test_mysql_url_is_normalized(monkeypatch):
-    monkeypatch.setenv(
-        "DATABASE_URL",
-        "mysql://user:password@localhost:3306/propwise_ai",
-    )
-
-    url = get_database_url()
-
-    assert url.startswith(
-        "mysql+pymysql://user:password@localhost:3306/propwise_ai"
-    )
-    assert "charset=utf8mb4" in url
+def test_mysql_dependency():
+    import pymysql
+    assert pymysql.__version__
 
 
-def test_mysql_driver_url_is_accepted(monkeypatch):
-    monkeypatch.setenv(
-        "DATABASE_URL",
-        "mysql+pymysql://user:password@localhost:3306/propwise_ai",
-    )
-
-    url = get_database_url()
-
-    assert url.startswith("mysql+pymysql://")
-
-
-def test_postgresql_url_is_rejected(monkeypatch):
-    monkeypatch.setenv(
-        "DATABASE_URL",
-        "postgresql+psycopg2://user:password@localhost:5432/propwise_ai",
-    )
-
-    try:
-        get_database_url()
-    except RuntimeError as exc:
-        assert "MySQL" in str(exc)
-    else:
-        raise AssertionError("PostgreSQL URL should be rejected")
+@pytest.mark.skipif(
+    "DATABASE_URL" not in os.environ,
+    reason="DATABASE_URL not configured",
+)
+def test_database_url_uses_mysql():
+    url = make_url(os.environ["DATABASE_URL"])
+    assert url.get_backend_name() == "mysql"

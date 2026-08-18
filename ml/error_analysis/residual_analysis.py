@@ -11,18 +11,15 @@ PROPERTY_TYPES = ("Apartment", "House", "Villa", "Plot")
 
 
 def build_residual_table(
-    test_path: str | Path = "data/processed/hyderabad_test.csv",
-    models_dir: str | Path = "models",
-    output_path: str | Path = "data/processed/hyderabad_residuals.csv",
-) -> pd.DataFrame:
-    """Create row-level prediction errors for the locked Hyderabad set."""
-    test_path = Path(test_path)
-    models_dir = Path(models_dir)
-    output_path = Path(output_path)
-
+    test_path="data/processed/hyderabad_test.csv",
+    models_dir="models",
+    output_path="data/processed/hyderabad_residuals.csv",
+):
     df = pd.read_csv(test_path)
+    models_dir = Path(models_dir)
     feature_engineer = joblib.load(models_dir / "feature_engineer.joblib")
-    frames = []
+
+    outputs = []
 
     for property_type in PROPERTY_TYPES:
         model_path = models_dir / f"{property_type.lower()}_model.joblib"
@@ -39,7 +36,6 @@ def build_residual_table(
 
         model = joblib.load(model_path)
         X = feature_engineer.transform(subset, fit=False)
-
         actual = subset["price"].astype(float).to_numpy()
         predicted = np.expm1(model.predict(X))
 
@@ -47,26 +43,16 @@ def build_residual_table(
         subset["residual"] = actual - predicted
         subset["absolute_error"] = np.abs(subset["residual"])
         subset["absolute_percentage_error"] = (
-            subset["absolute_error"]
-            / np.where(actual == 0, 1.0, actual)
-            * 100.0
+            subset["absolute_error"] /
+            np.where(actual == 0, 1.0, actual) * 100
         )
-        subset["direction"] = np.where(
-            subset["residual"] >= 0,
-            "under_predicted",
-            "over_predicted",
-        )
-        frames.append(subset)
+        outputs.append(subset)
 
-    if not frames:
-        raise ValueError("No matching model/test data was found")
+    if not outputs:
+        raise ValueError("No matching model/test rows found.")
 
-    result = pd.concat(frames, ignore_index=True)
+    result = pd.concat(outputs, ignore_index=True)
+    output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     result.to_csv(output_path, index=False)
     return result
-
-
-if __name__ == "__main__":
-    result = build_residual_table()
-    print(f"Residual rows written: {len(result)}")
