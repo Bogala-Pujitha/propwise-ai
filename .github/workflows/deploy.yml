@@ -1,0 +1,42 @@
+name: PropWise Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Production configuration check
+        env:
+          SECRET_KEY: ${{ secrets.PROPWISE_SECRET_KEY }}
+          DATABASE_URL: ${{ secrets.PROPWISE_DATABASE_URL }}
+          FLASK_ENV: production
+        run: python scripts/check_production_readiness.py
+
+      # Replace the block below with your actual hosting provider's deployment
+      # command. Credentials/API tokens belong in GitHub Actions secrets.
+      - name: Deployment placeholder
+        run: |
+          echo "Configure the provider-specific deployment command here."
+          echo "Required secrets: PROPWISE_SECRET_KEY, PROPWISE_DATABASE_URL"

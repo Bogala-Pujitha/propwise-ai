@@ -1,21 +1,16 @@
-# PropWise AI — Missing ML Files
+# PropWise AI — remaining production files
 
-This package contains only the ML files that are not currently represented as
-dedicated packages in the public `main` branch:
+This add-on pack covers the remaining project-level gaps identified after the
+PostgreSQL → MySQL switch:
 
-- ml/evaluation/
-- ml/error_analysis/
+1. Database migration management with Alembic.
+2. MySQL-backed CI integration test.
+3. Production-readiness validation script.
+4. Deployment workflow template.
+5. Health/readiness endpoint helper.
 
-The current `ml/training/model_trainer.py` already contains Experiment A/B/C
-and model selection logic, so no duplicate experiments package is included.
+These are additive and do not replace your existing ML, controller, service,
+model, authentication or test code.
 
-Placement:
-propwise-ai/ml/evaluation/
-propwise-ai/ml/error_analysis/
-tests/ml/test_evaluation.py
-
-Important:
-The locked Hyderabad test generator creates a reproducible holdout artifact.
-Because the current training code already trains with Hyderabad data, a newly
-created holdout becomes a valid final test only after the final models are
-retrained without that holdout.
+Before enabling deployment, fill in the required repository secrets/environment
+values in GitHub Actions and verify your hosting provider's start command.
