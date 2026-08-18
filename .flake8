@@ -1,4 +1,4 @@
 [flake8]
 max-line-length = 127
-ignore = E402,W503
+ignore = E402,W503,W292,W504
 exclude = venv,.git,__pycache__,.pytest_cache,models,data

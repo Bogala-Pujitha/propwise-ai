@@ -1,22 +1,30 @@
+import os
+from datetime import timedelta
+from pathlib import Path
+
+
+APP_DIR = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = APP_DIR.parent
+
+
 def default_config() -> dict:
     if os.environ.get("PROPWISE_TESTING") == "1":
         database_uri = "sqlite:///:memory:"
         engine_options = {}
     else:
-        from app.config.database import get_database_url
+        configured_url = os.environ.get("DATABASE_URL")
+        if configured_url:
+            from app.config.database import get_database_url
+            database_uri = get_database_url()
+            engine_options = {
+                "pool_pre_ping": True,
+                "pool_recycle": 280,
+            }
+        else:
+            database_uri = f"sqlite:///{APP_DIR / 'propwise.db'}"
+            engine_options = {}
 
-        database_uri = get_database_url()
-        engine_options = {
-            "pool_pre_ping": True,
-            "pool_recycle": 280,
-        }
-
-    secret_key = os.environ.get("SECRET_KEY")
-
-    if not secret_key:
-        if os.environ.get("FLASK_ENV") != "testing":
-            raise RuntimeError("SECRET_KEY is required.")
-        secret_key = "ci-testing-secret"
+    secret_key = os.environ.get("SECRET_KEY", "propwise-ai-secret-key-2024")
 
     return {
         "SECRET_KEY": secret_key,

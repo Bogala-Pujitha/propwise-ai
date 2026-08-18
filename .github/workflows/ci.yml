@@ -66,6 +66,7 @@ jobs:
       SECRET_KEY: "ci-test-secret-key"
       FLASK_ENV: "testing"
       TESTING: "true"
+      PROPWISE_TESTING: "1"
 
     steps:
       - name: Checkout repository
