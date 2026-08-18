@@ -6,7 +6,6 @@
     <title>Dashboard - PropWise AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
         .map-container { height: 300px; border-radius: 12px; overflow: hidden; margin: 15px 0; }
@@ -88,8 +87,58 @@
             <div class="nav-links">
                 <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
                 <a href="/logout" class="btn-nav-login">Logout</a>
-            </div>
-        </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Property Age (years)</label>
+                            <input type="number" name="property_age" id="propertyAge" placeholder="e.g. 5" min="0" max="100" value="5" class="dropdown-select">
+                        </div>
+                        <div class="form-group">
+                            <label>Parking</label>
+                            <select name="parking" id="parking" class="dropdown-select">
+                                <option value="">None</option>
+                                <option value="Car">Car</option>
+                                <option value="Bike">Bike</option>
+                                <option value="Car and Bike">Car and Bike</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Furnishing</label>
+                            <select name="furnishing" id="furnishing" class="dropdown-select">
+                                <option value="">Select</option>
+                                <option value="Unfurnished">Unfurnished</option>
+                                <option value="Semi-Furnished">Semi-Furnished</option>
+                                <option value="Fully Furnished">Fully Furnished</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Facing</label>
+                            <select name="facing" id="facing" class="dropdown-select">
+                                <option value="">Select</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="North-East">North-East</option>
+                                <option value="North-West">North-West</option>
+                                <option value="South-East">South-East</option>
+                                <option value="South-West">South-West</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Balconies</label>
+                            <select name="balconies" id="balconies" class="dropdown-select">
+                                <option value="0">0</option>
+                                <option value="1">1</option>
+                                <option value="2" selected>2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Floor</label>
+                            <input type="number" name="floor" id="floor" placeholder="e.g. 5" min="0" max="100" value="5" class="dropdown-select">
+                        </div>
+                    </div>
     </nav>
 
     <div class="dashboard-layout">
@@ -279,11 +328,11 @@
                     </div>
                     <div id="map" class="map-container"></div>
                     <div class="map-legend" id="mapLegend">
-                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Your Property</div>
-                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Apartment</div>
-                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> House</div>
-                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Villa</div>
-                        <div class="legend-item"><span class="legend-dot" style="background:#4f46e5;"></span> Plot</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#1E3A8A;"></span> Your Property</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#1E3A8A;"></span> Apartment</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#475569;"></span> House</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#B85C38;"></span> Villa</div>
+                        <div class="legend-item"><span class="legend-dot" style="background:#B68B2E;"></span> Plot</div>
                     </div>
                 </div>
 
@@ -389,7 +438,7 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
     <script>
     var map = null;
     var currentResult = null;
@@ -401,10 +450,10 @@
     var dropdownData = {{ dropdown | tojson }};
 
     var propertyTypeColors = {
-        'Apartment': '#4f46e5',
-        'House': '#4f46e5',
-        'Villa': '#4f46e5',
-        'Plot': '#4f46e5'
+        'Apartment': '#1E3A8A',
+        'House': '#475569',
+        'Villa': '#B85C38',
+        'Plot': '#B68B2E'
     };
 
     var cityGrowthRates = {
@@ -544,13 +593,13 @@
 
         var barLabels = ['Your Property'];
         var barData = [r.predicted_price];
-        var barColors = ['#4f46e5'];
+        var barColors = ['#1E3A8A'];
 
         if (r.comparables && r.comparables.length > 0) {
             r.comparables.forEach(function(c, i) {
                 barLabels.push('Comp ' + (i + 1));
                 barData.push(c.price);
-                barColors.push(propertyTypeColors[c.property_type] || '#94a3b8');
+                barColors.push(propertyTypeColors[c.property_type] || '#94A3B8');
             });
         }
 
@@ -600,7 +649,7 @@
                 labels: ['Lower Bound', 'Predicted', 'Upper Bound'],
                 datasets: [{
                     data: [lower, r.predicted_price, upper],
-                    backgroundColor: ['#4f46e5', '#4f46e5', '#4f46e5'],
+                    backgroundColor: ['#EF4444', '#2563EB', '#10B981'],
                     borderWidth: 2,
                     borderColor: '#ffffff'
                 }]
@@ -694,6 +743,11 @@
     }
 
     function renderMap(r, inputData) {
+        if (window.PW_renderDashboardMap) {
+            window.PW_renderDashboardMap(r, inputData);
+            return;
+        }
+
         if (map) { map.remove(); }
         var lat = r.location_features ? r.location_features.latitude : 17.385;
         var lon = r.location_features ? r.location_features.longitude : 78.487;

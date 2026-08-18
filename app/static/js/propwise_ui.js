@@ -2,11 +2,11 @@
   "use strict";
 
   const COLORS = {
-    Apartment: "#2F6F66",
-    House: "#3F6D8F",
+    Apartment: "#1E3A8A",
+    House: "#475569",
     Villa: "#B85C38",
     Plot: "#B68B2E",
-    Selected: "#25313B"
+    Selected: "#0F172A"
   };
 
   window.PROPWISE_PROPERTY_COLORS = COLORS;

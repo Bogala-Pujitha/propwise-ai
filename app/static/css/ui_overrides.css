@@ -185,3 +185,31 @@ input:focus, select:focus, textarea:focus {
   .sidebar { width:100% !important; position:static !important; height:auto !important; }
   .admin-tool-grid { grid-template-columns:1fr; }
 }
+
+/* --- GLOBAL RESET: Disable all animations and transitions --- */
+* {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* --- PROFESSIONAL COLOR PALETTE --- */
+:root {
+    --primary-color: #1E3A8A; /* Deep Navy Blue */
+    --secondary-color: #475569; /* Slate Gray */
+    --background-light: #F8FAFC; /* Off-white for backgrounds */
+    --text-main: #0F172A; /* Dark gray for high readability */
+    --accent-color: #2563EB; /* Standard blue for buttons */
+}
+
+body {
+    background-color: var(--background-light);
+    color: var(--text-main);
+}
+
+/* Override Neon Buttons and Text */
+.btn-primary, .neon-text, .hover-effect {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    box-shadow: none !important; /* Removes neon glow */
+    border-radius: 4px; /* Simple, human-coded look */
+}

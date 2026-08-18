@@ -22,11 +22,14 @@ def simulate():
         "property_age": int(data.get("property_age", 5)),
     }
     modified = dict(base)
-    for field in ("bhk", "bathrooms", "property_age"):
-        if data.get(field) is not None and data.get(field) != "":
-            modified[field] = int(data[field])
-    if data.get("area_sqft_modified") not in (None, ""):
-        modified["area_sqft"] = float(data["area_sqft_modified"])
+    if data.get("change_bhk") not in (None, ""):
+        modified["bhk"] = int(data["change_bhk"])
+    if data.get("change_bathrooms") not in (None, ""):
+        modified["bathrooms"] = int(data["change_bathrooms"])
+    if data.get("change_age") not in (None, ""):
+        modified["property_age"] = int(data["change_age"])
+    if data.get("change_area") not in (None, ""):
+        modified["area_sqft"] = float(base["area_sqft"]) + float(data["change_area"])
 
     if VALUATION_ENGINE is None:
         init_engine()

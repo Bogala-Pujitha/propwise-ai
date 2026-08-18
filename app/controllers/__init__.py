@@ -10,6 +10,7 @@ from .analytics_controller import analytics_bp
 from .valuation_controller import valuation_bp
 from .comparable_controller import comparable_bp
 from .what_if_controller import what_if_bp
+from .map_controller import map_bp
 
 
 def register_blueprints(app):
@@ -20,3 +21,4 @@ def register_blueprints(app):
     app.register_blueprint(valuation_bp)
     app.register_blueprint(comparable_bp)
     app.register_blueprint(what_if_bp)
+    app.register_blueprint(map_bp)

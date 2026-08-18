@@ -6,10 +6,10 @@
     <title>Comparables - PropWise AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
 </head>
 <body>
-    <nav class="navbar scrolled">
+    <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
             <div class="nav-links">
@@ -52,7 +52,7 @@
             {% endif %}
             {% endwith %}
 
-            <div class="prediction-form-card animate-on-scroll">
+            <div class="prediction-form-card">
                 <h2><i class="fas fa-search" style="color:var(--primary);"></i> Search Comparables</h2>
                 <form id="comparablesForm">
                     <div class="form-grid">
@@ -68,14 +68,24 @@
                         <div class="form-group">
                             <label>City</label>
                             <select name="city">
-                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Ahmedabad">Ahmedabad</option>
                                 <option value="Bengaluru">Bengaluru</option>
-                                <option value="Mumbai">Mumbai</option>
+                                <option value="Chandigarh">Chandigarh</option>
                                 <option value="Chennai">Chennai</option>
-                                <option value="Kolkata">Kolkata</option>
-                                <option value="Pune">Pune</option>
+                                <option value="Coimbatore">Coimbatore</option>
                                 <option value="Delhi">Delhi</option>
+                                <option value="Ghaziabad">Ghaziabad</option>
                                 <option value="Gurgaon">Gurgaon</option>
+                                <option value="Hyderabad" selected>Hyderabad</option>
+                                <option value="Indore">Indore</option>
+                                <option value="Jaipur">Jaipur</option>
+                                <option value="Kochi">Kochi</option>
+                                <option value="Kolkata">Kolkata</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Nagpur">Nagpur</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Visakhapatnam">Visakhapatnam</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -96,18 +106,7 @@
             <div id="comparablesResult"></div>
         </main>
     </div>
-
     <script>
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-
-        document.getElementById('comparablesForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const resultArea = document.getElementById('comparablesResult');
             resultArea.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i><p style="margin-top:10px;color:var(--text-light);">Finding comparables...</p></div>';
@@ -129,11 +128,11 @@
                 }
 
                 if (!result.comparables || result.comparables.length === 0) {
-                    resultArea.innerHTML = '<div class="prediction-form-card animate-on-scroll"><h3>No Comparables Found</h3><p style="text-align:center;color:var(--text-light);padding:20px;">No comparable properties found for the given criteria.</p></div>';
+                    resultArea.innerHTML = '<div class="prediction-form-card"><h3>No Comparables Found</h3><p style="text-align:center;color:var(--text-light);padding:20px;">No comparable properties found for the given criteria.</p></div>';
                     return;
                 }
 
-                let tableHtml = '<div class="prediction-form-card animate-on-scroll"><h2><i class="fas fa-list" style="color:var(--primary);"></i> Found ' + result.comparables.length + ' Comparables</h2>';
+                let tableHtml = '<div class="prediction-form-card"><h2><i class="fas fa-list" style="color:var(--primary);"></i> Found ' + result.comparables.length + ' Comparables</h2>';
                 tableHtml += '<table class="comparables-table"><thead><tr><th>Locality</th><th>Area</th><th>Price</th><th>Price/sqft</th></tr></thead><tbody>';
                 result.comparables.forEach(c => {
                     tableHtml += '<tr><td>' + c.locality + '</td><td>' + c.area_sqft + ' sqft</td><td><strong>₹' + Number(c.price).toLocaleString() + '</strong></td><td>₹' + Number(c.price_per_sqft).toLocaleString() + '</td></tr>';
@@ -141,7 +140,7 @@
                 tableHtml += '</tbody></table></div>';
 
                 if (result.stats) {
-                    tableHtml += '<div class="result-grid animate-on-scroll" style="margin-top:20px;">';
+                    tableHtml += '<div class="result-grid" style="margin-top:20px;">';
                     tableHtml += '<div class="result-card"><h3><i class="fas fa-calculator"></i> Average Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.average).toLocaleString() + '</div></div>';
                     tableHtml += '<div class="result-card"><h3><i class="fas fa-chart-bar"></i> Median Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.median).toLocaleString() + '</div></div>';
                     tableHtml += '<div class="result-card"><h3><i class="fas fa-sort-amount-down"></i> Min Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.min).toLocaleString() + '</div></div>';

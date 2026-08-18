@@ -14,7 +14,9 @@ map_bp = Blueprint(
 
 
 def _df():
-    from app import MASTER_DF
+    from app import MASTER_DF, init_engine
+    if MASTER_DF is None:
+        init_engine()
     return MASTER_DF
 
 

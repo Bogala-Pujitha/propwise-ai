@@ -271,6 +271,13 @@ class LocationIntelligenceEngine:
         'Chandigarh': {'lat': 30.7333, 'lon': 76.7794},
         'Ghaziabad': {'lat': 28.6692, 'lon': 77.4538},
         'Lucknow': {'lat': 26.8467, 'lon': 80.9462},
+        'Ahmedabad': {'lat': 23.0225, 'lon': 72.5714},
+        'Jaipur': {'lat': 26.9124, 'lon': 75.7870},
+        'Kochi': {'lat': 9.9312, 'lon': 76.2673},
+        'Indore': {'lat': 22.7196, 'lon': 75.8577},
+        'Coimbatore': {'lat': 11.0168, 'lon': 76.9558},
+        'Nagpur': {'lat': 21.1458, 'lon': 79.0882},
+        'Visakhapatnam': {'lat': 17.6868, 'lon': 83.2185},
     }
 
     def _haversine(self, lat1, lon1, lat2, lon2):

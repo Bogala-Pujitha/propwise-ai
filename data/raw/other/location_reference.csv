@@ -1,0 +1,124 @@
+city,state,locality,latitude,longitude
+Hyderabad,Telangana,Gachibowli,17.4401,78.3489
+Hyderabad,Telangana,Kondapur,17.4849,78.3996
+Hyderabad,Telangana,Madhapur,17.4483,78.3915
+Hyderabad,Telangana,Hitech City,17.4435,78.3772
+Hyderabad,Telangana,Kukatpally,17.4849,78.4138
+Hyderabad,Telangana,Miyapur,17.4969,78.3498
+Hyderabad,Telangana,Manikonda,17.405,78.373
+Hyderabad,Telangana,Narsingi,17.385,78.33
+Hyderabad,Telangana,Financial District,17.4239,78.3375
+Hyderabad,Telangana,Nanakramguda,17.4185,78.3525
+Hyderabad,Telangana,Jubilee Hills,17.4326,78.4071
+Hyderabad,Telangana,Banjara Hills,17.4156,78.4347
+Hyderabad,Telangana,Begumpet,17.443,78.462
+Hyderabad,Telangana,Somajiguda,17.427,78.458
+Hyderabad,Telangana,Ameerpet,17.4375,78.4483
+Hyderabad,Telangana,Punjagutta,17.426,78.4495
+Hyderabad,Telangana,Secunderabad,17.4399,78.4983
+Hyderabad,Telangana,Tarnaka,17.4283,78.5397
+Hyderabad,Telangana,Uppal,17.405,78.559
+Hyderabad,Telangana,LB Nagar,17.3457,78.5522
+Hyderabad,Telangana,Dilsukhnagar,17.3688,78.5247
+Hyderabad,Telangana,Mehdipatnam,17.395,78.437
+Hyderabad,Telangana,Tolichowki,17.3987,78.415
+Hyderabad,Telangana,Attapur,17.368,78.425
+Hyderabad,Telangana,Kompally,17.5407,78.4814
+Hyderabad,Telangana,Alwal,17.5,78.512
+Hyderabad,Telangana,Bachupally,17.5308,78.353
+Hyderabad,Telangana,Pragathi Nagar,17.511,78.383
+Hyderabad,Telangana,Tellapur,17.4635,78.2975
+Hyderabad,Telangana,Kokapet,17.39,78.343
+Hyderabad,Telangana,Rajendranagar,17.319,78.403
+Hyderabad,Telangana,Shamshabad,17.251,78.431
+Hyderabad,Telangana,Moosapet,17.466,78.423
+Bengaluru,Karnataka,Whitefield,12.9698,77.75
+Bengaluru,Karnataka,Electronic City,12.8452,77.6602
+Bengaluru,Karnataka,Koramangala,12.9352,77.6245
+Bengaluru,Karnataka,Indiranagar,12.9784,77.6408
+Bengaluru,Karnataka,HSR Layout,12.9116,77.6389
+Bengaluru,Karnataka,Yelahanka,13.1007,77.5963
+Mumbai,Maharashtra,Andheri,19.1197,72.8468
+Mumbai,Maharashtra,Bandra,19.0607,72.8362
+Mumbai,Maharashtra,Powai,19.1176,72.906
+Mumbai,Maharashtra,Thane,19.2183,72.9781
+Mumbai,Maharashtra,Navi Mumbai,19.033,73.0297
+Mumbai,Maharashtra,Borivali,19.2307,72.8567
+Delhi,Delhi,Dwarka,28.5921,77.046
+Delhi,Delhi,Rohini,28.7495,77.0565
+Delhi,Delhi,Saket,28.5244,77.2066
+Delhi,Delhi,Vasant Kunj,28.5293,77.1543
+Delhi,Delhi,Mayur Vihar,28.6047,77.299
+Delhi,Delhi,Lajpat Nagar,28.5677,77.2433
+Chennai,Tamil Nadu,OMR,12.9352,80.229
+Chennai,Tamil Nadu,Velachery,12.9815,80.218
+Chennai,Tamil Nadu,Anna Nagar,13.085,80.2101
+Chennai,Tamil Nadu,Adyar,13.0068,80.2572
+Chennai,Tamil Nadu,Porur,13.0382,80.1565
+Chennai,Tamil Nadu,Tambaram,12.9249,80.1
+Pune,Maharashtra,Hinjewadi,18.5913,73.7389
+Pune,Maharashtra,Kharadi,18.5515,73.9476
+Pune,Maharashtra,Wakad,18.599,73.7625
+Pune,Maharashtra,Baner,18.559,73.7868
+Pune,Maharashtra,Viman Nagar,18.5679,73.9143
+Pune,Maharashtra,Hadapsar,18.5089,73.926
+Kolkata,West Bengal,New Town,22.5726,88.432
+Kolkata,West Bengal,Salt Lake,22.5958,88.4497
+Kolkata,West Bengal,Rajarhat,22.6249,88.4637
+Kolkata,West Bengal,Ballygunge,22.532,88.365
+Kolkata,West Bengal,Behala,22.49,88.31
+Kolkata,West Bengal,Alipore,22.53,88.325
+Ahmedabad,Gujarat,Bopal,23.031,72.465
+Ahmedabad,Gujarat,Satellite,23.03,72.51
+Ahmedabad,Gujarat,Prahlad Nagar,23.012,72.51
+Ahmedabad,Gujarat,Thaltej,23.05,72.51
+Ahmedabad,Gujarat,Chandkheda,23.11,72.59
+Ahmedabad,Gujarat,Gota,23.08,72.53
+Jaipur,Rajasthan,Malviya Nagar,26.85,75.81
+Jaipur,Rajasthan,Vaishali Nagar,26.9,75.74
+Jaipur,Rajasthan,Mansarovar,26.85,75.76
+Jaipur,Rajasthan,Jagatpura,26.83,75.85
+Jaipur,Rajasthan,C-Scheme,26.91,75.8
+Jaipur,Rajasthan,Tonk Road,26.87,75.8
+Kochi,Kerala,Kakkanad,10.0159,76.3419
+Kochi,Kerala,Edappally,10.0261,76.3081
+Kochi,Kerala,Vyttila,9.967,76.318
+Kochi,Kerala,Aluva,10.1076,76.3516
+Kochi,Kerala,Marine Drive,9.9816,76.2755
+Kochi,Kerala,Tripunithura,9.949,76.349
+Lucknow,Uttar Pradesh,Gomti Nagar,26.8467,81.0
+Lucknow,Uttar Pradesh,Indira Nagar,26.88,81.02
+Lucknow,Uttar Pradesh,Aliganj,26.89,80.95
+Lucknow,Uttar Pradesh,Hazratganj,26.85,80.95
+Lucknow,Uttar Pradesh,Sushant Golf City,26.76,81.0
+Lucknow,Uttar Pradesh,Mahanagar,26.87,80.98
+Chandigarh,Chandigarh,Sector 17,30.7415,76.7821
+Chandigarh,Chandigarh,Sector 22,30.733,76.77
+Chandigarh,Chandigarh,Sector 34,30.72,76.76
+Chandigarh,Chandigarh,Zirakpur,30.6425,76.8173
+Chandigarh,Chandigarh,Mohali,30.7046,76.7179
+Chandigarh,Chandigarh,Panchkula,30.6942,76.8606
+Indore,Madhya Pradesh,Vijay Nagar,22.7533,75.8937
+Indore,Madhya Pradesh,Rau,22.638,75.805
+Indore,Madhya Pradesh,Bhawarkuan,22.684,75.858
+Indore,Madhya Pradesh,Scheme 78,22.75,75.9
+Indore,Madhya Pradesh,Palasia,22.7196,75.8577
+Indore,Madhya Pradesh,Super Corridor,22.73,75.81
+Coimbatore,Tamil Nadu,RS Puram,11.007,76.95
+Coimbatore,Tamil Nadu,Gandhipuram,11.0168,76.9558
+Coimbatore,Tamil Nadu,Saravanampatti,11.08,77.0
+Coimbatore,Tamil Nadu,Peelamedu,11.03,77.02
+Coimbatore,Tamil Nadu,Singanallur,11.0,77.03
+Coimbatore,Tamil Nadu,Saibaba Colony,11.02,76.94
+Nagpur,Maharashtra,Dharampeth,21.14,79.07
+Nagpur,Maharashtra,Manish Nagar,21.09,79.07
+Nagpur,Maharashtra,Wardha Road,21.09,79.05
+Nagpur,Maharashtra,Hingna,21.11,78.98
+Nagpur,Maharashtra,Mihan,21.08,78.93
+Nagpur,Maharashtra,Sadar,21.16,79.08
+Visakhapatnam,Andhra Pradesh,Madhurawada,17.81,83.38
+Visakhapatnam,Andhra Pradesh,MVP Colony,17.74,83.32
+Visakhapatnam,Andhra Pradesh,Gajuwaka,17.69,83.21
+Visakhapatnam,Andhra Pradesh,Rushikonda,17.79,83.38
+Visakhapatnam,Andhra Pradesh,Dwaraka Nagar,17.72,83.3
+Visakhapatnam,Andhra Pradesh,Seethammadhara,17.74,83.3

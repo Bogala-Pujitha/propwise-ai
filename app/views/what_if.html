@@ -6,10 +6,10 @@
     <title>What-If Analysis - PropWise AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
 </head>
 <body>
-    <nav class="navbar scrolled">
+    <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
             <div class="nav-links">
@@ -52,7 +52,7 @@
             {% endif %}
             {% endwith %}
 
-            <div class="prediction-form-card animate-on-scroll">
+            <div class="prediction-form-card">
                 <h2><i class="fas fa-edit" style="color:var(--primary);"></i> Base Property</h2>
                 <form id="whatIfForm">
                     <div class="form-grid">
@@ -68,14 +68,24 @@
                         <div class="form-group">
                             <label>City</label>
                             <select name="city">
-                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Ahmedabad">Ahmedabad</option>
                                 <option value="Bengaluru">Bengaluru</option>
-                                <option value="Mumbai">Mumbai</option>
+                                <option value="Chandigarh">Chandigarh</option>
                                 <option value="Chennai">Chennai</option>
-                                <option value="Kolkata">Kolkata</option>
-                                <option value="Pune">Pune</option>
+                                <option value="Coimbatore">Coimbatore</option>
                                 <option value="Delhi">Delhi</option>
+                                <option value="Ghaziabad">Ghaziabad</option>
                                 <option value="Gurgaon">Gurgaon</option>
+                                <option value="Hyderabad" selected>Hyderabad</option>
+                                <option value="Indore">Indore</option>
+                                <option value="Jaipur">Jaipur</option>
+                                <option value="Kochi">Kochi</option>
+                                <option value="Kolkata">Kolkata</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Nagpur">Nagpur</option>
+                                <option value="Pune">Pune</option>
+                                <option value="Visakhapatnam">Visakhapatnam</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -115,7 +125,7 @@
                 </form>
             </div>
 
-            <div class="prediction-form-card animate-on-scroll">
+            <div class="prediction-form-card">
                 <h2><i class="fas fa-sliders-h" style="color:var(--primary);"></i> Proposed Changes</h2>
                 <form id="changesForm">
                     <div class="form-grid">
@@ -147,15 +157,6 @@
     </div>
 
     <script>
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-
         async function runWhatIf() {
             const resultArea = document.getElementById('whatIfResult');
             resultArea.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i><p style="margin-top:10px;color:var(--text-light);">Running comparison...</p></div>';
@@ -184,7 +185,7 @@
                 const diffSign = diff >= 0 ? '+' : '';
 
                 resultArea.innerHTML = `
-                    <div class="what-if-grid animate-on-scroll">
+                    <div class="what-if-grid">
                         <div class="what-if-card original">
                             <h3><i class="fas fa-home" style="color:var(--primary);"></i> Original Property</h3>
                             <div class="big-value">₹${Number(result.original.predicted_price).toLocaleString()}</div>
@@ -204,7 +205,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="prediction-form-card animate-on-scroll" style="text-align:center;">
+                    <div class="prediction-form-card" style="text-align:center;">
                         <h3><i class="fas fa-exchange-alt" style="color:var(--primary);"></i> Price Difference</h3>
                         <div class="big-value ${diffClass}" style="font-size:2rem;">${diffSign}₹${Number(Math.abs(diff)).toLocaleString()}</div>
                         <div class="sub-value">${diff >= 0 ? 'Value increases with changes' : 'Value decreases with changes'}</div>

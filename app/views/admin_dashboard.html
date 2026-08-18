@@ -4,17 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PropWise AI - Admin Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        window.PROPWISE_GOOGLE_MAPS_KEY = "{{ config.get('GOOGLE_MAPS_API_KEY', '') }}";
+    </script>
     <style>
         .admin-stats-bar {
             display: flex;
             gap: 20px;
             padding: 16px 24px;
-            background: linear-gradient(135deg, #1e293b, #334155);
-            border-bottom: 1px solid #475569;
+            background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
             margin-bottom: 0;
         }
         .admin-stat {
@@ -22,35 +23,36 @@
             align-items: center;
             gap: 10px;
             padding: 10px 18px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            border: 1px solid rgba(255,255,255,0.08);
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
             flex: 1;
         }
         .admin-stat-icon {
             width: 40px;
             height: 40px;
-            border-radius: 10px;
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
-            color: #fff;
+            color: var(--primary);
+            background: var(--surface-alt);
         }
-        .admin-stat-icon.users { background: linear-gradient(135deg, #4f46e5, #3730a3); }
-        .admin-stat-icon.predictions { background: linear-gradient(135deg, #4f46e5, #3730a3); }
-        .admin-stat-icon.types { background: linear-gradient(135deg, #4f46e5, #3730a3); }
-        .admin-stat-icon.cities { background: linear-gradient(135deg, #4f46e5, #3730a3); }
+        .admin-stat-icon.users { background: var(--surface-alt); color: var(--primary); }
+        .admin-stat-icon.predictions { background: var(--surface-alt); color: var(--primary); }
+        .admin-stat-icon.types { background: var(--surface-alt); color: var(--primary); }
+        .admin-stat-icon.cities { background: var(--surface-alt); color: var(--primary); }
         .admin-stat-info h4 {
             margin: 0;
             font-size: 22px;
             font-weight: 700;
-            color: #fff;
+            color: var(--text);
         }
         .admin-stat-info p {
             margin: 0;
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -60,8 +62,8 @@
         }
         .sidebar {
             width: 240px;
-            background: #1e293b;
-            border-right: 1px solid #334155;
+            background: var(--surface);
+            border-right: 1px solid var(--border);
             padding: 20px 0;
             position: sticky;
             top: 0;
@@ -73,7 +75,7 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #64748b;
+            color: var(--text-muted);
             font-weight: 600;
         }
         .sidebar a {
@@ -81,20 +83,19 @@
             align-items: center;
             gap: 10px;
             padding: 10px 20px;
-            color: #94a3b8;
+            color: var(--text-muted);
             text-decoration: none;
             font-size: 14px;
-            transition: all 0.2s;
             border-left: 3px solid transparent;
         }
         .sidebar a:hover, .sidebar a.active {
-            background: rgba(79,102,241,0.1);
-            color: #818cf8;
-            border-left-color: #4f46e5;
+            background: var(--surface-alt);
+            color: var(--primary);
+            border-left-color: var(--primary);
         }
         .sidebar .divider {
             height: 1px;
-            background: #334155;
+            background: var(--border);
             margin: 10px 20px;
         }
         .sidebar .section-label {
@@ -102,7 +103,7 @@
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
-            color: #475569;
+            color: var(--text-muted);
             font-weight: 600;
         }
         .main-content {
@@ -111,16 +112,16 @@
             max-width: calc(100% - 240px);
         }
         .section {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 24px;
             margin-bottom: 20px;
         }
         .section h2 {
             margin: 0 0 16px;
             font-size: 18px;
-            color: #f1f5f9;
+            color: var(--text);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -137,38 +138,37 @@
         }
         .form-group label {
             font-size: 13px;
-            color: #94a3b8;
+            color: var(--text);
             font-weight: 500;
         }
         .dropdown-select {
             padding: 10px 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #e2e8f0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
             font-size: 14px;
             cursor: pointer;
             transition: border-color 0.2s;
         }
         .dropdown-select:focus {
             outline: none;
-            border-color: #4f46e5;
+            border-color: var(--primary);
         }
         .btn-predict {
             padding: 12px 32px;
-            background: linear-gradient(135deg, #4f46e5, #3730a3);
+            background: var(--primary);
             color: #fff;
             border: none;
-            border-radius: 8px;
+            border-radius: var(--radius);
             font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.2s;
             margin-top: 10px;
         }
         .btn-predict:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(99,102,241,0.4);
+            background: var(--primary-dark);
         }
         .result-cards {
             display: grid;
@@ -177,42 +177,42 @@
             margin-bottom: 20px;
         }
         .result-card {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 16px;
             text-align: center;
         }
         .result-card h4 {
             margin: 0 0 4px;
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .result-card .value {
             font-size: 20px;
             font-weight: 700;
-            color: #f1f5f9;
+            color: var(--text);
         }
         .result-card .sub {
             font-size: 11px;
-            color: #64748b;
+            color: var(--text-muted);
             margin-top: 2px;
         }
         .model-badge {
             display: inline-block;
             padding: 3px 10px;
-            border-radius: 12px;
+            border-radius: var(--radius);
             font-size: 11px;
             font-weight: 600;
         }
         .ood-warning {
-            background: rgba(79,102,241,0.1);
-            border: 1px solid rgba(79,102,241,0.3);
-            border-radius: 8px;
+            background: var(--surface-alt);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 12px 16px;
-            color: #818cf8;
+            color: var(--primary);
             font-size: 13px;
             display: flex;
             align-items: center;
@@ -220,11 +220,11 @@
             margin-bottom: 16px;
         }
         .sanity-ok {
-            background: rgba(79,102,241,0.1);
-            border: 1px solid rgba(79,102,241,0.3);
-            border-radius: 8px;
+            background: #EFF6FF;
+            border: 1px solid #BFDBFE;
+            border-radius: var(--radius);
             padding: 12px 16px;
-            color: #818cf8;
+            color: var(--primary);
             font-size: 13px;
             display: flex;
             align-items: center;
@@ -232,11 +232,11 @@
             margin-bottom: 16px;
         }
         .sanity-warn {
-            background: rgba(79,102,241,0.1);
-            border: 1px solid rgba(79,102,241,0.3);
-            border-radius: 8px;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            border-radius: var(--radius);
             padding: 12px 16px;
-            color: #818cf8;
+            color: #991B1B;
             font-size: 13px;
             display: flex;
             align-items: center;
@@ -252,22 +252,22 @@
         .metric-mini {
             flex: 1;
             min-width: 100px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 12px;
             text-align: center;
         }
         .metric-mini h5 {
             margin: 0 0 4px;
             font-size: 11px;
-            color: #64748b;
+            color: var(--text-muted);
             text-transform: uppercase;
         }
         .metric-mini .val {
             font-size: 16px;
             font-weight: 700;
-            color: #e2e8f0;
+            color: var(--text);
         }
         .charts-grid {
             display: grid;
@@ -276,48 +276,48 @@
             margin-bottom: 16px;
         }
         .chart-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 14px;
         }
         .chart-card h3 {
             margin: 0 0 10px;
             font-size: 0.85rem;
-            color: #1e293b;
+            color: var(--text);
         }
         .trend-card {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 14px;
             margin-bottom: 16px;
         }
         .trend-card h3 {
             margin: 0 0 10px;
             font-size: 0.85rem;
-            color: #1e293b;
+            color: var(--text);
         }
         .trend-badge {
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 6px;
+            border-radius: var(--radius);
             font-size: 11px;
             font-weight: 600;
         }
         .trend-up {
-            background: rgba(79,102,241,0.15);
-            color: #818cf8;
+            background: var(--surface-alt);
+            color: var(--primary);
         }
         .trend-down {
-            background: rgba(79,102,241,0.15);
-            color: #818cf8;
+            background: var(--surface-alt);
+            color: var(--primary);
         }
         .map-container {
             position: relative;
-            border-radius: 10px;
+            border-radius: var(--radius);
             overflow: hidden;
-            border: 1px solid #334155;
+            border: 1px solid var(--border);
         }
         .map-controls {
             display: flex;
@@ -327,10 +327,10 @@
         }
         .map-controls select {
             padding: 8px 12px;
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #e2e8f0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
             font-size: 13px;
             cursor: pointer;
         }
@@ -339,16 +339,16 @@
             gap: 16px;
             margin-top: 10px;
             padding: 10px 14px;
-            background: rgba(15,23,42,0.9);
-            border-radius: 8px;
-            border: 1px solid #334155;
+            background: var(--surface-alt);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
         }
         .legend-item {
             display: flex;
             align-items: center;
             gap: 6px;
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--text-muted);
         }
         .legend-dot {
             width: 10px;
@@ -360,22 +360,22 @@
         }
         .shap-label {
             font-size: 13px;
-            color: #94a3b8;
+            color: var(--text-muted);
             margin-bottom: 4px;
             display: flex;
             justify-content: space-between;
         }
         .shap-bar-bg {
             height: 24px;
-            background: #0f172a;
-            border-radius: 6px;
+            background: var(--surface-alt);
+            border-radius: var(--radius);
             position: relative;
             overflow: hidden;
         }
         .shap-bar-pos {
             height: 100%;
-            background: linear-gradient(90deg, #4f46e5, #818cf8);
-            border-radius: 6px;
+            background: var(--primary);
+            border-radius: var(--radius);
             position: absolute;
             top: 0;
             left: 50%;
@@ -383,8 +383,8 @@
         }
         .shap-bar-neg {
             height: 100%;
-            background: linear-gradient(90deg, #4f46e5, #818cf8);
-            border-radius: 6px;
+            background: var(--primary);
+            border-radius: var(--radius);
             position: absolute;
             top: 0;
             right: 50%;
@@ -392,7 +392,7 @@
         }
         .shap-value {
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-muted);
             text-align: right;
             margin-top: 2px;
         }
@@ -402,26 +402,26 @@
             gap: 12px;
         }
         .loc-item {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 14px;
             text-align: center;
         }
         .loc-item .loc-name {
             font-size: 13px;
-            color: #e2e8f0;
+            color: var(--text);
             font-weight: 600;
             margin-bottom: 4px;
         }
         .loc-item .loc-val {
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-muted);
         }
         .comp-card {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 16px;
             display: flex;
             gap: 14px;
@@ -431,13 +431,14 @@
         .comp-icon {
             width: 44px;
             height: 44px;
-            border-radius: 10px;
+            border-radius: var(--radius);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             color: #fff;
             flex-shrink: 0;
+            background: var(--primary);
         }
         .comp-info {
             flex: 1;
@@ -445,17 +446,17 @@
         .comp-info h4 {
             margin: 0 0 4px;
             font-size: 14px;
-            color: #e2e8f0;
+            color: var(--text);
         }
         .comp-info p {
             margin: 0;
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-muted);
         }
         .comp-price {
             font-size: 16px;
             font-weight: 700;
-            color: #4f46e5;
+            color: var(--primary);
         }
         .whatif-grid {
             display: grid;
@@ -466,24 +467,24 @@
         }
         .whatif-arrow {
             text-align: center;
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 20px;
             padding-bottom: 10px;
         }
         .diff-badge {
             display: inline-block;
             padding: 2px 8px;
-            border-radius: 6px;
+            border-radius: var(--radius);
             font-size: 11px;
             font-weight: 600;
         }
         .diff-badge.positive {
-            background: rgba(79,102,241,0.15);
-            color: #818cf8;
+            background: var(--surface-alt);
+            color: var(--primary);
         }
         .diff-badge.negative {
-            background: rgba(79,102,241,0.15);
-            color: #818cf8;
+            background: var(--surface-alt);
+            color: var(--primary);
         }
         .history-table {
             width: 100%;
@@ -492,21 +493,21 @@
         .history-table th {
             text-align: left;
             padding: 10px 14px;
-            background: #0f172a;
-            color: #64748b;
+            background: var(--surface-alt);
+            color: var(--text-muted);
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid var(--border);
         }
         .history-table td {
             padding: 10px 14px;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid var(--border);
             font-size: 13px;
-            color: #94a3b8;
+            color: var(--text);
         }
         .history-table tr:hover td {
-            background: rgba(99,102,241,0.05);
+            background: var(--surface-alt);
         }
         #shapContainer {
             max-height: 400px;
@@ -736,10 +737,10 @@
                     </div>
                     <div class="map-container" id="mapContainer" style="height: 300px;"></div>
                     <div class="map-legend">
-                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> Apartment</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> House</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> Villa</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #4f46e5;"></span> Plot</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #1E3A8A;"></span> Apartment</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #475569;"></span> House</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #B85C38;"></span> Villa</div>
+                        <div class="legend-item"><span class="legend-dot" style="background: #B68B2E;"></span> Plot</div>
                     </div>
                 </div>
 
@@ -789,10 +790,10 @@
 
     <script>
     const MARKER_COLORS = {
-        'Apartment': '#4f46e5',
-        'House': '#4f46e5',
-        'Villa': '#4f46e5',
-        'Plot': '#4f46e5'
+        'Apartment': '#1E3A8A',
+        'House': '#475569',
+        'Villa': '#B85C38',
+        'Plot': '#B68B2E'
     };
 
         const FUTURE_TREND_GROWTH = {
@@ -803,7 +804,16 @@
             'Kolkata': 0.7,
             'Pune': 1.1,
             'Delhi': 0.6,
-            'Gurgaon': 0.9
+            'Gurgaon': 0.9,
+            'Ahmedabad': 0.75,
+            'Jaipur': 0.65,
+            'Lucknow': 0.6,
+            'Kochi': 0.78,
+            'Indore': 0.6,
+            'Coimbatore': 0.72,
+            'Nagpur': 0.5,
+            'Visakhapatnam': 0.7,
+            'Chandigarh': 0.7
         };
 
         let predictionData = null;
@@ -934,7 +944,7 @@
                     datasets: [{
                         label: 'Avg Price',
                         data: values,
-                        backgroundColor: ['#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5'],
+                        backgroundColor: ['#1E3A8A', '#475569', '#B85C38', '#B68B2E'],
                         borderRadius: 6
                     }]
                 },
@@ -966,7 +976,7 @@
                     labels: ['Land', 'Construction', 'Location Premium', 'Amenities'],
                     datasets: [{
                         data: segments,
-                        backgroundColor: ['#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5'],
+                        backgroundColor: ['#EF4444', '#2563EB', '#10B981', '#F59E0B'],
                         borderWidth: 0
                     }]
                 },
@@ -1045,63 +1055,109 @@
         }
 
         function renderMap() {
+            const container = document.getElementById('mapContainer');
+            if (!container) return;
+
+            if (!window.google || !window.google.maps) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Google Maps requires an API key. Set GOOGLE_MAPS_API_KEY in your environment.</div>';
+                return;
+            }
+
             const cityCoords = {
-                'Hyderabad': [17.385, 78.4867],
-                'Bengaluru': [12.9716, 77.5946],
-                'Mumbai': [19.076, 72.8777],
-                'Chennai': [13.0827, 80.2707],
-                'Kolkata': [22.5726, 88.3639],
-                'Pune': [18.5204, 73.8567],
-                'Delhi': [28.7041, 77.1025],
-                'Gurgaon': [28.4595, 77.0266]
+                'Hyderabad': { lat: 17.385, lng: 78.4867 },
+                'Bengaluru': { lat: 12.9716, lng: 77.5946 },
+                'Mumbai': { lat: 19.076, lng: 72.8777 },
+                'Chennai': { lat: 13.0827, lng: 80.2707 },
+                'Kolkata': { lat: 22.5726, lng: 88.3639 },
+                'Pune': { lat: 18.5204, lng: 73.8567 },
+                'Delhi': { lat: 28.7041, lng: 77.1025 },
+                'Gurgaon': { lat: 28.4595, lng: 77.0266 },
+                'Ahmedabad': { lat: 23.0225, lng: 72.5714 },
+                'Jaipur': { lat: 26.9124, lng: 75.7870 },
+                'Lucknow': { lat: 26.8467, lng: 80.9462 },
+                'Kochi': { lat: 9.9312, lng: 76.2673 },
+                'Indore': { lat: 22.7196, lng: 75.8577 },
+                'Coimbatore': { lat: 11.0168, lng: 76.9558 },
+                'Nagpur': { lat: 21.1458, lng: 79.0882 },
+                'Visakhapatnam': { lat: 17.6868, lng: 83.2185 },
+                'Chandigarh': { lat: 30.7333, lng: 76.7794 }
             };
 
             const city = predictionData.city || 'Hyderabad';
             const coords = cityCoords[city] || cityCoords['Hyderabad'];
 
             if (!map) {
-                map = L.map('mapContainer').setView(coords, 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
+                map = new google.maps.Map(container, {
+                    center: coords,
+                    zoom: 12,
+                    mapTypeControl: false,
+                    streetViewControl: false,
+                    fullscreenControl: true
+                });
             } else {
-                map.setView(coords, 12);
+                map.setCenter(coords);
             }
 
-            mapMarkers.forEach(m => map.removeLayer(m));
+            mapMarkers.forEach(m => m.setMap(null));
             mapMarkers = [];
 
             const propType = predictionData.property_type || 'Apartment';
-            const color = MARKER_COLORS[propType] || '#4f46e5';
+            const color = MARKER_COLORS[propType] || '#1E3A8A';
 
-            const marker = L.circleMarker(coords, {
-                radius: 12,
-                fillColor: color,
-                color: '#fff',
-                weight: 2,
-                fillOpacity: 0.9
-            }).addTo(map).bindPopup(`
-                <b>${propType}</b><br>
-                ${predictionData.locality || ''}, ${city}<br>
-                <b>₹${formatNumber(predictionData.predicted_price)}</b>
-            `);
+            const marker = new google.maps.Marker({
+                map: map,
+                position: coords,
+                title: propType,
+                icon: {
+                    path: google.maps.SymbolPath.CIRCLE,
+                    fillColor: color,
+                    fillOpacity: 1,
+                    strokeColor: '#FFFFFF',
+                    strokeWeight: 2,
+                    scale: 10
+                }
+            });
+
+            const info = new google.maps.InfoWindow({
+                content: `<strong>${propType}</strong><br>${predictionData.locality || ''}, ${city}<br><b>₹${formatNumber(predictionData.predicted_price)}</b>`
+            });
+
+            marker.city = city;
+            marker.propertyType = propType;
+            marker.addListener('click', () => info.open(map, marker));
             mapMarkers.push(marker);
 
             const nearbyPoints = [
-                { lat: coords[0] + 0.01, lng: coords[1] + 0.015, type: 'Apartment' },
-                { lat: coords[0] - 0.008, lng: coords[1] - 0.01, type: 'House' },
-                { lat: coords[0] + 0.012, lng: coords[1] - 0.008, type: 'Villa' },
-                { lat: coords[0] - 0.015, lng: coords[1] + 0.012, type: 'Plot' }
+                { lat: coords.lat + 0.01, lng: coords.lng + 0.015, type: 'Apartment' },
+                { lat: coords.lat - 0.008, lng: coords.lng - 0.01, type: 'House' },
+                { lat: coords.lat + 0.012, lng: coords.lng - 0.008, type: 'Villa' },
+                { lat: coords.lat - 0.015, lng: coords.lng + 0.012, type: 'Plot' }
             ];
+
             nearbyPoints.forEach(pt => {
-                const c = MARKER_COLORS[pt.type] || '#4f46e5';
-                const m = L.circleMarker([pt.lat, pt.lng], {
-                    radius: 7,
-                    fillColor: c,
-                    color: '#fff',
-                    weight: 1,
-                    fillOpacity: 0.7
-                }).addTo(map).bindPopup(`<b>${pt.type}</b><br>Nearby property`);
+                const c = MARKER_COLORS[pt.type] || '#1E3A8A';
+                const m = new google.maps.Marker({
+                    map: map,
+                    position: { lat: pt.lat, lng: pt.lng },
+                    title: pt.type,
+                    icon: {
+                        path: google.maps.SymbolPath.CIRCLE,
+                        fillColor: c,
+                        fillOpacity: 1,
+                        strokeColor: '#FFFFFF',
+                        strokeWeight: 2,
+                        scale: 7
+                    }
+                });
+
+                m.city = city;
+                m.propertyType = pt.type;
+
+                const info = new google.maps.InfoWindow({
+                    content: `<strong>${pt.type}</strong><br>Nearby property`
+                });
+
+                m.addListener('click', () => info.open(map, m));
                 mapMarkers.push(m);
             });
         }
@@ -1161,7 +1217,7 @@
         function renderComparables() {
             const el = document.getElementById('comparablesList');
             const comps = predictionData.comparables || [];
-            const colors = ['#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5'];
+            const colors = ['#1E3A8A', '#475569', '#B85C38', '#B68B2E', '#64748b'];
             el.innerHTML = comps.map((c, i) => `
                 <div class="comp-card">
                     <div class="comp-icon" style="background: ${colors[i % colors.length]};">🏠</div>
@@ -1228,13 +1284,12 @@
             const cityFilter = document.getElementById('mapCityFilter').value;
             const typeFilter = document.getElementById('mapTypeFilter').value;
             mapMarkers.forEach(m => {
-                const popup = m.getPopup().getContent();
-                const showCity = cityFilter === 'all' || popup.includes(cityFilter);
-                const showType = typeFilter === 'all' || popup.includes(typeFilter);
+                const showCity = cityFilter === 'all' || m.city === cityFilter;
+                const showType = typeFilter === 'all' || m.propertyType === typeFilter;
                 if (showCity && showType) {
-                    m.setStyle({ opacity: 1, fillOpacity: 0.9 });
+                    m.setMap(map);
                 } else {
-                    m.setStyle({ opacity: 0.2, fillOpacity: 0.2 });
+                    m.setMap(null);
                 }
             });
         }
@@ -1245,11 +1300,11 @@
 
         function getReliabilityColor(r) {
             const map = {
-                'High': '#4f46e5',
-                'Medium': '#4f46e5',
-                'Low': '#4f46e5'
+                'High': '#10B981',
+                'Medium': '#F59E0B',
+                'Low': '#EF4444'
             };
-            return map[r] || '#4f46e5';
+            return map[r] || '#64748b';
         }
 
         document.querySelectorAll('.sidebar a').forEach(a => {
@@ -1259,5 +1314,6 @@
             });
         });
     </script>
+    <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
 </body>
 </html>

@@ -300,6 +300,9 @@ def initialize_database():
 def init_engine():
     global VALUATION_ENGINE, MASTER_DF, DROPDOWN_DATA
 
+    if VALUATION_ENGINE is not None and DROPDOWN_DATA is not None:
+        return
+
     from app.services.valuation_engine import ValuationEngine
     from app.services.geocoding import get_all_dropdown_data
 
@@ -320,14 +323,20 @@ def init_engine():
     if os.path.exists(master_path):
         MASTER_DF = pd.read_csv(master_path)
 
-    VALUATION_ENGINE = ValuationEngine(
-        models_dir,
-        MASTER_DF,
-    )
+    try:
+        VALUATION_ENGINE = ValuationEngine(
+            models_dir,
+            MASTER_DF,
+        )
+    except Exception:
+        VALUATION_ENGINE = None
 
-    DROPDOWN_DATA = get_all_dropdown_data(
-        MASTER_DF,
-    )
+    try:
+        DROPDOWN_DATA = get_all_dropdown_data(
+            MASTER_DF,
+        )
+    except Exception:
+        DROPDOWN_DATA = {}
 
 
 # ---------------------------------------------------------
@@ -484,6 +493,9 @@ def api_dropdown_data():
 @app.route("/dashboard")
 @login_required
 def dashboard():
+    if DROPDOWN_DATA is None:
+        init_engine()
+
     predictions = (
         Prediction.query.filter_by(user_id=current_user.id)
         .order_by(Prediction.created_at.desc())
@@ -838,23 +850,56 @@ def experiments():
     experiments_data = {}
     models_dir = os.path.join(BASE_DIR, "..", "models")
 
-    for exp_name, exp_label in [
-        ("experiment_a", "Experiment A: Hyderabad Only"),
-        ("experiment_b", "Experiment B: India-Wide"),
-        ("experiment_c", "Experiment C: Hybrid"),
-    ]:
-        exp_dir = os.path.join(models_dir, exp_name)
-        exp_data = {"label": exp_label, "models": {}}
-        if os.path.exists(exp_dir):
-            for f in os.listdir(exp_dir):
-                if f.endswith("_metadata.json"):
-                    with open(os.path.join(exp_dir, f)) as fh:
-                        meta = json.load(fh)
-                    pt = meta.get(
-                        "property_type", f.replace("_metadata.json", "")
-                    )
-                    exp_data["models"][pt] = meta
-        experiments_data[exp_name] = exp_data
+    experiment_meta = {
+        "experiment_a": "Experiment A: Hyderabad Only",
+        "experiment_b": "Experiment B: India-Wide",
+        "experiment_c": "Experiment C: Hybrid",
+    }
+
+    for key in experiment_meta:
+        experiments_data[key] = {"label": experiment_meta[key], "models": {}}
+
+    def _normalize_experiment(name):
+        if not name:
+            return None
+        n = str(name).strip().lower()
+        if n in ("expa", "experiment_a", "a", "exp_a"):
+            return "experiment_a"
+        if n in ("expb", "experiment_b", "b", "exp_b"):
+            return "experiment_b"
+        if n in ("expc", "experiment_c", "c", "exp_c"):
+            return "experiment_c"
+        return None
+
+    def _ingest_metadata(path):
+        try:
+            with open(path, encoding="utf-8") as fh:
+                meta = json.load(fh)
+        except (OSError, ValueError, TypeError):
+            return
+        if not isinstance(meta, dict):
+            return
+        exp = _normalize_experiment(
+            meta.get("experiment")
+            or meta.get("experiment_name")
+            or ""
+        )
+        if exp is None:
+            return
+        pt = meta.get("property_type") or os.path.basename(path).replace("_metadata.json", "")
+        experiments_data[exp]["models"][str(pt)] = meta
+
+    if os.path.isdir(models_dir):
+        for filename in os.listdir(models_dir):
+            if filename.endswith("_metadata.json") and filename != "all_models_metadata.json":
+                _ingest_metadata(os.path.join(models_dir, filename))
+
+        for exp_name in experiment_meta:
+            exp_dir = os.path.join(models_dir, exp_name)
+            if os.path.isdir(exp_dir):
+                for filename in os.listdir(exp_dir):
+                    if filename.endswith("_metadata.json"):
+                        _ingest_metadata(os.path.join(exp_dir, filename))
 
     best_models = {}
     best_path = os.path.join(models_dir, "all_models_metadata.json")
@@ -873,6 +918,9 @@ def experiments():
 @login_required
 @admin_required
 def admin_dashboard():
+    if DROPDOWN_DATA is None:
+        init_engine()
+
     total_users = User.query.count()
     total_predictions = Prediction.query.count()
     recent_activities = (
@@ -1049,6 +1097,15 @@ if __name__ == "__main__":
         debug=True,
         port=5000,
     )
+
+
+# Initialize ML engine when app module is imported
+# Disabled to avoid import-time side effects that break test isolation.
+# Routes that need the engine call init_engine() on demand.
+# try:
+#     init_engine()
+# except Exception:
+#     pass
 
 
 # ---------------------------------------------------------

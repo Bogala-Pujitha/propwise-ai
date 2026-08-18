@@ -403,7 +403,11 @@ def run_training_pipeline(data_dir, models_dir, output_dir):
 
 
 if __name__ == '__main__':
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    base_dir = os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(os.path.abspath(__file__))
+        )
+    )
     data_dir = os.path.join(base_dir, 'data')
     models_dir = os.path.join(base_dir, 'models')
     output_dir = os.path.join(base_dir, 'data', 'processed')

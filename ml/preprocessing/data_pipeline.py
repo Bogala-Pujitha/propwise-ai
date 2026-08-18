@@ -288,7 +288,7 @@ class DataCleaner:
 
     def remove_near_duplicates(self, df):
         before = len(df)
-        hash_cols = [c for c in ['locality', 'city', 'property_type'] if c in df.columns]
+        hash_cols = [c for c in ['locality', 'city', 'property_type', 'area_sqft', 'bhk', 'bathrooms', 'price'] if c in df.columns]
         if hash_cols:
             df['_hash'] = df[hash_cols].apply(lambda x: hash(tuple(x.astype(str).str.lower().str.strip())), axis=1)
             df = df.drop_duplicates(subset=['_hash'])
@@ -461,7 +461,8 @@ class DataCleaner:
         else:
             df['property_type'] = 'Apartment'
 
-        df['city'] = city
+        if 'city' not in df.columns or df['city'].isna().all() or (df['city'].astype(str).str.strip() == '').all():
+            df['city'] = city
         df['source_dataset'] = source
         df['source_type'] = source_type
         return df
@@ -498,8 +499,10 @@ def create_master_dataset(data_dir, output_dir):
             else:
                 print(f"\n  Processing: {f} ({len(df)} rows)")
 
-            if 'Hyderbad' in f or 'hyderabad' in f.lower():
+            if 'Hyderbad' in f or ('hyderabad' in f.lower() and 'synthetic' not in f.lower()):
                 cleaned = cleaner.clean_hyderabad(df)
+            elif 'hyderabad_synthetic' in f.lower():
+                cleaned = cleaner.clean_generic(df, 'Hyderabad', f, None, 'PRIMARY')
             elif 'bengaluru' in f.lower():
                 cleaned = cleaner.clean_bengaluru(df)
             elif 'chennai' in f.lower():
@@ -534,6 +537,14 @@ def create_master_dataset(data_dir, output_dir):
                 cleaned = cleaner.clean_generic(df, 'Gurgaon', f, 'House', 'SUPPORTING')
             elif 'clean_data' in f:
                 cleaned = cleaner.clean_generic(df, 'Chennai', f, 'Apartment', 'SUPPORTING')
+            elif 'india_synthetic' in f.lower():
+                cleaned = cleaner.clean_generic(df, 'Multi-city', f, None, 'SUPPORTING')
+            elif 'synthetic' in f.lower() and 'master' not in f.lower():
+                cleaned = cleaner.clean_generic(df, 'Unknown', f, None, 'SUPPORTING')
+            elif 'location_reference' in f.lower():
+                continue
+            elif 'master_dataset' in f.lower():
+                continue
             else:
                 cleaned = cleaner.clean_generic(df, 'Unknown', f, 'Apartment', 'SUPPORTING')
 
@@ -577,13 +588,13 @@ def create_master_dataset(data_dir, output_dir):
 
     # ARCHITECTURE: All required master dataset fields
     master_fields = [
-        'property_id', 'city', 'locality', 'property_type',
+        'property_id', 'city', 'state', 'locality', 'property_type',
         'area_sqft', 'bhk', 'bathrooms', 'balconies',
-        'floor', 'total_floors', 'property_age',
-        'parking', 'furnishing', 'road_width', 'facing',
+        'floor', 'total_floors', 'property_age', 'year_built',
+        'parking', 'furnishing', 'road_width', 'facing', 'amenities_count',
         'latitude', 'longitude',
         'price', 'price_per_sqft',
-        'listing_date', 'transaction_date',
+        'listing_date', 'transaction_date', 'listing_status',
         'source_dataset', 'source_type'
     ]
 

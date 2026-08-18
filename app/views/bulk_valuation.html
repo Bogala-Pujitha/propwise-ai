@@ -6,10 +6,10 @@
     <title>Bulk Valuation - PropWise AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
 </head>
 <body>
-    <nav class="navbar scrolled">
+    <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
             <div class="nav-links">
@@ -52,7 +52,7 @@
             {% endif %}
             {% endwith %}
 
-            <div class="prediction-form-card animate-on-scroll">
+            <div class="prediction-form-card">
                 <h2><i class="fas fa-upload" style="color:var(--primary);"></i> Upload CSV File</h2>
                 <form id="bulkUploadForm" action="/bulk-valuation" method="POST" enctype="multipart/form-data">
                     <div class="form-group">
@@ -66,8 +66,8 @@
             </div>
 
             {% if results %}
-            <div class="prediction-form-card animate-on-scroll">
-                <h2><i class="fas fa-check-circle" style="color:#4f46e5;"></i> Results ({{ results|length }} properties processed)</h2>
+            <div class="prediction-form-card">
+                <h2><i class="fas fa-check-circle" style="color:var(--primary);"></i> Results ({{ results|length }} properties processed)</h2>
                 <div style="overflow-x:auto;">
                     <table class="comparables-table">
                         <thead>
@@ -108,16 +108,5 @@
             {% endif %}
         </main>
     </div>
-
-    <script>
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-    </script>
 </body>
 </html>

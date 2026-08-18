@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Property Map - PropWise AI</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/ui_overhaul.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
 <style>
 .map-filters{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
 .map-field label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--pw-text)}
@@ -51,12 +51,13 @@
 <div class="map-status" id="pwStatus">Loading locations...</div>
 <div id="pwMap"></div>
 <div class="legend">
-<span><i class="dot" style="background:#2F6F66"></i>Apartment</span>
-<span><i class="dot" style="background:#3F6D8F"></i>House</span>
-<span><i class="dot" style="background:#B85C38"></i>Villa</span>
-<span><i class="dot" style="background:#B68B2E"></i>Plot</span>
+    <span><i class="dot" style="background:#1E3A8A;"></i>Apartment</span>
+    <span><i class="dot" style="background:#475569;"></i>House</span>
+    <span><i class="dot" style="background:#B85C38;"></i>Villa</span>
+    <span><i class="dot" style="background:#B68B2E;"></i>Plot</span>
 </div>
 </section></main></div>
+
 
 <script>window.PROPWISE_GOOGLE_MAPS_KEY={{ config.get("GOOGLE_MAPS_API_KEY","")|tojson }};</script>
 <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>

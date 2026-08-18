@@ -6,29 +6,29 @@
     <title>Model Performance - PropWise AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        .chart-card { background:white; border-radius:12px; padding:16px; box-shadow:0 4px 16px rgba(79,70,229,0.08); margin-bottom:16px; }
+        .chart-card { background:white; border-radius:12px; padding:16px; border:1px solid var(--border); margin-bottom:16px; }
         .chart-card h3 { font-size:0.9rem; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
         .chart-card h3 i { color:var(--primary); }
         .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-        .metric-card { background:white; border-radius:12px; padding:16px; box-shadow:0 4px 16px rgba(79,70,229,0.08); text-align:center; }
-        .metric-card .metric-val { font-size:1.8rem; font-weight:800; background:var(--gradient); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-        .metric-card .metric-label { font-size:0.8rem; color:var(--text-light); margin-top:3px; }
+        .metric-card { background:white; border-radius:12px; padding:16px; border:1px solid var(--border); text-align:center; }
+        .metric-card .metric-val { font-size:1.8rem; font-weight:800; color:var(--primary); }
+        .metric-card .metric-label { font-size:0.8rem; color:var(--text-muted); margin-top:3px; }
         .metric-card .metric-sub { font-size:0.7rem; color:var(--text-muted); margin-top:2px; }
         .metrics-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
-        .model-type-card { background:white; border-radius:16px; padding:20px; box-shadow:0 8px 32px rgba(79,70,229,0.1); }
+        .model-type-card { background:white; border-radius:16px; padding:20px; border:1px solid var(--border); }
         .model-type-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; }
         .model-type-header h3 { margin:0; font-size:1.1rem; }
-        .model-type-header .badge { background:var(--gradient); color:white; padding:4px 12px; border-radius:50px; font-size:0.75rem; font-weight:600; }
-        .progress-bar { height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; margin:6px 0; }
-        .progress-fill { height:100%; border-radius:4px; transition:width 1s ease; }
-        .progress-label { display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-light); }
+        .model-type-header .badge { background:var(--surface-alt); color:var(--primary); padding:4px 12px; border-radius:50px; font-size:0.75rem; font-weight:600; border:1px solid var(--border); }
+        .progress-bar { height:8px; background:var(--surface-alt); border-radius:4px; overflow:hidden; margin:6px 0; }
+        .progress-fill { height:100%; border-radius:4px; background:var(--primary); transition:width 1s ease; }
+        .progress-label { display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); }
     </style>
 </head>
 <body>
-    <nav class="navbar scrolled">
+    <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
             <div class="nav-links">
@@ -110,13 +110,13 @@
                     </div>
 
                     <div class="progress-label"><span>R2 Score</span><span>{{ "%.1f"|format(data.metrics.R2 * 100) }}%</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:{{ data.metrics.R2 * 100 }}%;background:var(--gradient);"></div></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:{{ data.metrics.R2 * 100 }}%;"></div></div>
 
                     <div class="progress-label"><span>Within 20% Accuracy</span><span>{{ "%.1f"|format(data.metrics.within_20_pct) }}%</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:{{ data.metrics.within_20_pct }}%;background:linear-gradient(90deg,#4f46e5,#818cf8);"></div></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:{{ data.metrics.within_20_pct }}%;"></div></div>
 
                     <div class="progress-label"><span>Within 10% Accuracy</span><span>{{ "%.1f"|format(data.metrics.within_10_pct) }}%</span></div>
-                    <div class="progress-bar"><div class="progress-fill" style="width:{{ data.metrics.within_10_pct }}%;background:linear-gradient(90deg,#4f46e5,#818cf8);"></div></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width:{{ data.metrics.within_10_pct }}%;"></div></div>
 
                     <div style="margin-top:15px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                         <div style="background:#f8fafc;padding:10px;border-radius:8px;text-align:center;">

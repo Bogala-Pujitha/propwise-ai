@@ -6,10 +6,10 @@
     <title>Valuation Result - PropWise AI</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
 </head>
 <body>
-    <nav class="navbar scrolled">
+    <nav class="navbar">
         <div class="nav-container">
             <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
             <div class="nav-links">
@@ -52,7 +52,7 @@
             {% endif %}
             {% endwith %}
 
-            <div class="result-grid animate-on-scroll">
+            <div class="result-grid">
                 <div class="result-card">
                     <h3><i class="fas fa-rupee-sign"></i> Estimated Value</h3>
                     <div class="big-value">₹{{ "{:,.0f}".format(result.predicted_price) }}</div>
@@ -70,7 +70,7 @@
                 </div>
             </div>
 
-            <div class="result-grid animate-on-scroll">
+            <div class="result-grid">
                 <div class="result-card">
                     <h3><i class="fas fa-tags"></i> Fair Listing Recommendation</h3>
                     <div class="big-value" style="font-size:1.3rem;">₹{{ "{:,.0f}".format(result.fair_listing.recommended_listing) }}</div>
@@ -92,7 +92,7 @@
             </div>
 
             {% if result.location_features %}
-            <div class="prediction-form-card animate-on-scroll">
+            <div class="prediction-form-card">
                 <h2><i class="fas fa-map-marker-alt" style="color:var(--primary);"></i> Location Features</h2>
                 <div class="result-grid" style="margin-bottom:0;">
                     <div class="result-card">
@@ -120,7 +120,7 @@
             {% endif %}
 
             {% if result.shap and result.shap|length > 0 %}
-            <div class="prediction-form-card animate-on-scroll">
+            <div class="prediction-form-card">
                 <h2><i class="fas fa-lightbulb" style="color:var(--primary);"></i> Feature Impact (SHAP)</h2>
                 <ul class="shap-list">
                     {% for s in result.shap %}
@@ -134,7 +134,7 @@
             {% endif %}
 
             {% if result.comparables and result.comparables|length > 0 %}
-            <div class="prediction-form-card animate-on-scroll">
+            <div class="prediction-form-card">
                 <h2><i class="fas fa-balance-scale" style="color:var(--primary);"></i> Comparable Properties</h2>
                 <table class="comparables-table">
                     <thead>
@@ -159,23 +159,12 @@
             </div>
             {% endif %}
 
-            <div class="form-actions animate-on-scroll" style="justify-content:center;gap:15px;margin-top:20px;">
+            <div class="form-actions" style="justify-content:center;gap:15px;margin-top:20px;">
                 <a href="/what-if" class="btn-primary"><i class="fas fa-exchange-alt"></i> What-If Analysis</a>
                 <a href="/comparables" class="btn-secondary"><i class="fas fa-balance-scale"></i> View Comparables</a>
                 <a href="/map" class="btn-secondary"><i class="fas fa-map-marked-alt"></i> Open Map</a>
             </div>
         </main>
     </div>
-
-    <script>
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.1 });
-        document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
-    </script>
 </body>
 </html>
