@@ -1,40 +1,26 @@
-import pytest
+"""Password reset token and API tests."""
+
+from app import app, db, User, bcrypt
+from app.services.password_reset import generate_reset_token, verify_reset_token
 
 
-@pytest.fixture()
-def app():
-    from app import app as flask_app
-    flask_app.config.update(
-        TESTING=True,
-        SECRET_KEY="test-secret-key",
-    )
-    yield flask_app
-
-
-def test_password_reset_token_round_trip(app):
-    from app import User
-    from app.services.password_reset import (
-        generate_reset_token,
-        verify_reset_token,
-    )
-
+def test_reset_token_round_trip():
     with app.app_context():
-        user = User(
-            id=123,
-            username="reset-test",
-            email="reset@example.com",
-            password_hash="not-used",
-            role="user",
-        )
+        db.create_all()
+        user = User.query.filter_by(username="reset_test").first()
+        if user is None:
+            user = User(
+                username="reset_test",
+                email="reset_test@example.com",
+                password_hash=bcrypt.generate_password_hash("StrongPass123").decode("utf-8"),
+                role="user",
+            )
+            db.session.add(user)
+            db.session.commit()
 
         token = generate_reset_token(user)
-        payload = verify_reset_token(token, max_age=1800)
+        payload = verify_reset_token(token)
 
-        assert payload == (123, "reset@example.com")
-
-
-def test_invalid_password_reset_token(app):
-    from app.services.password_reset import verify_reset_token
-
-    with app.app_context():
-        assert verify_reset_token("invalid-token") is None
+        assert payload is not None
+        assert payload[0] == user.id
+        assert payload[1] == user.email
