@@ -28,7 +28,7 @@ jobs:
           --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=10
+          --health-retries=20
 
     env:
       DATABASE_URL: mysql+pymysql://propwise:propwise@127.0.0.1:3306/propwise_ci?charset=utf8mb4
@@ -39,9 +39,11 @@ jobs:
       PROPWISE_TESTING: "0"
 
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v6
+      - name: Setup Python
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
@@ -52,27 +54,58 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install pytest
 
-      - name: Wait for MySQL
+      - name: Verify MySQL connection
         run: |
           python - <<'PY'
-          import time
           import pymysql
-          for _ in range(30):
+          import time
+
+          for attempt in range(30):
               try:
-                  pymysql.connect(
+                  connection = pymysql.connect(
                       host="127.0.0.1",
                       port=3306,
                       user="propwise",
                       password="propwise",
                       database="propwise_ci",
-                  ).close()
-                  print("MySQL ready")
+                      charset="utf8mb4",
+                      connect_timeout=5,
+                  )
+
+                  with connection.cursor() as cursor:
+                      cursor.execute("SELECT 1")
+                      result = cursor.fetchone()
+
+                  connection.close()
+
+                  print(f"MySQL ready: SELECT 1 -> {result}")
                   break
-              except Exception:
+
+              except Exception as exc:
+                  print(
+                      f"MySQL connection attempt "
+                      f"{attempt + 1}/30 failed: {exc}"
+                  )
                   time.sleep(2)
           else:
               raise SystemExit("MySQL did not become ready")
+
           PY
 
-      - name: Run MySQL integration test
-        run: python -m pytest -q tests/database/test_mysql_integration.py
+      - name: Initialize application schema
+        run: |
+          python - <<'PY'
+          from app import create_app
+
+          app = create_app()
+
+          with app.app_context():
+              from app.extensions import db
+              db.create_all()
+
+          print("MySQL application schema initialized")
+          PY
+
+      - name: Run MySQL integration tests
+        run: |
+          python -m pytest -q tests/database/test_mysql_integration.py
