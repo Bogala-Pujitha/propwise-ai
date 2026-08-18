@@ -8,22 +8,40 @@ def get_database_url() -> str:
     if os.environ.get("PROPWISE_TESTING") == "1":
         return "sqlite:///:memory:"
 
-    raw = os.environ.get("DATABASE_URL", "").strip()
-    if not raw:
-        raise RuntimeError("DATABASE_URL is required outside testing.")
+    url = os.environ.get("DATABASE_URL", "").strip()
 
-    if raw.startswith("mysql://"):
-        raw = "mysql+pymysql://" + raw[len("mysql://"):]
+    if not url:
+        raise RuntimeError(
+            "DATABASE_URL is required outside testing."
+        )
 
-    if not raw.startswith("mysql+pymysql://"):
-        raise RuntimeError("DATABASE_URL must be a MySQL/PyMySQL URL.")
+    if url.startswith("mysql://"):
+        url = "mysql+pymysql://" + url[len("mysql://"):]
 
-    parts = urlsplit(raw)
+    if not url.startswith("mysql+pymysql://"):
+        raise RuntimeError(
+            "DATABASE_URL must use MySQL via PyMySQL."
+        )
+
+    parts = urlsplit(url)
     query = parts.query
-    if "charset=" not in query.lower():
-        query = f"{query}&charset=utf8mb4" if query else "charset=utf8mb4"
 
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, query, parts.fragment))
+    if "charset=" not in query.lower():
+        query = (
+            f"{query}&charset=utf8mb4"
+            if query
+            else "charset=utf8mb4"
+        )
+
+    return urlunsplit(
+        (
+            parts.scheme,
+            parts.netloc,
+            parts.path,
+            query,
+            parts.fragment,
+        )
+    )
 
 
 def configure_database(app) -> None:
