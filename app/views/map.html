@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Property Map - PropWise AI</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
-<style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
 .map-filters{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
 .map-field label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--pw-text)}
 .map-field select{width:100%;padding:12px;border:1px solid var(--pw-border);border-radius:8px;background:#fff;color:var(--pw-text)}
@@ -59,7 +60,6 @@
 </section></main></div>
 
 
-<script>window.PROPWISE_GOOGLE_MAPS_KEY={{ config.get("GOOGLE_MAPS_API_KEY","")|tojson }};</script>
 <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
 <script>
 let optionsData=null;
@@ -96,7 +96,7 @@ async function showProperties(){
   try{
     await window.PW_renderStandaloneMap("pwMap",data.properties||[]);
   }catch(error){
-    document.getElementById("pwMap").innerHTML='<div class="map-api-message"><strong>Google Maps setup required.</strong><br>Add GOOGLE_MAPS_API_KEY to your .env.</div>';
+    document.getElementById("pwMap").innerHTML='<div class="map-api-message"><strong>Map unavailable.</strong><br>Unable to load property locations.</div>';
   }
 }
 

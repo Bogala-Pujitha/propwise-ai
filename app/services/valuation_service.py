@@ -27,6 +27,11 @@ def property_from_payload(
         "bhk": int(data.get("bhk", bhk_default)),
         "bathrooms": int(data.get("bathrooms", bathrooms_default)),
         "property_age": int(data.get("property_age", age_default)),
+        "furnishing": data.get("furnishing", ""),
+        "facing": data.get("facing", ""),
+        "floor": int(data.get("floor") or 0),
+        "total_floors": int(data.get("total_floors") or 0),
+        "parking": data.get("parking", ""),
     }
 
 

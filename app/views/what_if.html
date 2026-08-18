@@ -215,6 +215,20 @@
                 resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>Failed to run analysis. Please try again.</p></div>';
             }
         }
+
+        function initWhatIfAutoRun() {
+            const inputs = document.querySelectorAll('#changesForm input');
+            inputs.forEach(function(input) {
+                input.addEventListener('input', function() {
+                    const hasChanges = Array.from(inputs).some(i => i.value.trim() !== '');
+                    if (hasChanges) {
+                        runWhatIf();
+                    }
+                });
+            });
+        }
+
+        initWhatIfAutoRun();
     </script>
 </body>
 </html>

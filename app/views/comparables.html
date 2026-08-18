@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
     <nav class="navbar">
@@ -104,14 +106,25 @@
             </div>
 
             <div id="comparablesResult"></div>
+            <div id="comparablesMapSection" style="display:none; margin-top:20px;">
+                <div class="prediction-form-card">
+                    <h2><i class="fas fa-map" style="color:var(--primary);"></i> Comparable Properties Map</h2>
+                    <div id="comparablesMap" style="height:450px; border-radius:12px; overflow:hidden;"></div>
+                </div>
+            </div>
         </main>
     </div>
     <script>
-            e.preventDefault();
-            const resultArea = document.getElementById('comparablesResult');
-            resultArea.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i><p style="margin-top:10px;color:var(--text-light);">Finding comparables...</p></div>';
+        const comparablesForm = document.getElementById('comparablesForm');
+        const resultArea = document.getElementById('comparablesResult');
+        const mapSection = document.getElementById('comparablesMapSection');
 
-            const formData = new FormData(this);
+        comparablesForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            resultArea.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i><p style="margin-top:10px;color:var(--text-light);">Finding comparables...</p></div>';
+            mapSection.style.display = 'none';
+
+            const formData = new FormData(comparablesForm);
             const data = Object.fromEntries(formData);
 
             try {
@@ -149,6 +162,58 @@
                 }
 
                 resultArea.innerHTML = tableHtml;
+
+                const mapParams = new URLSearchParams({
+                    city: data.city || 'Hyderabad',
+                    locality: data.locality || ''
+                });
+                if (data.property_type) mapParams.set('property_type', data.property_type);
+
+                const mapResponse = await fetch('/api/map/properties?' + mapParams.toString());
+                const mapData = await mapResponse.json();
+                const mapProperties = mapData.properties || [];
+
+                if (mapProperties.length > 0) {
+                    const validPoints = mapProperties.filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
+                    if (validPoints.length > 0) {
+                        const centerLat = validPoints[0].latitude;
+                        const centerLng = validPoints[0].longitude;
+                        const map = L.map('comparablesMap').setView([centerLat, centerLng], 13);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: '&copy; OpenStreetMap contributors'
+                        }).addTo(map);
+
+                        const COLORS = {
+                            Apartment: "#1E3A8A",
+                            House: "#475569",
+                            Villa: "#B85C38",
+                            Plot: "#B68B2E"
+                        };
+
+                        validPoints.forEach(function(prop) {
+                            const pLat = Number(prop.latitude);
+                            const pLng = Number(prop.longitude);
+                            const pType = prop.property_type || 'Apartment';
+                            const color = COLORS[pType] || '#6B747A';
+
+                            const icon = L.divIcon({
+                                className: 'comp-map-marker',
+                                html: '<div style="background:' + color + ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);">INR ' + Number(prop.price || 0).toLocaleString('en-IN') + '</div>',
+                                iconSize: [100, 22],
+                                iconAnchor: [50, 11]
+                            });
+
+                            L.marker([pLat, pLng], {icon: icon}).addTo(map)
+                                .bindPopup('<b>' + pType + '</b><br>' + (prop.locality || '') + '<br>' + (prop.area_sqft ? Number(prop.area_sqft).toLocaleString('en-IN') + ' sqft | ' : '') + (prop.bhk || '?') + ' BHK<br>INR ' + Number(prop.price || 0).toLocaleString('en-IN'));
+                        });
+
+                        const bounds = L.latLngBounds();
+                        validPoints.forEach(p => bounds.extend([p.latitude, p.longitude]));
+                        map.fitBounds(bounds.pad(0.2));
+
+                        mapSection.style.display = 'block';
+                    }
+                }
             } catch(err) {
                 resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>Failed to find comparables. Please try again.</p></div>';
             }

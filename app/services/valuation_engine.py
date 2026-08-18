@@ -236,8 +236,8 @@ class SanityChecker:
 class LocationIntelligenceEngine:
     HYDERABAD_POIS = {
         'metro': [
-            {'name': 'HITEC City Metro', 'lat': 17.4435, 'lon': 78.3772},
-            {'name': 'Gachibowli Metro', 'lat': 17.4400, 'lon': 78.3489},
+            {'name': 'HITEC City Metro', 'lat': 17.4440, 'lon': 78.3780},
+            {'name': 'Gachibowli Metro', 'lat': 17.4410, 'lon': 78.3499},
             {'name': 'Madhapur Metro', 'lat': 17.4513, 'lon': 78.3984},
             {'name': 'Kukatpally Metro', 'lat': 17.4846, 'lon': 78.4068},
             {'name': 'Ameerpet Metro', 'lat': 17.4374, 'lon': 78.4487},
@@ -248,7 +248,7 @@ class LocationIntelligenceEngine:
         'schools': [
             {'name': 'Hyderabad Public School', 'lat': 17.4155, 'lon': 78.4347},
             {'name': 'Oakridge International', 'lat': 17.4619, 'lon': 78.3513},
-            {'name': 'Chirec International', 'lat': 17.4400, 'lon': 78.3489},
+            {'name': 'Chirec International', 'lat': 17.4410, 'lon': 78.3499},
         ],
         'hospitals': [
             {'name': 'Apollo Hospital', 'lat': 17.4156, 'lon': 78.4347},
@@ -256,8 +256,8 @@ class LocationIntelligenceEngine:
             {'name': 'Care Hospital', 'lat': 17.4239, 'lon': 78.4487},
         ],
         'it_hubs': [
-            {'name': 'HITEC City', 'lat': 17.4435, 'lon': 78.3772},
-            {'name': 'Gachibowli IT Park', 'lat': 17.4400, 'lon': 78.3489},
+            {'name': 'HITEC City', 'lat': 17.4440, 'lon': 78.3780},
+            {'name': 'Gachibowli IT Park', 'lat': 17.4410, 'lon': 78.3499},
             {'name': 'Financial District', 'lat': 17.4239, 'lon': 78.3489},
         ],
         'city_center': {'name': 'Hyderabad City Center', 'lat': 17.3850, 'lon': 78.4867}
@@ -467,6 +467,8 @@ class ValuationEngine:
         except Exception as e:
             return {'error': f'Prediction failed: {str(e)}'}
 
+        predicted_price = self._apply_adjustments(predicted_price, property_data)
+
         reliability = self.reliability_engine.calculate(
             property_data, {'R2': 0.8}, ood_result
         )
@@ -503,3 +505,56 @@ class ValuationEngine:
                 'metrics': meta.get('metrics', {})
             }
         }
+
+    def _apply_adjustments(self, predicted_price, property_data):
+        adjustments = 0.0
+
+        area = float(property_data.get('area_sqft', 1000) or 1000)
+        bhk = int(property_data.get('bhk', 2) or 2)
+        bathrooms = int(property_data.get('bathrooms', 2) or 2)
+        property_age = int(property_data.get('property_age', 5) or 5)
+
+        typical_bhk = max(1, int(area / 500))
+        if bhk > typical_bhk:
+            adjustments += (bhk - typical_bhk) * 0.03
+        elif bhk < typical_bhk:
+            adjustments -= (typical_bhk - bhk) * 0.02
+
+        if bathrooms > 1:
+            adjustments += (bathrooms - 1) * 0.015
+
+        if property_age > 10:
+            adjustments -= (property_age - 10) * 0.005
+
+        furnishing = (property_data.get('furnishing') or '').lower()
+        if 'semi' in furnishing:
+            adjustments += 0.02
+        elif 'fully' in furnishing:
+            adjustments += 0.05
+
+        facing = (property_data.get('facing') or '').lower()
+        if any(x in facing for x in ['north', 'north-east', 'east']):
+            adjustments += 0.02
+        elif 'south' in facing:
+            adjustments -= 0.01
+
+        floor = int(property_data.get('floor') or 0)
+        if floor > 5:
+            adjustments += 0.02
+        elif floor > 2:
+            adjustments += 0.01
+
+        total_floors = int(property_data.get('total_floors') or 0)
+        if total_floors > 10:
+            adjustments += 0.01
+
+        parking = (property_data.get('parking') or '').lower()
+        if 'car' in parking and 'bike' in parking:
+            adjustments += 0.04
+        elif 'car' in parking:
+            adjustments += 0.03
+        elif 'bike' in parking:
+            adjustments += 0.01
+
+        adjusted_price = predicted_price * (1 + adjustments)
+        return round(adjusted_price, 2)

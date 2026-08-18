@@ -11,56 +11,40 @@
 
   window.PW_COLORS = COLORS;
 
-  function loadGoogleMaps() {
-    if (window.google && window.google.maps) {
-      return Promise.resolve();
-    }
+  function createLeafletIcon(color, isSelected) {
+    const size = isSelected ? 18 : 12;
+    const borderWidth = isSelected ? 3 : 2;
+    const html = '<div style="' +
+      'background:' + color + ';' +
+      'width:' + size + 'px;' +
+      'height:' + size + 'px;' +
+      'border-radius:50%;' +
+      'border:' + borderWidth + 'px solid #fff;' +
+      'box-shadow:0 2px 8px rgba(0,0,0,0.35);' +
+      '"></div>';
 
-    if (window.__pwMapsPromise) {
-      return window.__pwMapsPromise;
-    }
-
-    const key = window.PROPWISE_GOOGLE_MAPS_KEY || "";
-
-    if (!key) {
-      return Promise.reject(
-        new Error("GOOGLE_MAPS_API_KEY is missing")
-      );
-    }
-
-    window.__pwMapsPromise = new Promise(function (resolve, reject) {
-      const callback = "__propwiseMapsReady";
-      window[callback] = resolve;
-
-      const script = document.createElement("script");
-      script.async = true;
-      script.defer = true;
-      script.src =
-        "https://maps.googleapis.com/maps/api/js?key=" +
-        encodeURIComponent(key) +
-        "&loading=async&callback=" +
-        callback;
-
-      script.onerror = function () {
-        reject(new Error("Google Maps could not be loaded."));
-      };
-
-      document.head.appendChild(script);
+    return L.divIcon({
+      className: 'pw-marker',
+      html: html,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2]
     });
-
-    return window.__pwMapsPromise;
   }
 
-  function markerIcon(color, scale) {
-    return {
-      path: google.maps.SymbolPath.CIRCLE,
-      fillColor: color,
-      fillOpacity: 1,
-      strokeColor: "#FFFFFF",
-      strokeWeight: 2,
-      scale: scale || 7
-    };
-  }
+  window.PW_createLeafletMap = function (containerId, center, zoom) {
+    const element = document.getElementById(containerId);
+    if (!element) return null;
+
+    element.innerHTML = "";
+
+    const map = L.map(containerId).setView([center.lat, center.lng], zoom || 13);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+    }).addTo(map);
+
+    return map;
+  };
 
   window.PW_renderDashboardMap = async function (result, inputData) {
     const element = document.getElementById("map");
@@ -68,19 +52,6 @@
     if (!element) {
       return;
     }
-
-    try {
-      await loadGoogleMaps();
-    } catch (error) {
-      element.innerHTML =
-        '<div class="map-api-message">' +
-        "<strong>Google Maps setup required.</strong><br>" +
-        "Add GOOGLE_MAPS_API_KEY to your .env file." +
-        "</div>";
-      return;
-    }
-
-    element.innerHTML = "";
 
     const locationFeatures =
       result && result.location_features
@@ -92,13 +63,11 @@
       lng: Number(locationFeatures.longitude || 78.4867)
     };
 
-    const map = new google.maps.Map(element, {
-      center: center,
-      zoom: 13,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true
-    });
+    const map = window.PW_createLeafletMap("map", center, 13);
+
+    if (!map) {
+      return;
+    }
 
     const city =
       inputData && inputData.city
@@ -115,6 +84,8 @@
       locality: locality
     });
 
+    let properties = [];
+
     try {
       const response = await fetch(
         "/api/map/properties?" + params.toString()
@@ -122,172 +93,162 @@
 
       const data = await response.json();
 
-      (data.properties || []).forEach(function (property) {
-        const lat = Number(property.latitude);
-        const lng = Number(property.longitude);
-
-        if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-          return;
-        }
-
-        const type = property.property_type || "Apartment";
-
-        const marker = new google.maps.Marker({
-          map: map,
-          position: {
-            lat: lat,
-            lng: lng
-          },
-          title: type,
-          icon: markerIcon(
-            COLORS[type] || "#6B747A"
-          )
-        });
-
-        const info = new google.maps.InfoWindow({
-          content:
-            "<strong>" +
-            type +
-            "</strong><br>" +
-            (property.locality || "") +
-            "<br>" +
-            (
-              property.area_sqft
-                ? Number(property.area_sqft)
-                    .toLocaleString("en-IN") +
-                  " sqft<br>"
-                : ""
-            ) +
-            (
-              property.price
-                ? "INR " +
-                  Number(property.price)
-                    .toLocaleString("en-IN")
-                : ""
-            ) +
-            (
-              property.approximate
-                ? "<br><small>Area-level location</small>"
-                : ""
-            )
-        });
-
-        marker.addListener(
-          "click",
-          function () {
-            info.open(map, marker);
-          }
-        );
-      });
+      properties = data.properties || [];
     } catch (error) {
       console.warn(
         "Property map data unavailable:",
         error
       );
     }
-  };
 
-  window.PW_renderStandaloneMap =
-    async function (
-      containerId,
-      properties
-    ) {
-      await loadGoogleMaps();
+    const selectedProperty = properties.find(function (p) {
+      if (locality && p.locality === locality) return true;
+      return p.city === city;
+    }) || properties[0];
 
-      const element =
-        document.getElementById(containerId);
+    if (selectedProperty && Number.isFinite(selectedProperty.latitude) && Number.isFinite(selectedProperty.longitude)) {
+      const selectedMarker = L.marker(
+        [selectedProperty.latitude, selectedProperty.longitude],
+        { icon: createLeafletIcon(COLORS.Selected, true) }
+      ).addTo(map);
 
-      if (!element) {
+      selectedMarker.bindPopup(
+        "<strong>Your Property</strong><br>" +
+        (selectedProperty.property_type || "") +
+        "<br>" +
+        (selectedProperty.locality || "") +
+        "<br>" +
+        (selectedProperty.area_sqft
+          ? Number(selectedProperty.area_sqft).toLocaleString("en-IN") + " sqft<br>"
+          : "") +
+        (selectedProperty.price
+          ? "INR " + Number(selectedProperty.price).toLocaleString("en-IN")
+          : "")
+      );
+    }
+
+    properties.forEach(function (property) {
+      if (property === selectedProperty) {
         return;
       }
 
-      const first =
-        properties && properties.length
-          ? properties[0]
-          : {
-              latitude: 17.385,
-              longitude: 78.4867
-            };
+      const lat = Number(property.latitude);
+      const lng = Number(property.longitude);
 
-      const map = new google.maps.Map(
-        element,
-        {
-          center: {
-            lat: Number(first.latitude),
-            lng: Number(first.longitude)
-          },
-          zoom: 12,
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: true
-        }
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return;
+      }
+
+      const type = property.property_type || "Apartment";
+
+      const marker = L.marker(
+        [lat, lng],
+        { icon: createLeafletIcon(COLORS[type] || "#6B747A", false) }
+      ).addTo(map);
+
+      marker.bindPopup(
+        "<strong>" + type + "</strong><br>" +
+        (property.locality || "") + "<br>" +
+        (property.area_sqft
+          ? Number(property.area_sqft).toLocaleString("en-IN") + " sqft<br>"
+          : "") +
+        (property.price
+          ? "INR " + Number(property.price).toLocaleString("en-IN")
+          : "") +
+        (property.approximate
+          ? "<br><small>Area-level location</small>"
+          : "")
       );
+    });
 
-      (properties || []).forEach(
-        function (property) {
-          const lat = Number(property.latitude);
-          const lng = Number(property.longitude);
+    const validPoints = properties.filter(function (p) {
+      return Number.isFinite(p.latitude) && Number.isFinite(p.longitude);
+    });
 
-          if (
-            !Number.isFinite(lat) ||
-            !Number.isFinite(lng)
-          ) {
-            return;
-          }
+    if (validPoints.length > 1) {
+      const bounds = L.latLngBounds();
+      validPoints.forEach(function (p) {
+        bounds.extend([p.latitude, p.longitude]);
+      });
+      map.fitBounds(bounds.pad(0.2));
+    }
+  };
 
-          const type =
-            property.property_type ||
-            "Apartment";
+  window.PW_renderStandaloneMap = async function (
+    containerId,
+    properties
+  ) {
+    const element = document.getElementById(containerId);
 
-          const marker =
-            new google.maps.Marker({
-              map: map,
-              position: {
-                lat: lat,
-                lng: lng
-              },
-              title: type,
-              icon: markerIcon(
-                COLORS[type] || "#6B747A"
-              )
-            });
+    if (!element) {
+      return;
+    }
 
-          const info =
-            new google.maps.InfoWindow({
-              content:
-                "<strong>" +
-                type +
-                "</strong><br>" +
-                (property.locality || "") +
-                "<br>" +
-                (
-                  property.area_sqft
-                    ? Number(
-                        property.area_sqft
-                      ).toLocaleString(
-                        "en-IN"
-                      ) + " sqft<br>"
-                    : ""
-                ) +
-                (
-                  property.price
-                    ? "INR " +
-                      Number(
-                        property.price
-                      ).toLocaleString(
-                        "en-IN"
-                      )
-                    : ""
-                )
-            });
+    const first =
+      properties && properties.length
+        ? properties[0]
+        : {
+            latitude: 17.385,
+            longitude: 78.4867
+          };
 
-          marker.addListener(
-            "click",
-            function () {
-              info.open(map, marker);
-            }
-          );
-        }
-      );
+    const center = {
+      lat: Number(first.latitude),
+      lng: Number(first.longitude)
     };
+
+    const map = window.PW_createLeafletMap(containerId, center, 12);
+
+    if (!map) {
+      return;
+    }
+
+    properties.forEach(function (property) {
+      const lat = Number(property.latitude);
+      const lng = Number(property.longitude);
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+        return;
+      }
+
+      const type = property.property_type || "Apartment";
+      const isSelected = property.is_selected;
+
+      const marker = L.marker(
+        [lat, lng],
+        {
+          icon: createLeafletIcon(
+            COLORS[type] || "#6B747A",
+            isSelected
+          )
+        }
+      ).addTo(map);
+
+      marker.bindPopup(
+        "<strong>" + type + "</strong><br>" +
+        (property.locality || "") + "<br>" +
+        (property.area_sqft
+          ? Number(property.area_sqft).toLocaleString("en-IN") + " sqft<br>"
+          : "") +
+        (property.price
+          ? "INR " + Number(property.price).toLocaleString("en-IN")
+          : "")
+      );
+    });
+
+    const validPoints = properties.filter(function (p) {
+      return Number.isFinite(p.latitude) && Number.isFinite(p.longitude);
+    });
+
+    if (validPoints.length > 1) {
+      const bounds = L.latLngBounds();
+      validPoints.forEach(function (p) {
+        bounds.extend([p.latitude, p.longitude]);
+      });
+      map.fitBounds(bounds.pad(0.2));
+    }
+  };
 })();

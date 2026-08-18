@@ -6,9 +6,8 @@
     <title>PropWise AI - Admin Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script>
-        window.PROPWISE_GOOGLE_MAPS_KEY = "{{ config.get('GOOGLE_MAPS_API_KEY', '') }}";
-    </script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         .admin-stats-bar {
             display: flex;
@@ -589,6 +588,7 @@
                         <div class="form-group">
                             <label>City</label>
                             <select class="dropdown-select" id="city" name="city">
+                                <option value="">Select City</option>
                                 {% for item in dropdown.cities %}
                                 <option value="{{ item }}">{{ item }}</option>
                                 {% endfor %}
@@ -597,9 +597,7 @@
                         <div class="form-group">
                             <label>Locality</label>
                             <select class="dropdown-select" id="locality" name="locality">
-                                {% for item in dropdown.localities %}
-                                <option value="{{ item }}">{{ item }}</option>
-                                {% endfor %}
+                                <option value="">Select Locality</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -613,31 +611,31 @@
                         <div class="form-group">
                             <label>Area (sq ft)</label>
                             <select class="dropdown-select" id="area" name="area">
-                                {% for item in dropdown.areas %}
-                                <option value="{{ item }}">{{ item }}</option>
+                                {% for ar in dropdown.get('area_ranges', []) %}
+                                <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Bedrooms</label>
                             <select class="dropdown-select" id="bedrooms" name="bedrooms">
-                                {% for item in dropdown.bedrooms %}
-                                <option value="{{ item }}">{{ item }}</option>
+                                {% for b in dropdown.get('bhk_options', range(1, 6)) %}
+                                <option value="{{ b }}">{{ b }} BHK</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Bathrooms</label>
                             <select class="dropdown-select" id="bathrooms" name="bathrooms">
-                                {% for item in dropdown.bathrooms %}
-                                <option value="{{ item }}">{{ item }}</option>
+                                {% for b in dropdown.get('bathroom_options', range(1, 6)) %}
+                                <option value="{{ b }}">{{ b }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Furnishing</label>
                             <select class="dropdown-select" id="furnishing" name="furnishing">
-                                {% for item in dropdown.furnishings %}
+                                {% for item in dropdown.get('furnishing_options', ['Unfurnished','Semi-Furnished','Fully Furnished']) %}
                                 <option value="{{ item }}">{{ item }}</option>
                                 {% endfor %}
                             </select>
@@ -645,7 +643,7 @@
                         <div class="form-group">
                             <label>Facing</label>
                             <select class="dropdown-select" id="facing" name="facing">
-                                {% for item in dropdown.facings %}
+                                {% for item in dropdown.get('facing_options', ['North','South','East','West','North-East','North-West','South-East','South-West']) %}
                                 <option value="{{ item }}">{{ item }}</option>
                                 {% endfor %}
                             </select>
@@ -653,15 +651,15 @@
                         <div class="form-group">
                             <label>Age of Property</label>
                             <select class="dropdown-select" id="age" name="age">
-                                {% for item in dropdown.ages %}
-                                <option value="{{ item }}">{{ item }}</option>
+                                {% for item in dropdown.get('ages', range(0, 21)) %}
+                                <option value="{{ item }}">{{ item }} years</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="form-group">
                             <label>Floor</label>
                             <select class="dropdown-select" id="floor" name="floor">
-                                {% for item in dropdown.floors %}
+                                {% for item in dropdown.get('floors', range(1, 21)) %}
                                 <option value="{{ item }}">{{ item }}</option>
                                 {% endfor %}
                             </select>
@@ -669,7 +667,7 @@
                         <div class="form-group">
                             <label>Total Floors</label>
                             <select class="dropdown-select" id="total_floors" name="total_floors">
-                                {% for item in dropdown.total_floors %}
+                                {% for item in dropdown.get('total_floors', range(1, 21)) %}
                                 <option value="{{ item }}">{{ item }}</option>
                                 {% endfor %}
                             </select>
@@ -677,7 +675,7 @@
                         <div class="form-group">
                             <label>Parking</label>
                             <select class="dropdown-select" id="parking" name="parking">
-                                {% for item in dropdown.parkings %}
+                                {% for item in dropdown.get('parkings', ['None','Car','Bike','Car and Bike']) %}
                                 <option value="{{ item }}">{{ item }}</option>
                                 {% endfor %}
                             </select>
@@ -761,7 +759,71 @@
 
                 <div class="section" id="whatif-section">
                     <h2>🔮 What-If Analysis</h2>
-                    <div id="whatifContent"></div>
+                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:15px;">Change features to instantly see price impact</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px;">
+                        <div style="flex:1 1 120px;min-width:110px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">BHK</label>
+                            <select id="whatifBhk" class="dropdown-select">
+                                <option value="">Same</option>
+                                <option value="1">1 BHK</option>
+                                <option value="2">2 BHK</option>
+                                <option value="3">3 BHK</option>
+                                <option value="4">4 BHK</option>
+                                <option value="5">5 BHK</option>
+                            </select>
+                        </div>
+                        <div style="flex:1 1 140px;min-width:130px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Area (sqft)</label>
+                            <select id="whatifArea" class="dropdown-select">
+                                <option value="">Same</option>
+                                {% for ar in dropdown.get('area_ranges', []) %}
+                                <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div style="flex:1 1 100px;min-width:90px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Bathrooms</label>
+                            <select id="whatifBath" class="dropdown-select">
+                                <option value="">Same</option>
+                                {% for b in dropdown.get('bathroom_options', [1,2,3,4,5,6]) %}
+                                <option value="{{ b }}">{{ b }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div style="flex:1 1 130px;min-width:120px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Furnishing</label>
+                            <select id="whatifFurnishing" class="dropdown-select">
+                                <option value="">Same</option>
+                                <option value="Unfurnished">Unfurnished</option>
+                                <option value="Semi-Furnished">Semi-Furnished</option>
+                                <option value="Fully Furnished">Fully Furnished</option>
+                            </select>
+                        </div>
+                        <div style="flex:1 1 110px;min-width:100px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Facing</label>
+                            <select id="whatifFacing" class="dropdown-select">
+                                <option value="">Same</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="North-East">North-East</option>
+                                <option value="North-West">North-West</option>
+                                <option value="South-East">South-East</option>
+                                <option value="South-West">South-West</option>
+                            </select>
+                        </div>
+                        <div style="flex:1 1 110px;min-width:100px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Property Age</label>
+                            <select id="whatifAge" class="dropdown-select">
+                                <option value="">Same</option>
+                                {% for a in range(0, 21) %}
+                                <option value="{{ a }}">{{ a }} yrs</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="whatif-results" id="whatifResults"></div>
                 </div>
 
                 <div class="section" id="history-section">
@@ -821,26 +883,31 @@
         let mapMarkers = [];
 
         async function predict() {
-            const formData = {
-                city: document.getElementById('city').value,
-                locality: document.getElementById('locality').value,
-                property_type: document.getElementById('property_type').value,
-                area: document.getElementById('area').value,
-                bedrooms: document.getElementById('bedrooms').value,
-                bathrooms: document.getElementById('bathrooms').value,
-                furnishing: document.getElementById('furnishing').value,
-                facing: document.getElementById('facing').value,
-                age: document.getElementById('age').value,
-                floor: document.getElementById('floor').value,
-                total_floors: document.getElementById('total_floors').value,
-                parking: document.getElementById('parking').value
+            const form = document.getElementById('valuationForm');
+            const formData = new FormData(form);
+            const formDataObj = {};
+            formData.forEach(function(value, key) { formDataObj[key] = value; });
+
+            const payload = {
+                property_type: formDataObj.property_type || 'Apartment',
+                city: formDataObj.city || 'Hyderabad',
+                locality: formDataObj.locality || '',
+                area_sqft: parseFloat(formDataObj.area) || 0,
+                bhk: parseInt(formDataObj.bedrooms) || 2,
+                bathrooms: parseInt(formDataObj.bathrooms) || 2,
+                property_age: parseInt(formDataObj.age) || 5,
+                furnishing: formDataObj.furnishing || '',
+                facing: formDataObj.facing || '',
+                floor: parseInt(formDataObj.floor) || 0,
+                total_floors: parseInt(formDataObj.total_floors) || 0,
+                parking: formDataObj.parking || '',
             };
 
             try {
-                const response = await fetch('/api/predict', {
+                const response = await fetch('/api/valuation/predict', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify(payload)
                 });
                 predictionData = await response.json();
                 renderPrediction();
@@ -891,6 +958,9 @@
         function renderResultCards() {
             const el = document.getElementById('resultCards');
             const p = predictionData;
+            const rel = p.reliability || {};
+            const confidence = (rel.score || 0) / 100;
+            const confidenceLabel = rel.level || 'Model confidence';
             el.innerHTML = `
                 <div class="result-card">
                     <h4>Predicted Price</h4>
@@ -904,12 +974,12 @@
                 </div>
                 <div class="result-card">
                     <h4>Confidence</h4>
-                    <div class="value">${(p.confidence * 100).toFixed(1)}%</div>
-                    <div class="sub">${p.confidence_label || 'Model confidence'}</div>
+                    <div class="value">${(confidence * 100).toFixed(1)}%</div>
+                    <div class="sub">${confidenceLabel}</div>
                 </div>
                 <div class="result-card">
                     <h4>Reliability</h4>
-                    <div class="value"><span class="model-badge" style="background: ${getReliabilityColor(p.reliability)}; color: #fff;">${p.reliability || 'N/A'}</span></div>
+                    <div class="value"><span class="model-badge" style="background: ${getReliabilityColor(rel.level)}; color: #fff;">${rel.level || 'N/A'}</span></div>
                     <div class="sub">Prediction reliability</div>
                 </div>
             `;
@@ -917,34 +987,41 @@
 
         function renderModelMetrics() {
             const el = document.getElementById('modelMetrics');
-            const m = predictionData.model_metrics || {};
+            const m = (predictionData.model_info && predictionData.model_info.metrics) || {};
             el.innerHTML = `
-                <div class="metric-mini"><h5>R²</h5><div class="val">${(m.r2 || 0).toFixed(4)}</div></div>
-                <div class="metric-mini"><h5>MAE</h5><div class="val">${formatNumber(m.mae || 0)}</div></div>
-                <div class="metric-mini"><h5>RMSE</h5><div class="val">${formatNumber(m.rmse || 0)}</div></div>
-                <div class="metric-mini"><h5>MAPE</h5><div class="val">${(m.mape || 0).toFixed(2)}%</div></div>
-                <div class="metric-mini"><h5>Model</h5><div class="val">${predictionData.model_used || 'N/A'}</div></div>
+                <div class="metric-mini"><h5>R²</h5><div class="val">${(m.R2 || 0).toFixed(4)}</div></div>
+                <div class="metric-mini"><h5>MAE</h5><div class="val">${formatNumber(m.MAE || 0)}</div></div>
+                <div class="metric-mini"><h5>RMSE</h5><div class="val">${formatNumber(m.RMSE || 0)}</div></div>
+                <div class="metric-mini"><h5>MAPE</h5><div class="val">${(m.MAPE || 0).toFixed(2)}%</div></div>
+                <div class="metric-mini"><h5>Model</h5><div class="val">${(predictionData.model_info && predictionData.model_info.algorithm) || 'N/A'}</div></div>
             `;
         }
 
         function renderPriceBarChart() {
             const ctx = document.getElementById('priceBarChart').getContext('2d');
             if (window.priceBarInstance) window.priceBarInstance.destroy();
-            const labels = ['Apartment', 'House', 'Villa', 'Plot'];
-            const values = [
-                predictionData.apartment_avg || 0,
-                predictionData.house_avg || 0,
-                predictionData.villa_avg || 0,
-                predictionData.plot_avg || 0
-            ];
+            const labels = ['Your Property'];
+            const values = [predictionData.predicted_price || 0];
+            const colors = ['#F59E0B'];
+
+            if (predictionData.comparables && predictionData.comparables.length > 0) {
+                predictionData.comparables.forEach(function(c, i) {
+                    labels.push('Comp ' + (i + 1));
+                    values.push(c.price || 0);
+                    colors.push(c.property_type === 'House' ? '#475569' : c.property_type === 'Villa' ? '#B85C38' : c.property_type === 'Plot' ? '#B68B2E' : '#1E3A8A');
+                });
+            }
+
             window.priceBarInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Avg Price',
+                        label: 'Price (INR)',
                         data: values,
-                        backgroundColor: ['#1E3A8A', '#475569', '#B85C38', '#B68B2E'],
+                        backgroundColor: colors,
+                        borderColor: colors,
+                        borderWidth: 1,
                         borderRadius: 6
                     }]
                 },
@@ -953,7 +1030,7 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' } },
+                        y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' }, beginAtZero: true },
                         x: { ticks: { color: '#64748b' }, grid: { display: false } }
                     }
                 }
@@ -964,20 +1041,22 @@
             const ctx = document.getElementById('valueDoughnut').getContext('2d');
             if (window.valueDoughnutInstance) window.valueDoughnutInstance.destroy();
             const p = predictionData;
+            const lower = p.uncertainty && p.uncertainty.lower_bound ? p.uncertainty.lower_bound : (p.predicted_price * 0.9);
+            const upper = p.uncertainty && p.uncertainty.upper_bound ? p.uncertainty.upper_bound : (p.predicted_price * 1.1);
             const segments = [
-                p.land_value || 0,
-                p.construction_value || 0,
-                p.location_premium || 0,
-                p.amenity_value || 0
+                lower,
+                p.predicted_price || 0,
+                upper
             ];
             window.valueDoughnutInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Land', 'Construction', 'Location Premium', 'Amenities'],
+                    labels: ['Lower Bound', 'Predicted', 'Upper Bound'],
                     datasets: [{
                         data: segments,
-                        backgroundColor: ['#EF4444', '#2563EB', '#10B981', '#F59E0B'],
-                        borderWidth: 0
+                        backgroundColor: ['#EF4444', '#2563EB', '#10B981'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
                     }]
                 },
                 options: {
@@ -1058,160 +1137,113 @@
             const container = document.getElementById('mapContainer');
             if (!container) return;
 
-            if (!window.google || !window.google.maps) {
-                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">Google Maps requires an API key. Set GOOGLE_MAPS_API_KEY in your environment.</div>';
-                return;
-            }
+            if (map) { map.remove(); }
+            map = null;
 
-            const cityCoords = {
-                'Hyderabad': { lat: 17.385, lng: 78.4867 },
-                'Bengaluru': { lat: 12.9716, lng: 77.5946 },
-                'Mumbai': { lat: 19.076, lng: 72.8777 },
-                'Chennai': { lat: 13.0827, lng: 80.2707 },
-                'Kolkata': { lat: 22.5726, lng: 88.3639 },
-                'Pune': { lat: 18.5204, lng: 73.8567 },
-                'Delhi': { lat: 28.7041, lng: 77.1025 },
-                'Gurgaon': { lat: 28.4595, lng: 77.0266 },
-                'Ahmedabad': { lat: 23.0225, lng: 72.5714 },
-                'Jaipur': { lat: 26.9124, lng: 75.7870 },
-                'Lucknow': { lat: 26.8467, lng: 80.9462 },
-                'Kochi': { lat: 9.9312, lng: 76.2673 },
-                'Indore': { lat: 22.7196, lng: 75.8577 },
-                'Coimbatore': { lat: 11.0168, lng: 76.9558 },
-                'Nagpur': { lat: 21.1458, lng: 79.0882 },
-                'Visakhapatnam': { lat: 17.6868, lng: 83.2185 },
-                'Chandigarh': { lat: 30.7333, lng: 76.7794 }
+            const lf = predictionData.location_features || {};
+            const center = {
+                lat: Number(lf.latitude || 17.385),
+                lng: Number(lf.longitude || 78.4867)
             };
 
+            map = L.map('mapContainer').setView([center.lat, center.lng], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
             const city = predictionData.city || 'Hyderabad';
-            const coords = cityCoords[city] || cityCoords['Hyderabad'];
+            const propType = predictionData.property_type || 'Apartment';
 
-            if (!map) {
-                map = new google.maps.Map(container, {
-                    center: coords,
-                    zoom: 12,
-                    mapTypeControl: false,
-                    streetViewControl: false,
-                    fullscreenControl: true
-                });
-            } else {
-                map.setCenter(coords);
-            }
+            const selectedIcon = L.divIcon({
+                className: 'selected-marker',
+                html: '<div style="background:#F59E0B;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">INR ' + formatNumber(predictionData.predicted_price) + '</div>',
+                iconSize: [130, 30],
+                iconAnchor: [65, 15]
+            });
 
-            mapMarkers.forEach(m => m.setMap(null));
+            const selectedMarker = L.marker([center.lat, center.lng], {icon: selectedIcon}).addTo(map);
+            selectedMarker.bindPopup('<b>Your Property</b><br>' + propType + ' in ' + (predictionData.locality || city) + '<br>INR ' + formatNumber(predictionData.predicted_price));
+
             mapMarkers = [];
 
-            const propType = predictionData.property_type || 'Apartment';
-            const color = MARKER_COLORS[propType] || '#1E3A8A';
+            const params = new URLSearchParams({city: city, locality: predictionData.locality || ''});
+            if (propType) params.set('property_type', propType);
 
-            const marker = new google.maps.Marker({
-                map: map,
-                position: coords,
-                title: propType,
-                icon: {
-                    path: google.maps.SymbolPath.CIRCLE,
-                    fillColor: color,
-                    fillOpacity: 1,
-                    strokeColor: '#FFFFFF',
-                    strokeWeight: 2,
-                    scale: 10
-                }
-            });
+            fetch('/api/map/properties?' + params.toString())
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    (data.properties || []).forEach(function(prop, i) {
+                        const pLat = Number(prop.latitude);
+                        const pLng = Number(prop.longitude);
+                        if (!Number.isFinite(pLat) || !Number.isFinite(pLng)) return;
 
-            const info = new google.maps.InfoWindow({
-                content: `<strong>${propType}</strong><br>${predictionData.locality || ''}, ${city}<br><b>₹${formatNumber(predictionData.predicted_price)}</b>`
-            });
+                        const pType = prop.property_type || 'Apartment';
+                        const pColor = MARKER_COLORS[pType] || '#1E3A8A';
 
-            marker.city = city;
-            marker.propertyType = propType;
-            marker.addListener('click', () => info.open(map, marker));
-            mapMarkers.push(marker);
+                        const compIcon = L.divIcon({
+                            className: 'comp-marker',
+                            html: '<div style="background:' + pColor + ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;">INR ' + formatNumber(prop.price) + '</div>',
+                            iconSize: [100, 22],
+                            iconAnchor: [50, 11]
+                        });
 
-            const nearbyPoints = [
-                { lat: coords.lat + 0.01, lng: coords.lng + 0.015, type: 'Apartment' },
-                { lat: coords.lat - 0.008, lng: coords.lng - 0.01, type: 'House' },
-                { lat: coords.lat + 0.012, lng: coords.lng - 0.008, type: 'Villa' },
-                { lat: coords.lat - 0.015, lng: coords.lng + 0.012, type: 'Plot' }
-            ];
+                        const marker = L.marker([pLat, pLng], {icon: compIcon}).addTo(map);
+                        marker.bindPopup('<b>' + pType + '</b><br>' + (prop.locality || '') + '<br>' + (prop.area_sqft ? Number(prop.area_sqft).toLocaleString('en-IN') + ' sqft | ' : '') + (prop.bhk || '?') + ' BHK<br>INR ' + formatNumber(prop.price));
 
-            nearbyPoints.forEach(pt => {
-                const c = MARKER_COLORS[pt.type] || '#1E3A8A';
-                const m = new google.maps.Marker({
-                    map: map,
-                    position: { lat: pt.lat, lng: pt.lng },
-                    title: pt.type,
-                    icon: {
-                        path: google.maps.SymbolPath.CIRCLE,
-                        fillColor: c,
-                        fillOpacity: 1,
-                        strokeColor: '#FFFFFF',
-                        strokeWeight: 2,
-                        scale: 7
-                    }
+                        marker.city = prop.city || city;
+                        marker.propertyType = pType;
+                        mapMarkers.push(marker);
+                    });
+
+                    populateMapFilters();
+                    filterMap();
+                })
+                .catch(function(error) {
+                    console.warn('Property map data unavailable:', error);
+                    populateMapFilters();
+                    filterMap();
                 });
 
-                m.city = city;
-                m.propertyType = pt.type;
-
-                const info = new google.maps.InfoWindow({
-                    content: `<strong>${pt.type}</strong><br>Nearby property`
-                });
-
-                m.addListener('click', () => info.open(map, m));
-                mapMarkers.push(m);
-            });
+            setTimeout(function() { map.invalidateSize(); }, 100);
         }
 
         function renderSHAP() {
             const el = document.getElementById('shapContainer');
-            const shap = predictionData.shap_values || {};
-            const features = Object.entries(shap).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
-            const maxAbs = Math.max(...features.map(f => Math.abs(f[1])), 1);
-
-            el.innerHTML = features.map(([name, value]) => {
-                const pct = (Math.abs(value) / maxAbs) * 50;
-                const isPos = value >= 0;
-                return `
-                    <div class="shap-bar-container">
-                        <div class="shap-label">
-                            <span>${name}</span>
-                            <span>${isPos ? '+' : ''}${value.toFixed(4)}</span>
-                        </div>
-                        <div class="shap-bar-bg">
-                            ${isPos
-                                ? `<div class="shap-bar-pos" style="width: ${pct}%;"></div>`
-                                : `<div class="shap-bar-neg" style="width: ${pct}%;"></div>`
-                            }
-                        </div>
-                    </div>
-                `;
+            const shap = predictionData.shap || [];
+            if (!shap.length) {
+                el.innerHTML = '<p style="color:var(--text-light);">No SHAP data available</p>';
+                return;
+            }
+            const maxImp = Math.max(...shap.map(s => s.importance || 0), 1);
+            el.innerHTML = shap.map(s => {
+                const pct = (s.importance / maxImp) * 100;
+                const cls = s.direction === 'negative' ? 'shap-bar-neg' : 'shap-bar-pos';
+                const prefix = s.direction === 'negative' ? '-' : '+';
+                return '<div class="shap-bar-container">' +
+                    '<div class="shap-label">' + (s.feature || '').replace(/_/g, ' ') + '</div>' +
+                    '<div class="shap-bar-bg"><div class="' + cls + '" style="width:' + pct + '%"></div></div>' +
+                    '<div class="shap-value">' + prefix + ((s.importance || 0) * 100).toFixed(1) + '%</div></div>';
             }).join('');
         }
 
         function renderLocation() {
             const el = document.getElementById('locationGrid');
-            const loc = predictionData.location_intel || {};
+            const lf = predictionData.location_features || {};
             const items = [
-                { name: 'Infrastructure Score', val: loc.infrastructure || 'N/A' },
-                { name: 'Connectivity', val: loc.connectivity || 'N/A' },
-                { name: 'Green Cover', val: loc.green_cover || 'N/A' },
-                { name: 'Flood Risk', val: loc.flood_risk || 'N/A' },
-                { name: 'Safety Index', val: loc.safety || 'N/A' },
-                { name: 'Schools Nearby', val: loc.schools || 'N/A' },
-                { name: 'Hospitals Nearby', val: loc.hospitals || 'N/A' },
-                { name: 'IT Parks Nearby', val: loc.it_parks || 'N/A' },
-                { name: 'Market Appreciation', val: loc.appreciation || 'N/A' },
-                { name: 'Rental Yield', val: loc.rental_yield || 'N/A' },
-                { name: 'Walkability', val: loc.walkability || 'N/A' },
-                { name: 'Public Transport', val: loc.public_transport || 'N/A' }
+                {icon: 'fa-train', dist: lf.distance_to_metro, unit: 'km', name: 'Nearest Metro'},
+                {icon: 'fa-graduation-cap', dist: lf.distance_to_school, unit: 'km', name: 'Nearest School'},
+                {icon: 'fa-hospital', dist: lf.distance_to_hospital, unit: 'km', name: 'Nearest Hospital'},
+                {icon: 'fa-city', dist: lf.distance_to_it_hub, unit: 'km', name: 'IT Hub'},
+                {icon: 'fa-building', dist: lf.distance_to_city_center, unit: 'km', name: 'City Center'},
+                {icon: 'fa-map-pin', dist: null, unit: '', name: (lf.latitude || 0).toFixed(4) + ', ' + (lf.longitude || 0).toFixed(4)}
             ];
-
-            el.innerHTML = items.map(item => `
-                <div class="loc-item">
-                    <div class="loc-name">${item.name}</div>
-                    <div class="loc-val">${item.val}</div>
-                </div>
-            `).join('');
+            let html = '';
+            items.forEach(function(it) {
+                html += '<div class="loc-item"><i class="fas ' + it.icon + '"></i>' +
+                    '<div class="loc-dist">' + (it.dist !== null ? it.dist + ' ' + it.unit : it.name) + '</div>' +
+                    '<div class="loc-name">' + (it.dist !== null ? it.name : 'Coordinates') + '</div></div>';
+            });
+            el.innerHTML = html;
         }
 
         function renderComparables() {
@@ -1231,35 +1263,115 @@
         }
 
         function renderWhatIf() {
-            const el = document.getElementById('whatifContent');
+            const resultsEl = document.getElementById('whatifResults');
             const p = predictionData;
-            const scenarios = [
-                { label: 'Add Parking', key: 'parking', delta: 50000 },
-                { label: 'Furnish', key: 'furnishing', delta: 30000 },
-                { label: 'East Facing', key: 'facing', delta: 20000 },
-                { label: 'Newer Build', key: 'age', delta: -100000 },
-                { label: 'Higher Floor', key: 'floor', delta: 15000 }
-            ];
 
-            el.innerHTML = scenarios.map(s => {
-                const newVal = (p.predicted_price || 0) + s.delta;
-                const diff = s.delta;
-                const badgeClass = diff >= 0 ? 'positive' : 'negative';
-                return `
-                    <div class="whatif-grid">
-                        <div style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;">
-                            <div style="font-size:12px;color:#64748b;margin-bottom:4px;">Current</div>
-                            <div style="font-size:16px;font-weight:700;color:#e2e8f0;">₹${formatNumber(p.predicted_price)}</div>
-                        </div>
-                        <div class="whatif-arrow">→</div>
-                        <div style="background:#0f172a;border:1px solid #334155;border-radius:8px;padding:12px;">
-                            <div style="font-size:12px;color:#64748b;margin-bottom:4px;">If ${s.label}</div>
-                            <div style="font-size:16px;font-weight:700;color:#e2e8f0;">₹${formatNumber(newVal)}</div>
-                            <span class="diff-badge ${badgeClass}">${diff >= 0 ? '+' : ''}₹${formatNumber(diff)}</span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            if (!p || !p.predicted_price) {
+                resultsEl.innerHTML = '<p style="color:var(--text-light);">Run a prediction first</p>';
+                return;
+            }
+
+            resultsEl.innerHTML = '<div class="whatif-grid" style="grid-template-columns: 1fr auto 1fr;">' +
+                '<div class="whatif-card">' +
+                    '<h4>Original Property</h4>' +
+                    '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (p.property_type || 'Property') + ' | ' + (p.locality || '') + ', ' + (p.city || '') + '</div>' +
+                    '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + (p.area_sqft || 0) + ' sqft | ' + (p.bhk || 0) + ' BHK | ' + (p.bathrooms || 0) + ' Bath</div>' +
+                    '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(p.predicted_price) + '</div>' +
+                '</div>' +
+                '<div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>' +
+                '<div class="whatif-card">' +
+                    '<h4>Modified Property</h4>' +
+                    '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">Change any feature above to see price impact</div>' +
+                    '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">Same as original until modified</div>' +
+                    '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(p.predicted_price) + '</div>' +
+                '</div>' +
+            '</div>';
+        }
+
+        function runAdminWhatIf() {
+            if (!predictionData || !predictionData.predicted_price) return;
+
+            const bhk = document.getElementById('whatifBhk').value;
+            const area = document.getElementById('whatifArea').value;
+            const bath = document.getElementById('whatifBath').value;
+            const furnishing = document.getElementById('whatifFurnishing').value;
+            const facing = document.getElementById('whatifFacing').value;
+            const age = document.getElementById('whatifAge').value;
+
+            const payload = {
+                property_type: predictionData.property_type || 'Apartment',
+                city: predictionData.city || 'Hyderabad',
+                locality: predictionData.locality || '',
+                area_sqft: area ? parseFloat(area) : (predictionData.area_sqft || 1500),
+                bhk: bhk ? parseInt(bhk) : (predictionData.bhk || 3),
+                bathrooms: bath ? parseInt(bath) : (predictionData.bathrooms || 2),
+                property_age: age ? parseInt(age) : (predictionData.property_age || 5),
+                furnishing: furnishing || '',
+                facing: facing || '',
+            };
+
+            const resultsEl = document.getElementById('whatifResults');
+            resultsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-light);"><i class="fas fa-spinner fa-spin"></i> Analyzing...</div>';
+
+            fetch('/api/valuation/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(res) {
+                if (res.error) {
+                    resultsEl.innerHTML = '<div style="color:red;">' + res.error + '</div>';
+                    return;
+                }
+
+                const origPrice = predictionData.predicted_price;
+                const modPrice = res.predicted_price;
+                const diff = modPrice - origPrice;
+                const pct = origPrice ? ((diff / origPrice) * 100).toFixed(1) : 0;
+                const diffCls = diff > 0 ? 'diff-up' : diff < 0 ? 'diff-down' : 'diff-same';
+                const diffIcon = diff > 0 ? 'fa-arrow-up' : diff < 0 ? 'fa-arrow-down' : 'fa-equals';
+
+                const changes = [];
+                if (bhk && bhk != predictionData.bhk) changes.push('BHK: ' + bhk);
+                if (area && area != predictionData.area_sqft) changes.push('Area: ' + area + ' sqft');
+                if (bath && bath != predictionData.bathrooms) changes.push('Bath: ' + bath);
+                if (furnishing) changes.push('Furnishing: ' + furnishing);
+                if (facing) changes.push('Facing: ' + facing);
+                if (age && age != predictionData.property_age) changes.push('Age: ' + age + ' yrs');
+
+                resultsEl.innerHTML = '<div class="whatif-grid" style="grid-template-columns: 1fr auto 1fr;">' +
+                    '<div class="whatif-card">' +
+                        '<h4>Original Property</h4>' +
+                        '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (predictionData.property_type || 'Property') + ' | ' + (predictionData.locality || '') + ', ' + (predictionData.city || '') + '</div>' +
+                        '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + (predictionData.area_sqft || 0) + ' sqft | ' + (predictionData.bhk || 0) + ' BHK | ' + (predictionData.bathrooms || 0) + ' Bath</div>' +
+                        '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(origPrice) + '</div>' +
+                    '</div>' +
+                    '<div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>' +
+                    '<div class="whatif-card">' +
+                        '<h4>Modified Property</h4>' +
+                        '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (changes.length ? changes.join(' | ') : 'No changes') + '</div>' +
+                        '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + payload.area_sqft + ' sqft | ' + payload.bhk + ' BHK | ' + payload.bathrooms + ' Bath</div>' +
+                        '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(modPrice) + '</div>' +
+                        '<div style="margin-top:8px;"><span class="diff-badge ' + diffCls + '"><i class="fas ' + diffIcon + '"></i> ' + (diff >= 0 ? '+' : '') + formatNumber(diff) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)</span></div>' +
+                    '</div>' +
+                '</div>';
+            })
+            .catch(function(err) {
+                resultsEl.innerHTML = '<p style="color:red;">Error running what-if</p>';
+            });
+        }
+
+        function initAdminWhatIfListeners() {
+            ['whatifBhk', 'whatifArea', 'whatifBath', 'whatifFurnishing', 'whatifFacing', 'whatifAge'].forEach(function(id) {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.addEventListener('change', function() {
+                    if (predictionData && predictionData.predicted_price) {
+                        runAdminWhatIf();
+                    }
+                });
+            });
         }
 
         function renderHistory() {
@@ -1271,12 +1383,44 @@
                     <td>${p.city || 'N/A'}</td>
                     <td>${p.locality || 'N/A'}</td>
                     <td>${p.property_type || 'N/A'}</td>
-                    <td>${p.area || 'N/A'}</td>
+                    <td>${p.area_sqft || 'N/A'}</td>
                     <td>₹${formatNumber(p.predicted_price || 0)}</td>
-                    <td>${p.model_used || 'N/A'}</td>
+                    <td>${p.reliability || 'N/A'}</td>
                     <td>${p.created_at || 'N/A'}</td>
                 </tr>
             `).join('');
+        }
+
+        function populateMapFilters() {
+            const cityFilter = document.getElementById('mapCityFilter');
+            const typeFilter = document.getElementById('mapTypeFilter');
+
+            cityFilter.innerHTML = '<option value="all">All Cities</option>';
+            typeFilter.innerHTML = '<option value="all">All Types</option>';
+
+            const cities = {};
+            const types = {};
+            if (predictionData.city) { cities[predictionData.city] = true; }
+            types[predictionData.property_type] = true;
+
+            mapMarkers.forEach(m => {
+                if (m.city) { cities[m.city] = true; }
+                if (m.propertyType) { types[m.propertyType] = true; }
+            });
+
+            Object.keys(cities).sort().forEach(function(city) {
+                const opt = document.createElement('option');
+                opt.value = city;
+                opt.textContent = city;
+                cityFilter.appendChild(opt);
+            });
+
+            Object.keys(types).sort().forEach(function(type) {
+                const opt = document.createElement('option');
+                opt.value = type;
+                opt.textContent = type;
+                typeFilter.appendChild(opt);
+            });
         }
 
         function filterMap() {
@@ -1287,9 +1431,9 @@
                 const showCity = cityFilter === 'all' || m.city === cityFilter;
                 const showType = typeFilter === 'all' || m.propertyType === typeFilter;
                 if (showCity && showType) {
-                    m.setMap(map);
+                    m.addTo(map);
                 } else {
-                    m.setMap(null);
+                    map.removeLayer(m);
                 }
             });
         }
@@ -1300,12 +1444,27 @@
 
         function getReliabilityColor(r) {
             const map = {
-                'High': '#10B981',
-                'Medium': '#F59E0B',
-                'Low': '#EF4444'
+                'HIGH': '#10B981',
+                'MEDIUM': '#F59E0B',
+                'LOW': '#EF4444'
             };
             return map[r] || '#64748b';
         }
+
+        const dropdownData = {{ dropdown | tojson }};
+
+        document.getElementById('city').addEventListener('change', function() {
+            const city = this.value;
+            const localitySelect = document.getElementById('locality');
+            localitySelect.innerHTML = '<option value="">Select Locality</option>';
+            const localities = (dropdownData.localities && dropdownData.localities[city]) ? dropdownData.localities[city] : [];
+            localities.forEach(function(loc) {
+                const opt = document.createElement('option');
+                opt.value = loc;
+                opt.textContent = loc;
+                localitySelect.appendChild(opt);
+            });
+        });
 
         document.querySelectorAll('.sidebar a').forEach(a => {
             a.addEventListener('click', function() {
@@ -1313,6 +1472,8 @@
                 this.classList.add('active');
             });
         });
+
+        initAdminWhatIfListeners();
     </script>
     <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
 </body>

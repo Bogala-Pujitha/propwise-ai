@@ -194,6 +194,7 @@
                         <div class="form-group">
                             <label>City</label>
                             <select name="city" id="city" class="dropdown-select">
+                                <option value="">Select City</option>
                                 {% for city in dropdown.get('cities', []) %}
                                 <option value="{{ city }}">{{ city }}</option>
                                 {% endfor %}
@@ -359,48 +360,71 @@
                 <!-- WHAT-IF ANALYSIS -->
                 <div id="whatif-section" class="prediction-form-card">
                     <div class="section-title"><i class="fas fa-exchange-alt"></i> What-If Analysis</div>
-                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:15px;">Change features to see how value is affected</p>
-                    <div class="whatif-grid">
-                        <div>
-                            <h4 style="margin-bottom:10px;">Current Property</h4>
-                            <div id="whatifOriginal"></div>
+                    <p style="font-size:0.85rem;color:var(--text-light);margin-bottom:15px;">Change features to instantly see price impact</p>
+                    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;margin-bottom:14px;">
+                        <div style="flex:1 1 120px;min-width:110px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">BHK</label>
+                            <select id="whatifBhk" class="dropdown-select">
+                                <option value="">Same</option>
+                                <option value="1">1 BHK</option>
+                                <option value="2">2 BHK</option>
+                                <option value="3">3 BHK</option>
+                                <option value="4">4 BHK</option>
+                                <option value="5">5 BHK</option>
+                            </select>
                         </div>
-                        <div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>
-                        <div>
-                            <h4 style="margin-bottom:10px;">Modified Property</h4>
-                            <div style="margin-bottom:10px;">
-                                <label style="font-size:0.8rem;font-weight:500;">Change BHK to:</label>
-                                <select id="whatifBhk" class="dropdown-select" style="width:100%;">
-                                    <option value="">Keep same</option>
-                                    <option value="1">1 BHK</option>
-                                    <option value="2">2 BHK</option>
-                                    <option value="3">3 BHK</option>
-                                    <option value="4">4 BHK</option>
-                                    <option value="5">5 BHK</option>
-                                </select>
-                            </div>
-                            <div style="margin-bottom:10px;">
-                                <label style="font-size:0.8rem;font-weight:500;">Change Area to:</label>
-                                <select id="whatifArea" class="dropdown-select" style="width:100%;">
-                                    <option value="">Keep same</option>
-                                    {% for ar in dropdown.get('area_ranges', []) %}
-                                    <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div style="margin-bottom:10px;">
-                                <label style="font-size:0.8rem;font-weight:500;">Change Bathrooms to:</label>
-                                <select id="whatifBath" class="dropdown-select" style="width:100%;">
-                                    <option value="">Keep same</option>
-                                    {% for b in dropdown.get('bathroom_options', [1,2,3,4]) %}
-                                    <option value="{{ b }}">{{ b }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <button type="button" class="btn-primary" onclick="runWhatIf()" style="width:100%;"><i class="fas fa-play"></i> Run What-If</button>
-                            <div id="whatifModified" style="margin-top:12px;"></div>
+                        <div style="flex:1 1 140px;min-width:130px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Area (sqft)</label>
+                            <select id="whatifArea" class="dropdown-select">
+                                <option value="">Same</option>
+                                {% for ar in dropdown.get('area_ranges', []) %}
+                                <option value="{{ ((ar.min + ar.max) // 2) }}">{{ ar.label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div style="flex:1 1 100px;min-width:90px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Bathrooms</label>
+                            <select id="whatifBath" class="dropdown-select">
+                                <option value="">Same</option>
+                                {% for b in dropdown.get('bathroom_options', [1,2,3,4]) %}
+                                <option value="{{ b }}">{{ b }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div style="flex:1 1 130px;min-width:120px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Furnishing</label>
+                            <select id="whatifFurnishing" class="dropdown-select">
+                                <option value="">Same</option>
+                                <option value="Unfurnished">Unfurnished</option>
+                                <option value="Semi-Furnished">Semi-Furnished</option>
+                                <option value="Fully Furnished">Fully Furnished</option>
+                            </select>
+                        </div>
+                        <div style="flex:1 1 110px;min-width:100px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Facing</label>
+                            <select id="whatifFacing" class="dropdown-select">
+                                <option value="">Same</option>
+                                <option value="North">North</option>
+                                <option value="South">South</option>
+                                <option value="East">East</option>
+                                <option value="West">West</option>
+                                <option value="North-East">North-East</option>
+                                <option value="North-West">North-West</option>
+                                <option value="South-East">South-East</option>
+                                <option value="South-West">South-West</option>
+                            </select>
+                        </div>
+                        <div style="flex:1 1 110px;min-width:100px;">
+                            <label style="font-size:0.75rem;font-weight:500;color:var(--text-light);display:block;margin-bottom:4px;">Property Age</label>
+                            <select id="whatifAge" class="dropdown-select">
+                                <option value="">Same</option>
+                                {% for a in range(0, 21) %}
+                                <option value="{{ a }}">{{ a }} yrs</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
+                    <div class="whatif-results" id="whatifResults"></div>
                 </div>
 
             </div>
@@ -438,10 +462,13 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
     <script>
     var map = null;
     var currentResult = null;
+    var currentInputData = null;
     var priceBarChartInstance = null;
     var valueDistChartInstance = null;
     var trendLineChartInstance = null;
@@ -502,6 +529,8 @@
     });
     document.getElementById('city').dispatchEvent(new Event('change'));
 
+    initWhatIfListeners();
+
     document.getElementById('predictionForm').addEventListener('submit', function(e) {
         e.preventDefault();
         var formData = new FormData(this);
@@ -527,6 +556,7 @@
             }
 
             currentResult = result;
+            currentInputData = data;
             showSidebarLinks();
             renderResult(result, data);
             document.getElementById('resultArea').style.display = 'block';
@@ -593,7 +623,7 @@
 
         var barLabels = ['Your Property'];
         var barData = [r.predicted_price];
-        var barColors = ['#1E3A8A'];
+        var barColors = ['#F59E0B'];
 
         if (r.comparables && r.comparables.length > 0) {
             r.comparables.forEach(function(c, i) {
@@ -743,67 +773,85 @@
     }
 
     function renderMap(r, inputData) {
-        if (window.PW_renderDashboardMap) {
-            window.PW_renderDashboardMap(r, inputData);
-            return;
-        }
-
         if (map) { map.remove(); }
-        var lat = r.location_features ? r.location_features.latitude : 17.385;
-        var lon = r.location_features ? r.location_features.longitude : 78.487;
+        map = null;
 
-        map = L.map('map').setView([lat, lon], 13);
+        var container = document.getElementById('map');
+        if (!container) return;
+
+        var lf = r.location_features || {};
+        var center = {
+            lat: Number(lf.latitude || 17.385),
+            lng: Number(lf.longitude || 78.4867)
+        };
+
+        map = L.map('map').setView([center.lat, center.lng], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        var purpleIcon = L.divIcon({
-            className: 'custom-marker',
-            html: '<div style="background:#4f46e5;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(79,70,229,0.4);">INR ' + fmt(r.predicted_price) + '</div>',
+        var city = inputData && inputData.city ? inputData.city : 'Hyderabad';
+        var locality = inputData && inputData.locality ? inputData.locality : '';
+
+        var selectedIcon = L.divIcon({
+            className: 'selected-marker',
+            html: '<div style="background:#0F172A;color:white;padding:6px 12px;border-radius:20px;font-weight:700;font-size:12px;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,0.4);">INR ' + fmt(r.predicted_price) + '</div>',
             iconSize: [130, 30],
             iconAnchor: [65, 15]
         });
 
-        L.marker([lat, lon], {icon: purpleIcon})
-            .addTo(map)
-            .bindPopup('<b>Your Property</b><br>' + inputData.property_type + ' in ' + inputData.locality + '<br>INR ' + fmt(r.predicted_price));
+        var selectedMarker = L.marker([center.lat, center.lng], {icon: selectedIcon}).addTo(map);
+        selectedMarker.bindPopup('<b>Your Property</b><br>' + (inputData.property_type || '') + ' in ' + (inputData.locality || inputData.city || '') + '<br>INR ' + fmt(r.predicted_price));
 
         allMapMarkers = [];
 
-        if (r.comparables) {
-            r.comparables.forEach(function(c, i) {
-                var cLat = c.latitude || (lat + (Math.random() - 0.5) * 0.02);
-                var cLon = c.longitude || (lon + (Math.random() - 0.5) * 0.02);
-                var cType = c.property_type || inputData.property_type || 'Apartment';
-                var cColor = propertyTypeColors[cType] || '#94a3b8';
+        var params = new URLSearchParams({city: city, locality: locality});
+        if (inputData.property_type) params.set('property_type', inputData.property_type);
 
-                var compIcon = L.divIcon({
-                    className: 'comp-marker',
-                    html: '<div style="background:' + cColor + ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;">INR ' + fmt(c.price) + '</div>',
-                    iconSize: [100, 22],
-                    iconAnchor: [50, 11]
+        fetch('/api/map/properties?' + params.toString())
+            .then(function(response) { return response.json(); })
+            .then(function(data) {
+                (data.properties || []).forEach(function(prop, i) {
+                    var pLat = Number(prop.latitude);
+                    var pLng = Number(prop.longitude);
+                    if (!Number.isFinite(pLat) || !Number.isFinite(pLng)) return;
+
+                    var pType = prop.property_type || 'Apartment';
+                    var pColor = propertyTypeColors[pType] || '#94a3b8';
+
+                    var compIcon = L.divIcon({
+                        className: 'comp-marker',
+                        html: '<div style="background:' + pColor + ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;">INR ' + fmt(prop.price) + '</div>',
+                        iconSize: [100, 22],
+                        iconAnchor: [50, 11]
+                    });
+
+                    var marker = L.marker([pLat, pLng], {icon: compIcon}).addTo(map);
+                    marker.bindPopup('<b>' + pType + '</b><br>' + (prop.locality || '') + '<br>' + (prop.area_sqft ? Number(prop.area_sqft).toLocaleString('en-IN') + ' sqft | ' : '') + (prop.bhk || '?') + ' BHK<br>INR ' + fmt(prop.price));
+
+                    allMapMarkers.push({
+                        marker: marker,
+                        type: pType,
+                        city: prop.city || city,
+                        price: prop.price,
+                        locality: prop.locality,
+                        area: prop.area_sqft,
+                        bhk: prop.bhk
+                    });
                 });
 
-                var marker = L.marker([cLat, cLon], {icon: compIcon})
-                    .addTo(map)
-                    .bindPopup('<b>Comp ' + (i + 1) + '</b><br>' + cType + '<br>' + c.locality + '<br>' + c.area_sqft + ' sqft | ' + (c.bhk || '?') + ' BHK<br>INR ' + fmt(c.price));
-
-                allMapMarkers.push({
-                    marker: marker,
-                    type: cType,
-                    city: c.city || inputData.city,
-                    price: c.price,
-                    locality: c.locality,
-                    area: c.area_sqft,
-                    bhk: c.bhk
-                });
+                populateMapFilters(r, inputData);
+                filterMapMarkers();
+            })
+            .catch(function(error) {
+                console.warn('Property map data unavailable:', error);
+                populateMapFilters(r, inputData);
             });
-        }
 
         if (r.location_features) {
             var lf = r.location_features;
             if (lf.distance_to_metro) {
-                L.circle([lat, lon], {
+                L.circle([center.lat, center.lng], {
                     radius: lf.distance_to_metro * 1000,
                     color: '#4f46e5',
                     fillOpacity: 0.05,
@@ -811,7 +859,7 @@
                 }).addTo(map).bindPopup('Metro: ' + lf.distance_to_metro + ' km');
             }
             if (lf.distance_to_hospital) {
-                L.circle([lat, lon], {
+                L.circle([center.lat, center.lng], {
                     radius: lf.distance_to_hospital * 800,
                     color: '#4f46e5',
                     fillOpacity: 0.03,
@@ -820,7 +868,6 @@
             }
         }
 
-        populateMapFilters(r, inputData);
         setTimeout(function() { map.invalidateSize(); }, 100);
     }
 
@@ -954,55 +1001,89 @@
     }
 
     function renderWhatIfOriginal(data, price) {
-        document.getElementById('whatifOriginal').innerHTML =
-            '<div class="comp-card"><div class="comp-icon"><i class="fas fa-home"></i></div>' +
-            '<div class="comp-info"><strong>' + data.property_type + '</strong><small>' + data.locality + ', ' + data.city + '</small></div>' +
-            '<div class="comp-price"><div class="price">INR ' + fmt(price) + '</div><div class="psf">' + data.area_sqft + ' sqft | ' + data.bhk + ' BHK | ' + data.bathrooms + ' Bath</div></div></div>';
     }
 
     function runWhatIf() {
-        if (!currentResult) return;
-        var bhk = document.getElementById('whatifBhk').value;
-        var area = document.getElementById('whatifArea').value;
-        var bath = document.getElementById('whatifBath').value;
+        if (!currentResult || !currentInputData) return;
 
-        if (!bhk && !area && !bath) {
-            document.getElementById('whatifModified').innerHTML = '<p style="color:var(--text-light);">Change at least one feature above</p>';
-            return;
-        }
+        const bhk = document.getElementById('whatifBhk').value;
+        const area = document.getElementById('whatifArea').value;
+        const bath = document.getElementById('whatifBath').value;
+        const furnishing = document.getElementById('whatifFurnishing').value;
+        const facing = document.getElementById('whatifFacing').value;
+        const age = document.getElementById('whatifAge').value;
 
-        var form = document.getElementById('predictionForm');
-        var formData = new FormData(form);
-        var data = {};
-        formData.forEach(function(value, key) { data[key] = value; });
-        if (bhk) data.change_bhk = bhk;
-        if (area) data.change_area = area;
-        if (bath) data.change_bathrooms = bath;
+        const payload = {
+            property_type: currentInputData.property_type,
+            city: currentInputData.city,
+            locality: currentInputData.locality,
+            area_sqft: area ? parseFloat(area) : currentInputData.area_sqft,
+            bhk: bhk ? parseInt(bhk) : currentInputData.bhk,
+            bathrooms: bath ? parseInt(bath) : currentInputData.bathrooms,
+            property_age: age ? parseInt(age) : currentInputData.property_age,
+            furnishing: furnishing || currentInputData.furnishing || '',
+            facing: facing || currentInputData.facing || '',
+        };
 
-        document.getElementById('whatifModified').innerHTML = '<i class="fas fa-spinner fa-spin" style="color:var(--primary);"></i> Analyzing...';
+        const resultsEl = document.getElementById('whatifResults');
+        resultsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-light);"><i class="fas fa-spinner fa-spin"></i> Analyzing...</div>';
 
-        fetch('/what-if', {
+        fetch('/predict', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(data)
+            body: JSON.stringify(payload)
         })
         .then(function(r) { return r.json(); })
         .then(function(res) {
-            var origPrice = res.original.predicted_price;
-            var modPrice = res.modified.predicted_price;
-            var diff = modPrice - origPrice;
-            var pct = ((diff / origPrice) * 100).toFixed(1);
-            var diffCls = diff > 0 ? 'diff-up' : diff < 0 ? 'diff-down' : 'diff-same';
-            var diffIcon = diff > 0 ? 'fa-arrow-up' : diff < 0 ? 'fa-arrow-down' : 'fa-equals';
+            if (res.error) {
+                resultsEl.innerHTML = '<div style="color:red;">' + res.error + '</div>';
+                return;
+            }
 
-            document.getElementById('whatifModified').innerHTML =
-                '<div class="comp-card"><div class="comp-icon" style="background:linear-gradient(135deg,#4f46e5,#818cf8);"><i class="fas fa-home"></i></div>' +
-                '<div class="comp-info"><strong>' + (bhk || data.bhk) + ' BHK | ' + (area || data.area_sqft) + ' sqft</strong><small>' + (bath || data.bathrooms) + ' Bathrooms</small></div>' +
-                '<div class="comp-price"><div class="price">INR ' + fmt(modPrice) + '</div>' +
-                '<div class="psf"><span class="diff-badge ' + diffCls + '"><i class="fas ' + diffIcon + '"></i> ' + (diff >= 0 ? '+' : '') + fmt(diff) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)</span></div></div></div>';
+            const origPrice = currentResult.predicted_price;
+            const modPrice = res.predicted_price;
+            const diff = modPrice - origPrice;
+            const pct = origPrice ? ((diff / origPrice) * 100).toFixed(1) : 0;
+            const diffCls = diff > 0 ? 'diff-up' : diff < 0 ? 'diff-down' : 'diff-same';
+            const diffIcon = diff > 0 ? 'fa-arrow-up' : diff < 0 ? 'fa-arrow-down' : 'fa-equals';
+
+            const changes = [];
+            if (bhk && bhk != currentInputData.bhk) changes.push('BHK: ' + bhk);
+            if (area && area != currentInputData.area_sqft) changes.push('Area: ' + area + ' sqft');
+            if (bath && bath != currentInputData.bathrooms) changes.push('Bath: ' + bath);
+            if (furnishing) changes.push('Furnishing: ' + furnishing);
+            if (facing) changes.push('Facing: ' + facing);
+            if (age && age != currentInputData.property_age) changes.push('Age: ' + age + ' yrs');
+
+            resultsEl.innerHTML = '<div class="whatif-grid" style="grid-template-columns: 1fr auto 1fr;">' +
+                '<div class="whatif-card">' +
+                    '<h4>Original Property</h4>' +
+                    '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + currentInputData.property_type + ' | ' + currentInputData.locality + ', ' + currentInputData.city + '</div>' +
+                    '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + currentInputData.area_sqft + ' sqft | ' + currentInputData.bhk + ' BHK | ' + currentInputData.bathrooms + ' Bath</div>' +
+                    '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">INR ' + fmt(origPrice) + '</div>' +
+                '</div>' +
+                '<div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>' +
+                '<div class="whatif-card">' +
+                    '<h4>Modified Property</h4>' +
+                    '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (changes.length ? changes.join(' | ') : 'No changes') + '</div>' +
+                    '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + payload.area_sqft + ' sqft | ' + payload.bhk + ' BHK | ' + payload.bathrooms + ' Bath</div>' +
+                    '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">INR ' + fmt(modPrice) + '</div>' +
+                    '<div style="margin-top:8px;"><span class="diff-badge ' + diffCls + '"><i class="fas ' + diffIcon + '"></i> ' + (diff >= 0 ? '+' : '') + fmt(diff) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)</span></div>' +
+                '</div>' +
+            '</div>';
         })
         .catch(function(err) {
-            document.getElementById('whatifModified').innerHTML = '<p style="color:red;">Error running what-if</p>';
+            resultsEl.innerHTML = '<p style="color:red;">Error running what-if</p>';
+        });
+    }
+
+    function initWhatIfListeners() {
+        ['whatifBhk', 'whatifArea', 'whatifBath', 'whatifFurnishing', 'whatifFacing', 'whatifAge'].forEach(function(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.addEventListener('change', function() {
+                if (currentResult && currentInputData) runWhatIf();
+            });
         });
     }
     </script>

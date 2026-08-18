@@ -12,40 +12,24 @@
   window.PROPWISE_PROPERTY_COLORS = COLORS;
   window.propertyTypeColors = COLORS;
 
-  function loadGoogleMaps() {
-    if (window.google && window.google.maps) return Promise.resolve();
-    if (window.__propwiseGoogleMapsPromise) return window.__propwiseGoogleMapsPromise;
+  function createLeafletIcon(color, isSelected) {
+    const size = isSelected ? 16 : 10;
+    const borderWidth = isSelected ? 3 : 2;
+    const html = '<div style="' +
+      'background:' + color + ';' +
+      'width:' + size + 'px;' +
+      'height:' + size + 'px;' +
+      'border-radius:50%;' +
+      'border:' + borderWidth + 'px solid #fff;' +
+      'box-shadow:0 2px 6px rgba(0,0,0,0.3);' +
+      '"></div>';
 
-    const key = window.PROPWISE_GOOGLE_MAPS_KEY || "";
-    if (!key) return Promise.reject(new Error("GOOGLE_MAPS_API_KEY is not configured."));
-
-    window.__propwiseGoogleMapsPromise = new Promise((resolve, reject) => {
-      const callback = "__propwiseGoogleMapsReady";
-      window[callback] = resolve;
-
-      const script = document.createElement("script");
-      script.async = true;
-      script.defer = true;
-      script.src =
-        "https://maps.googleapis.com/maps/api/js?key=" +
-        encodeURIComponent(key) +
-        "&loading=async&callback=" + callback;
-      script.onerror = () => reject(new Error("Google Maps failed to load."));
-      document.head.appendChild(script);
+    return L.divIcon({
+      className: 'pw-marker',
+      html: html,
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2]
     });
-
-    return window.__propwiseGoogleMapsPromise;
-  }
-
-  function markerIcon(color, scale) {
-    return {
-      path: google.maps.SymbolPath.CIRCLE,
-      fillColor: color,
-      fillOpacity: 1,
-      strokeColor: "#FFFFFF",
-      strokeWeight: 2,
-      scale: scale || 7
-    };
   }
 
   window.renderMap = async function (result, inputData) {
@@ -55,43 +39,26 @@
     const lat = Number(result?.location_features?.latitude || 17.385);
     const lng = Number(result?.location_features?.longitude || 78.4867);
 
-    try {
-      await loadGoogleMaps();
-    } catch (error) {
-      container.innerHTML =
-        '<div class="map-api-message"><strong>Google Maps setup required.</strong><br>' +
-        'Set GOOGLE_MAPS_API_KEY in your .env file.</div>';
-      return;
-    }
-
     container.innerHTML = "";
 
-    const map = new google.maps.Map(container, {
-      center: { lat, lng },
-      zoom: 13,
-      mapTypeControl: false,
-      streetViewControl: false,
-      fullscreenControl: true
-    });
+    const map = L.map("map").setView([lat, lng], 13);
 
-    const selected = new google.maps.Marker({
-      map,
-      position: { lat, lng },
-      title: "Selected property",
-      icon: markerIcon(COLORS.Selected, 10)
-    });
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors"
+    }).addTo(map);
 
-    const selectedInfo = new google.maps.InfoWindow({
-      content:
-        "<strong>Selected Property</strong><br>" +
-        (inputData?.property_type || "Property") +
-        " · " +
-        (inputData?.locality || inputData?.city || "") +
-        "<br>INR " +
-        Number(result?.predicted_price || 0).toLocaleString("en-IN")
-    });
+    const selected = L.marker([lat, lng], {
+      icon: createLeafletIcon(COLORS.Selected, true)
+    }).addTo(map);
 
-    selected.addListener("click", () => selectedInfo.open(map, selected));
+    selected.bindPopup(
+      "<strong>Selected Property</strong><br>" +
+      (inputData?.property_type || "Property") +
+      " · " +
+      (inputData?.locality || inputData?.city || "") +
+      "<br>INR " +
+      Number(result?.predicted_price || 0).toLocaleString("en-IN")
+    );
 
     try {
       const query = new URLSearchParams({
@@ -109,26 +76,20 @@
 
         const type = property.property_type || "Apartment";
 
-        const marker = new google.maps.Marker({
-          map,
-          position: { lat: pLat, lng: pLng },
-          title: type,
-          icon: markerIcon(COLORS[type] || "#6B747A", 7)
-        });
+        const marker = L.marker([pLat, pLng], {
+          icon: createLeafletIcon(COLORS[type] || "#6B747A", false)
+        }).addTo(map);
 
-        const info = new google.maps.InfoWindow({
-          content:
-            "<strong>" + type + "</strong><br>" +
-            (property.locality || "") + "<br>" +
-            (property.area_sqft
-              ? Number(property.area_sqft).toLocaleString("en-IN") + " sqft<br>"
-              : "") +
-            (property.price
-              ? "INR " + Number(property.price).toLocaleString("en-IN")
-              : "")
-        });
-
-        marker.addListener("click", () => info.open(map, marker));
+        marker.bindPopup(
+          "<strong>" + type + "</strong><br>" +
+          (property.locality || "") + "<br>" +
+          (property.area_sqft
+            ? Number(property.area_sqft).toLocaleString("en-IN") + " sqft<br>"
+            : "") +
+          (property.price
+            ? "INR " + Number(property.price).toLocaleString("en-IN")
+            : "")
+        );
       });
     } catch (error) {
       console.warn("Property map layer unavailable:", error);
