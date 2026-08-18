@@ -1112,11 +1112,6 @@ if __name__ == "__main__":
 # CONTROLLER BLUEPRINTS
 # ---------------------------------------------------------
 
-try:
+from app.controllers import register_blueprints
 
-    from app.controllers import register_blueprints
-
-    register_blueprints(app)
-
-except Exception:
-    pass
+register_blueprints(app)
