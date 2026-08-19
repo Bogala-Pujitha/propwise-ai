@@ -13,9 +13,18 @@ def default_config() -> dict:
         engine_options = {}
     else:
         configured_url = os.environ.get("DATABASE_URL")
-        if configured_url:
-            from backend.config.database import get_database_url
-            database_uri = get_database_url()
+        if configured_url and configured_url.startswith("sqlite"):
+            if configured_url.startswith("sqlite:///"):
+                raw_path = configured_url[len("sqlite:///"):]
+                db_path = Path(raw_path)
+                if not db_path.is_absolute():
+                    db_path = PROJECT_ROOT / db_path
+                database_uri = f"sqlite:///{db_path}"
+            else:
+                database_uri = configured_url
+            engine_options = {}
+        elif configured_url:
+            database_uri = configured_url
             engine_options = {
                 "pool_pre_ping": True,
                 "pool_recycle": 280,

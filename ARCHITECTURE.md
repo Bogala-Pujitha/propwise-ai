@@ -20,7 +20,7 @@ propwise-ai/
 │   ├── config/                  # Configuration layer
 │   │   ├── __init__.py
 │   │   ├── config.py            # Default configuration mapping
-│   │   ├── database.py          # SQLite / PostgreSQL URL helpers
+│   │   ├── database.py          # SQLite URL helper
 │   │   └── security.py          # RBAC role-based access decorators
 │   ├── models/                  # MVC Model — ORM schema (SQLAlchemy)
 │   │   ├── __init__.py          # Public model exports (User, Prediction, …)
@@ -67,7 +67,6 @@ propwise-ai/
 │   │   └── valuation_service.py
 │   ├── scripts/                 # Operational utility scripts
 │   │   ├── check_production_readiness.py
-│   │   ├── migrate_sqlite_to_mysql.py
 │   │   └── migrate_sqlite_to_postgres.py
 │   ├── tests/                   # Backend and integration test suite
 │   └── migrations/              # Alembic database migrations

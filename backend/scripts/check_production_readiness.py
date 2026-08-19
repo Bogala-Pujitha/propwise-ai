@@ -12,8 +12,10 @@ def main():
     if env in {"production", "prod"}:
         if not secret:
             problems.append("SECRET_KEY is missing")
-        if not url.startswith("mysql+pymysql://"):
-            problems.append("DATABASE_URL must be mysql+pymysql://")
+        if not url:
+            problems.append("DATABASE_URL is missing")
+        elif not url.startswith("sqlite://"):
+            problems.append("DATABASE_URL must be sqlite://")
 
     if problems:
         print("PRODUCTION READINESS FAILED")

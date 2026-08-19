@@ -29,13 +29,10 @@ target_metadata = db.metadata
 
 
 def get_url() -> str:
+    """Return the database URL, defaulting to SQLite."""
     url = os.environ.get("DATABASE_URL")
     if not url:
-        raise RuntimeError("DATABASE_URL is required for Alembic migrations.")
-    if url.startswith("mysql://"):
-        url = "mysql+pymysql://" + url[len("mysql://"):]
-    if not url.startswith("mysql+pymysql://"):
-        raise RuntimeError("Alembic DATABASE_URL must be MySQL/PyMySQL.")
+        url = f"sqlite:///{ROOT / 'backend' / 'propwise.db'}"
     return url
 
 
