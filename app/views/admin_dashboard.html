@@ -9,6 +9,42 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
+
+/* ================= USER HEADER ================= */
+
+.user-simple-header {
+    width: 100%;
+    height: 64px;
+
+    display: flex;
+    align-items: center;
+
+    padding: 0 24px;
+
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border-bottom: 1px solid var(--border);
+}
+
+.user-simple-logo {
+    display: flex;
+    align-items: center;
+
+    gap: 8px;
+
+    color: var(--primary);
+
+    text-decoration: none;
+
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.user-simple-logo:hover {
+    color: var(--primary-dark);
+}
         .admin-stats-bar {
             display: flex;
             gap: 20px;
@@ -523,37 +559,64 @@
     </style>
 </head>
 <body>
-    <div class="admin-stats-bar">
-        <div class="admin-stat">
-            <div class="admin-stat-icon users">👥</div>
-            <div class="admin-stat-info">
-                <h4>{{ total_users }}</h4>
-                <p>Total Users</p>
+    <body>
+    
+        {% if current_user.is_authenticated and current_user.role == 'admin' %}
+    
+        <!-- ================= ADMIN HEADER ================= -->
+    
+        <div class="admin-stats-bar">
+    
+            <div class="admin-stat">
+                <div class="admin-stat-icon users">👥</div>
+    
+                <div class="admin-stat-info">
+                    <h4>{{ total_users }}</h4>
+                    <p>Total Users</p>
+                </div>
             </div>
-        </div>
-        <div class="admin-stat">
-            <div class="admin-stat-icon predictions">📊</div>
-            <div class="admin-stat-info">
-                <h4>{{ total_predictions }}</h4>
-                <p>Total Predictions</p>
+    
+            <div class="admin-stat">
+                <div class="admin-stat-icon predictions">📊</div>
+    
+                <div class="admin-stat-info">
+                    <h4>{{ total_predictions }}</h4>
+                    <p>Total Predictions</p>
+                </div>
             </div>
-        </div>
-        <div class="admin-stat">
-            <div class="admin-stat-icon types">🏢</div>
-            <div class="admin-stat-info">
-                <h4>{{ unique_viewed_users }}</h4>
-                <p>Unique Viewed Users</p>
+    
+            <div class="admin-stat">
+                <div class="admin-stat-icon types">🏢</div>
+    
+                <div class="admin-stat-info">
+                    <h4>{{ unique_viewed_users }}</h4>
+                    <p>Unique Viewed Users</p>
+                </div>
             </div>
-        </div>
-        <div class="admin-stat">
-            <div class="admin-stat-icon cities">🏙️</div>
-            <div class="admin-stat-info">
-                <h4>{{ predictions|length }}</h4>
-                <p>Recent Predictions</p>
+    
+            <div class="admin-stat">
+                <div class="admin-stat-icon cities">🏙️</div>
+    
+                <div class="admin-stat-info">
+                    <h4>{{ predictions|length }}</h4>
+                    <p>Recent Predictions</p>
+                </div>
             </div>
+    
         </div>
-    </div>
-
+    
+        {% else %}
+    
+        <!-- ================= NORMAL USER HEADER ================= -->
+    
+        <div class="user-simple-header">
+            <a href="/" class="user-simple-logo">
+                <i class="fas fa-home"></i>
+                <span>PropWise AI</span>
+            </a>
+        </div>
+    
+        {% endif %}
     <div class="dashboard-layout">
         <div class="sidebar">
             <div class="sidebar-title">PropWise AI</div>
@@ -567,17 +630,49 @@
             <a href="#comparables-section">🏠 Comparables</a>
             <a href="#whatif-section">🔮 What-If</a>
             <a href="#history-section">🕐 History</a>
+            {% if current_user.is_authenticated and current_user.role == 'admin' %}
+            
             <div class="divider"></div>
-            <div class="section-label">Admin Tools</div>
-            <a href="/bulk-valuation">📦 Bulk Valuation</a>
-            <a href="/market-intelligence">🧠 Market Intel</a>
-            <a href="/experiments">🧪 Experiments</a>
-            <a href="/model-performance">⚡ Models</a>
+            
+            <div class="section-label">
+                Admin Tools
+            </div>
+            
+            <a href="/bulk-valuation">
+                📦 Bulk Valuation
+            </a>
+            
+            <a href="/market-intelligence">
+                🧠 Market Intel
+            </a>
+            
+            <a href="/experiments">
+                🧪 Experiments
+            </a>
+            
+            <a href="/model-performance">
+                ⚡ Models
+            </a>
+            
             <div class="divider"></div>
-            <div class="section-label">Admin Panel</div>
-            <a href="/admin/users">👥 Users</a>
-            <a href="/admin/analytics">📈 Analytics</a>
-            <a href="/admin/audit">🔒 Audit</a>
+            
+            <div class="section-label">
+                Admin Panel
+            </div>
+            
+            <a href="/admin/users">
+                👥 Users
+            </a>
+            
+            <a href="/admin/analytics">
+                📈 Analytics
+            </a>
+            
+            <a href="/admin/audit">
+                🔒 Audit
+            </a>
+            
+            {% endif %}
         </div>
 
         <div class="main-content">
