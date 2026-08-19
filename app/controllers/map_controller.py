@@ -377,6 +377,257 @@ def properties():
         }
     )
 
+@map_bp.post("/selected-property")
+@login_required
+def selected_property():
+    """
+    Find the dataset property that best matches the
+    property currently selected in the valuation form.
+
+    Priority:
+    1. Same city
+    2. Same locality
+    3. Same property type
+    4. Closest area
+    5. Closest BHK
+
+    Coordinates always come from dataset latitude/longitude
+    when available. Existing coordinate fallback remains active.
+    """
+
+    data = (
+        request.get_json(silent=True)
+        or {}
+    )
+
+    city = str(
+        data.get("city", "")
+        or ""
+    ).strip()
+
+    locality = str(
+        data.get("locality", "")
+        or ""
+    ).strip()
+
+    property_type = _normalise_type(
+        data.get(
+            "property_type",
+            "Apartment",
+        )
+    )
+
+    try:
+        area_sqft = float(
+            data.get(
+                "area_sqft",
+                0,
+            )
+            or 0
+        )
+    except (
+        TypeError,
+        ValueError,
+    ):
+        area_sqft = 0
+
+    try:
+        bhk = float(
+            data.get(
+                "bhk",
+                0,
+            )
+            or 0
+        )
+    except (
+        TypeError,
+        ValueError,
+    ):
+        bhk = 0
+
+    df = _df()
+
+    if (
+        df is None
+        or len(df) == 0
+    ):
+        return jsonify(
+            {
+                "property": None
+            }
+        )
+
+    working = df.copy()
+
+    # ---------------------------------------------------------
+    # CITY
+    # ---------------------------------------------------------
+
+    if (
+        city
+        and "city" in working.columns
+    ):
+
+        working = working[
+            working["city"]
+            .astype(str)
+            .str.strip()
+            .str.casefold()
+            == city.casefold()
+        ]
+
+
+    # ---------------------------------------------------------
+    # LOCALITY
+    # ---------------------------------------------------------
+
+    if (
+        locality
+        and "locality" in working.columns
+    ):
+
+        locality_filtered = working[
+            working["locality"]
+            .astype(str)
+            .str.strip()
+            .str.casefold()
+            == locality.casefold()
+        ]
+
+        if len(locality_filtered) > 0:
+            working = locality_filtered
+
+
+    if len(working) == 0:
+
+        return jsonify(
+            {
+                "property": None
+            }
+        )
+
+
+    # ---------------------------------------------------------
+    # PROPERTY TYPE
+    # ---------------------------------------------------------
+
+    if "property_type" in working.columns:
+
+        normalized_types = (
+            working["property_type"]
+            .map(_normalise_type)
+        )
+
+        type_filtered = working[
+            normalized_types.str.casefold()
+            == property_type.casefold()
+        ]
+
+        if len(type_filtered) > 0:
+            working = type_filtered
+
+
+    # ---------------------------------------------------------
+    # BUILD DISTANCE SCORE
+    # ---------------------------------------------------------
+
+    scored = []
+
+    for index, row in working.iterrows():
+
+        row_area = _number(
+            row,
+            [
+                "area_sqft",
+                "area",
+                "Area",
+                "total_area",
+            ],
+        )
+
+        row_bhk = _number(
+            row,
+            [
+                "bhk",
+                "BHK",
+                "bedrooms",
+            ],
+        )
+
+        area_difference = (
+            abs(row_area - area_sqft)
+            if row_area is not None
+            and area_sqft > 0
+            else 999999999
+        )
+
+        bhk_difference = (
+            abs(row_bhk - bhk)
+            if row_bhk is not None
+            and bhk > 0
+            else 999999999
+        )
+
+        # Area gets more weight than BHK.
+        score = (
+            area_difference
+            +
+            (bhk_difference * 500)
+        )
+
+        scored.append(
+            (
+                score,
+                index,
+                row,
+            )
+        )
+
+
+    if not scored:
+
+        return jsonify(
+            {
+                "property": None
+            }
+        )
+
+
+    scored.sort(
+        key=lambda item: item[0]
+    )
+
+    _, best_index, best_row = (
+        scored[0]
+    )
+
+
+    try:
+
+        property_payload = (
+            _property_payload(
+                best_row,
+                best_index,
+                city=city,
+                locality=locality,
+            )
+        )
+
+    except Exception:
+
+        return jsonify(
+            {
+                "property": None
+            }
+        )
+
+
+    return jsonify(
+        {
+            "property": property_payload
+        }
+    )
+
 
 @map_bp.post("/comparables")
 @login_required

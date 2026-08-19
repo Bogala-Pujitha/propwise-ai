@@ -390,6 +390,141 @@
             height: 10px;
             border-radius: 50%;
         }
+        /* =========================================================
+   THREE MAP CARD LAYOUT
+   Only affects the new map section
+========================================================= */
+
+.three-map-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 16px;
+
+    width: 100%;
+}
+
+
+.map-card {
+    min-width: 0;
+
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    padding: 14px;
+
+    box-sizing: border-box;
+}
+
+
+.map-card-header h3 {
+    margin: 0 0 5px;
+
+    font-size: 15px;
+
+    color: var(--text);
+}
+
+
+.map-card-header p {
+    margin: 0 0 12px;
+
+    font-size: 12px;
+
+    color: var(--text-muted);
+}
+
+
+.three-map {
+    width: 100%;
+
+    height: 300px;
+
+    min-height: 300px;
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    overflow: hidden;
+
+    background: var(--surface-alt);
+}
+
+
+.map-card-controls {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 8px;
+
+    margin-bottom: 10px;
+}
+
+
+.map-card-info {
+    margin-top: 8px;
+
+    padding: 8px 10px;
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    background: var(--surface-alt);
+
+    color: var(--text-muted);
+
+    font-size: 11px;
+}
+
+
+.map-legend-compact {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 8px 12px;
+
+    margin-top: 8px;
+
+    padding: 8px 10px;
+}
+
+
+.map-card .leaflet-container {
+    font-family: inherit;
+}
+
+
+@media (max-width: 1100px) {
+
+    .three-map-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+}
+
+
+@media (max-width: 700px) {
+
+    .three-map-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .map-card-controls {
+        grid-template-columns: 1fr;
+    }
+
+}
         .shap-bar-container {
             margin-bottom: 10px;
         }
@@ -812,31 +947,167 @@
                     </div>
                 </div>
 
+                <!-- =========================================================
+                                THREE MAPS
+                           ========================================================= -->
+                
                 <div class="section" id="map-section">
-                    <h2>🗺️ Property Map</h2>
-                    <div class="map-controls">
-                        <select id="mapCityFilter" onchange="filterMap()">
-                            <option value="all">All Cities</option>
-                            {% for item in dropdown.cities %}
-                            <option value="{{ item }}">{{ item }}</option>
-                            {% endfor %}
-                        </select>
-                        <select id="mapTypeFilter" onchange="filterMap()">
-                            <option value="all">All Types</option>
-                            {% for item in dropdown.property_types %}
-                            <option value="{{ item }}">{{ item }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="map-container" id="mapContainer" style="height: 300px;"></div>
-                    <div class="map-legend">
-                        <div class="legend-item"><span class="legend-dot" style="background: #1E3A8A;"></span> Apartment</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #475569;"></span> House</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #B85C38;"></span> Villa</div>
-                        <div class="legend-item"><span class="legend-dot" style="background: #B68B2E;"></span> Plot</div>
-                    </div>
-                </div>
-
+                
+                    <h2>🗺️ Property Maps</h2>
+                
+                    <div class="three-map-grid">
+                
+                        <!-- =================================================
+                                        MAP 1
+                                        SELECTED LOCATION
+                                   ================================================== -->
+                
+                        <div class="map-card">
+                
+                            <div class="map-card-header">
+                                <h3>Selected Location</h3>
+                
+                                <p>
+                                    Exact location of the selected city/locality
+                                </p>
+                            </div>
+                
+                            <div id="selectedLocationMap" class="three-map"></div>
+                
+                            <div id="selectedLocationInfo" class="map-card-info">
+                                Select a city and locality to view the location.
+                            </div>
+                
+                        </div>
+                
+                
+                        <!-- =================================================
+                                        MAP 2
+                                        SELECTED PROPERTY + COMPARABLES
+                                   ================================================== -->
+                
+                        <div class="map-card">
+                
+                            <div class="map-card-header">
+                                <h3>Property &amp; Comparables</h3>
+                
+                                <p>
+                                    Selected property and comparable properties
+                                </p>
+                            </div>
+                
+                            <div id="propertyComparablesMap" class="three-map"></div>
+                
+                            <div class="map-legend map-legend-compact">
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#0F172A;"></span>
+                                    Selected Property
+                                </div>
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#1E3A8A;"></span>
+                                    Apartment
+                                </div>
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#475569;"></span>
+                                    House
+                                </div>
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#B85C38;"></span>
+                                    Villa
+                                </div>
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#B68B2E;"></span>
+                                    Plot
+                                </div>
+                
+                            </div>
+                
+                        </div>
+                
+                
+                        <!-- =================================================
+                                        MAP 3
+                                        PROPERTY TYPES BY SELECTED AREA
+                                   ================================================== -->
+                
+                        <div class="map-card">
+                
+                            <div class="map-card-header">
+                
+                                <h3>Properties in Selected Area</h3>
+                
+                                <p>
+                                    View different property types in the selected area
+                                </p>
+                
+                            </div>
+                
+                
+                            <div class="map-card-controls">
+                
+                                <select id="threeMapCity" class="dropdown-select">
+                
+                                    <option value="">
+                                        Select City
+                                    </option>
+                
+                                    {% for city in dropdown.cities %}
+                
+                                    <option value="{{ city }}">
+                                        {{ city }}
+                                    </option>
+                
+                                    {% endfor %}
+                
+                                </select>
+                
+                
+                                <select id="threeMapLocality" class="dropdown-select" disabled>
+                
+                                    <option value="">
+                                        Select Locality
+                                    </option>
+                
+                                </select>
+                
+                            </div>
+                
+                
+                            <div id="propertyTypesMap" class="three-map"></div>
+                
+                
+                            <div class="map-legend map-legend-compact">
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#1E3A8A;"></span>
+                                    Apartment
+                                </div>
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#475569;"></span>
+                                    House
+                                </div>
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#B85C38;"></span>
+                                    Villa
+                                </div>
+                
+                                <div class="legend-item">
+                                    <span class="legend-dot" style="background:#B68B2E;"></span>
+                                    Plot
+                                </div>
+                
+                            </div>
+                
+                        </div>
+                
+                    </div>     </div>
                 <div class="section" id="shap-section">
                     <h2>🔍 SHAP Feature Importance</h2>
                     <div id="shapContainer"></div>
@@ -1012,23 +1283,166 @@
         }
 
         function renderPrediction() {
-            if (!predictionData) return;
-            document.getElementById('predictionResult').style.display = 'block';
+                if (!predictionData) return;
 
-            renderOODWarning();
-            renderSanityCheck();
-            renderResultCards();
-            renderModelMetrics();
-            renderPriceBarChart();
-            renderValueDoughnut();
-            renderTrendLine();
-            renderMap();
-            renderSHAP();
-            renderLocation();
-            renderComparables();
-            renderWhatIf();
-            renderHistory();
-        }
+                document.getElementById('predictionResult').style.display = 'block';
+
+                /* =========================================================
+                   EXISTING OUTPUT — KEEP UNCHANGED
+                ========================================================== */
+
+                renderOODWarning();
+                renderSanityCheck();
+                renderResultCards();
+                renderModelMetrics();
+                renderPriceBarChart();
+                renderValueDoughnut();
+                renderTrendLine();
+
+
+                /* =========================================================
+                   THREE MAPS
+                   Step 4 replacement for the old:
+                       renderMap();
+                ========================================================== */
+
+                if (window.PW_renderThreeMaps) {
+
+                    const cityElement =
+                        document.getElementById('city');
+
+                    const localityElement =
+                        document.getElementById('locality');
+
+                    const propertyTypeElement =
+                        document.getElementById('property_type');
+
+                    const areaElement =
+                        document.getElementById('area');
+
+                    const bedroomsElement =
+                        document.getElementById('bedrooms');
+
+                    const bathroomsElement =
+                        document.getElementById('bathrooms');
+
+                    const ageElement =
+                        document.getElementById('age');
+
+
+                    const inputData = {
+
+                        city:
+                            cityElement
+                                ? cityElement.value
+                                : (
+                                    predictionData.city
+                                    || ''
+                                ),
+
+                        locality:
+                            localityElement
+                                ? localityElement.value
+                                : (
+                                    predictionData.locality
+                                    || ''
+                                ),
+
+                        property_type:
+                            propertyTypeElement
+                                ? propertyTypeElement.value
+                                : (
+                                    predictionData.property_type
+                                    || 'Apartment'
+                                ),
+
+                        area_sqft:
+                            areaElement
+                                ? Number(areaElement.value || 0)
+                                : Number(
+                                    predictionData.area_sqft
+                                    || 0
+                                ),
+
+                        bhk:
+                            bedroomsElement
+                                ? Number(
+                                    bedroomsElement.value || 0
+                                )
+                                : Number(
+                                    predictionData.bhk
+                                    || 0
+                                ),
+
+                        bathrooms:
+                            bathroomsElement
+                                ? Number(
+                                    bathroomsElement.value || 0
+                                )
+                                : Number(
+                                    predictionData.bathrooms
+                                    || 0
+                                ),
+
+                        property_age:
+                            ageElement
+                                ? Number(
+                                    ageElement.value || 0
+                                )
+                                : Number(
+                                    predictionData.property_age
+                                    || 0
+                                )
+                    };
+
+
+                    /*
+                     * Send the existing prediction result together with
+                     * the exact values selected in the valuation form.
+                     *
+                     * Map 1:
+                     *   selected city/locality coordinates
+                     *
+                     * Map 2:
+                     *   selected property + dataset comparables
+                     *
+                     * Map 3:
+                     *   controlled separately through its own
+                     *   City / Locality selectors
+                     */
+
+                    window.PW_renderThreeMaps(
+                        predictionData,
+                        inputData
+                    );
+
+                } else {
+
+                    /*
+                     * Fallback:
+                     * If propwise_maps.js has not loaded yet, do not
+                     * break the rest of the prediction dashboard.
+                     *
+                     * This preserves all existing output.
+                     */
+
+                    console.warn(
+                        'Three-map module is not loaded yet.'
+                    );
+
+                }
+
+
+                /* =========================================================
+                   EXISTING OUTPUT — KEEP UNCHANGED
+                ========================================================== */
+
+                renderSHAP();
+                renderLocation();
+                renderComparables();
+                renderWhatIf();
+                renderHistory();
+            }
 
         function renderOODWarning() {
             const el = document.getElementById('oodWarning');
@@ -1547,6 +1961,11 @@
         }
 
         const dropdownData = {{ dropdown | tojson }};
+        if (window.PW_initThreeMapControls) {
+                window.PW_initThreeMapControls(
+                    dropdownData
+                );
+            }
 
         document.getElementById('city').addEventListener('change', function() {
             const city = this.value;
@@ -1570,6 +1989,39 @@
 
         initAdminWhatIfListeners();
     </script>
-    <script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
+<script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
+
+<script>
+    /*
+     * Initialize Map 3 only after propwise_maps.js
+     * has loaded.
+     *
+     * This does NOT affect Map 1, Map 2, valuation,
+     * charts, SHAP, comparables, What-If, or history.
+     */
+
+    document.addEventListener(
+        'DOMContentLoaded',
+        function () {
+
+            const dropdownData =
+                {{ dropdown | tojson
+        }};
+
+    if (
+        window.PW_initThreeMapControls
+    ) {
+
+        window.PW_initThreeMapControls(
+            dropdownData
+        );
+
+    }
+
+        }
+    );
+</script>
+
 </body>
+
 </html>
