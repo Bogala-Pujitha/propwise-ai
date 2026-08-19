@@ -10,10 +10,7 @@ from .admin_controller import (
 from .dashboard_controller import (
     api_dropdown_data,
     dashboard,
-    user_analytics,
-    user_audit,
     user_dashboard,
-    user_users,
 )
 
 from .insights_controller import (
@@ -40,34 +37,42 @@ from .valuation_controller import (
 
 
 def register_web_routes(app):
-    """Attach browser endpoints without changing existing endpoint names."""
+    """Attach browser endpoints with stable endpoint names."""
 
     routes = (
-        # Public
+
+        # =========================================================
+        # PUBLIC
+        # =========================================================
+
         (
             "/",
             "landing",
             landing,
             ("GET",),
         ),
+
         (
             "/register",
             "register",
             register,
             ("GET", "POST"),
         ),
+
         (
             "/login",
             "login",
             login,
             ("GET", "POST"),
         ),
+
         (
             "/logout",
             "logout",
             logout,
             ("GET",),
         ),
+
         (
             "/forgot-password",
             "forgot_password",
@@ -75,63 +80,65 @@ def register_web_routes(app):
             ("GET", "POST"),
         ),
 
-        # User
+
+        # =========================================================
+        # USER DASHBOARD
+        # =========================================================
+
         (
             "/api/dropdown-data",
             "api_dropdown_data",
             api_dropdown_data,
             ("GET",),
         ),
+
         (
             "/dashboard",
             "dashboard",
             dashboard,
             ("GET",),
         ),
+
         (
             "/user/dashboard",
             "user_dashboard",
             user_dashboard,
             ("GET",),
         ),
-        (
-            "/user/users",
-            "user_users",
-            user_users,
-            ("GET",),
-        ),
-        (
-            "/user/analytics",
-            "user_analytics",
-            user_analytics,
-            ("GET",),
-        ),
-        (
-            "/user/audit",
-            "user_audit",
-            user_audit,
-            ("GET",),
-        ),
 
-        # Valuation
+
+        # =========================================================
+        # NORMAL VALUATION FEATURES
+        # =========================================================
+
         (
             "/predict",
             "predict",
             predict,
             ("POST",),
         ),
+
         (
             "/what-if",
             "what_if",
             what_if,
             ("GET", "POST"),
         ),
+
         (
             "/comparables",
             "comparables",
             comparables,
             ("GET", "POST"),
         ),
+
+
+        # =========================================================
+        # ADMIN TOOLS
+        # These routes must be protected with @admin_required
+        # inside their controllers.
+        # =========================================================
+
         (
             "/bulk-valuation",
             "bulk_valuation",
@@ -139,25 +146,27 @@ def register_web_routes(app):
             ("GET", "POST"),
         ),
 
-        # Insights
         (
             "/market-intelligence",
             "market_intelligence",
             market_intelligence,
             ("GET",),
         ),
+
         (
             "/map",
             "map_view",
             map_view,
             ("GET",),
         ),
+
         (
             "/model-performance",
             "model_performance",
             model_performance,
             ("GET",),
         ),
+
         (
             "/experiments",
             "experiments",
@@ -165,25 +174,32 @@ def register_web_routes(app):
             ("GET",),
         ),
 
-        # Existing Admin routes - DO NOT CHANGE
+
+        # =========================================================
+        # ADMIN PANEL
+        # =========================================================
+
         (
             "/admin",
             "admin_dashboard",
             admin_dashboard,
             ("GET",),
         ),
+
         (
             "/admin/users",
             "admin_users",
             admin_users,
             ("GET",),
         ),
+
         (
             "/admin/analytics",
             "admin_analytics",
             admin_analytics,
             ("GET",),
         ),
+
         (
             "/admin/audit",
             "admin_audit",
@@ -192,8 +208,11 @@ def register_web_routes(app):
         ),
     )
 
+
     for rule, endpoint, view_func, methods in routes:
+
         if endpoint not in app.view_functions:
+
             app.add_url_rule(
                 rule,
                 endpoint=endpoint,

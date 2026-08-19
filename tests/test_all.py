@@ -306,7 +306,7 @@ class TestBackendRoutes(unittest.TestCase):
 
     def test_market_intelligence_page(self):
         self.client.post('/login', data={
-            'username': 'testuser', 'password': 'test123', 'role': 'user'
+            'username': 'admin', 'password': 'test123', 'role': 'admin'
         })
         r = self.client.get('/market-intelligence')
         self.assertEqual(r.status_code, 200)
@@ -320,7 +320,7 @@ class TestBackendRoutes(unittest.TestCase):
 
     def test_model_performance_page(self):
         self.client.post('/login', data={
-            'username': 'testuser', 'password': 'test123', 'role': 'user'
+            'username': 'admin', 'password': 'test123', 'role': 'admin'
         })
         r = self.client.get('/model-performance')
         self.assertEqual(r.status_code, 200)
