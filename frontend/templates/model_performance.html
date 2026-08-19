@@ -145,8 +145,36 @@
     <script>
     const metadata = {{ metadata | tojson }};
     const ptypes = Object.keys(metadata);
-    const colors = ['#4f46e5', '#4f46e5', '#4f46e5', '#4f46e5'];
-    const colorsLight = ['rgba(79,70,229,0.1)', 'rgba(6,182,212,0.1)', 'rgba(16,185,129,0.1)', 'rgba(245,158,11,0.1)'];
+    /* =========================================================
+       MODEL COLORS
+       Keep these consistent with the metric cards
+    ========================================================= */
+
+        const modelColors = {
+            Apartment: '#2563EB',  // Blue
+            House: '#16A34A',      // Green
+            Plot: '#DC2626',       // Red
+            Villa: '#D97706'       // Amber
+        };
+
+
+        /* Light versions for filled radar areas */
+        const modelColorsLight = {
+            Apartment: 'rgba(37, 99, 235, 0.14)',
+            House: 'rgba(22, 163, 74, 0.14)',
+            Plot: 'rgba(220, 38, 38, 0.14)',
+            Villa: 'rgba(217, 119, 6, 0.14)'
+        };
+
+
+        /* Maintain chart order exactly as metadata */
+        const colors = ptypes.map(
+            p => modelColors[p] || '#64748B'
+        );
+
+        const colorsLight = ptypes.map(
+            p => modelColorsLight[p] || 'rgba(100,116,139,0.14)'
+        );
 
     // R2 Score Bar Chart
     new Chart(document.getElementById('r2Chart'), {

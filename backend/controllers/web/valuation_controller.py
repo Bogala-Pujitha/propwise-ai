@@ -352,6 +352,9 @@ def predict():
 # ============================================================
 # WHAT-IF ANALYSIS
 # ============================================================
+# ============================================================
+# WHAT-IF ANALYSIS
+# ============================================================
 
 @login_required
 def what_if():
@@ -375,65 +378,193 @@ def what_if():
     )
 
 
-    (
-        base_property,
-        modified_property,
-        changes,
-    ) = what_if_properties(
-        data
-    )
+    try:
 
-
-    original_result = predict_property(
-        base_property
-    )
-
-
-    modified_result = predict_property(
-        modified_property
-    )
-
-
-    record_activity(
-        user_id=current_user.id,
-        activity_type="what_if",
-        details=(
-            "What-If analysis for {} in {}".format(
-                base_property["property_type"],
-                base_property["city"],
-            )
-        ),
-        commit=False,
-    )
-
-
-    db.session.commit()
-
-
-    if request.is_json:
-
-        return jsonify(
-            {
-                "original":
-                    original_result,
-
-                "modified":
-                    modified_result,
-
-                "changes":
-                    changes,
-            }
+        (
+            base_property,
+            modified_property,
+            changes,
+        ) = what_if_properties(
+            data
         )
 
 
-    return render_template(
-        "what_if.html",
-        original=original_result,
-        modified=modified_result,
-        base_property=base_property,
-        changes=changes,
-    )
+        # ----------------------------------------------------
+        # ORIGINAL PROPERTY
+        # ----------------------------------------------------
 
+        original_result = predict_property(
+            base_property
+        )
+
+
+        if (
+            isinstance(
+                original_result,
+                dict
+            )
+            and "error" in original_result
+        ):
+
+            if request.is_json:
+
+                return jsonify(
+                    {
+                        "error":
+                            original_result["error"]
+                    }
+                ), 400
+
+            flash(
+                original_result["error"],
+                "error",
+            )
+
+            return render_template(
+                "what_if.html",
+                original=None,
+                modified=None,
+                base_property=base_property,
+                changes=changes,
+            )
+
+
+        # ----------------------------------------------------
+        # MODIFIED PROPERTY
+        # ----------------------------------------------------
+
+        modified_result = predict_property(
+            modified_property
+        )
+
+
+        if (
+            isinstance(
+                modified_result,
+                dict
+            )
+            and "error" in modified_result
+        ):
+
+            if request.is_json:
+
+                return jsonify(
+                    {
+                        "error":
+                            modified_result["error"]
+                    }
+                ), 400
+
+            flash(
+                modified_result["error"],
+                "error",
+            )
+
+            return render_template(
+                "what_if.html",
+                original=original_result,
+                modified=None,
+                base_property=base_property,
+                changes=changes,
+            )
+
+
+        # ----------------------------------------------------
+        # ACTIVITY LOG
+        # ----------------------------------------------------
+
+        record_activity(
+            user_id=current_user.id,
+            activity_type="what_if",
+            details=(
+                "What-If analysis for {} in {}".format(
+                    base_property["property_type"],
+                    base_property["city"],
+                )
+            ),
+            commit=False,
+        )
+
+
+        db.session.commit()
+
+
+        # ----------------------------------------------------
+        # JSON RESPONSE
+        # Keep the existing output structure unchanged.
+        # ----------------------------------------------------
+
+        if request.is_json:
+
+            return jsonify(
+                {
+                    "original":
+                        original_result,
+
+                    "modified":
+                        modified_result,
+
+                    "changes":
+                        changes,
+                }
+            )
+
+
+        # ----------------------------------------------------
+        # NORMAL TEMPLATE RESPONSE
+        # ----------------------------------------------------
+
+        return render_template(
+            "what_if.html",
+            original=original_result,
+            modified=modified_result,
+            base_property=base_property,
+            changes=changes,
+        )
+
+
+    except Exception as error:
+
+        # ----------------------------------------------------
+        # NEVER HIDE THE REAL ERROR
+        # ----------------------------------------------------
+
+        error_message = str(
+            error
+        )
+
+
+        print(
+            "[WHAT-IF ERROR]",
+            error_message
+        )
+
+
+        if request.is_json:
+
+            return jsonify(
+                {
+                    "error":
+                        "What-If analysis failed: "
+                        + error_message
+                }
+            ), 500
+
+
+        flash(
+            "What-If analysis failed: "
+            + error_message,
+            "error",
+        )
+
+
+        return render_template(
+            "what_if.html",
+            original=None,
+            modified=None,
+            base_property={},
+            changes={},
+        )
 
 # ============================================================
 # COMPARABLE PROPERTIES

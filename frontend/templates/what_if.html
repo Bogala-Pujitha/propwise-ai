@@ -1,236 +1,1988 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>What-If Analysis - PropWise AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
+
+    <style>
+        /* =====================================================
+           WHAT-IF DROPDOWN POLISH
+           Does not change existing result/output styling
+        ====================================================== */
+
+        .whatif-dropdown {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.whatif-dropdown:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.whatif-dropdown:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+    background: var(--surface-alt);
+}
+    </style>
+
 </head>
+
+
 <body>
+
+
+    <!-- =====================================================
+         NAVBAR
+    ====================================================== -->
+
     <nav class="navbar">
+
         <div class="nav-container">
-            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+
+            <a href="/" class="nav-logo">
+                <i class="fas fa-home"></i>
+                <span>PropWise AI</span>
+            </a>
+
+
             <div class="nav-links">
-                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
-                <a href="/logout" class="btn-nav-login">Logout</a>
+
+                <span style="color:var(--text-light);">
+
+                    Welcome,
+                    <strong>
+                        {{ current_user.username }}
+                    </strong>
+
+                </span>
+
+
+                <a href="/logout" class="btn-nav-login">
+                    Logout
+                </a>
+
             </div>
+
         </div>
+
     </nav>
 
+
+    <!-- =====================================================
+         DASHBOARD LAYOUT
+    ====================================================== -->
+
     <div class="dashboard-layout">
+
+
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
         <aside class="sidebar">
+
             <div class="sidebar-header">
-                <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
-                <small>{{ current_user.role }}</small>
+
+                <h3>
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </h3>
+
+                <small>
+                    {{ current_user.role }}
+                </small>
+
             </div>
+
+
             <nav class="sidebar-nav">
-                <a href="/dashboard"><i class="fas fa-home"></i> Valuation</a>
-                <a href="/what-if" class="active"><i class="fas fa-exchange-alt"></i> What-If</a>
-                <a href="/comparables"><i class="fas fa-balance-scale"></i> Comparables</a>
-                <a href="/bulk-valuation"><i class="fas fa-file-csv"></i> Bulk Valuation</a>
-                <a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
-                <a href="/map"><i class="fas fa-map-marked-alt"></i> Map</a>
-                <a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
+
+                <a href="/dashboard">
+                    <i class="fas fa-home"></i>
+                    Valuation
+                </a>
+
+
+                <a href="/what-if" class="active">
+                    <i class="fas fa-exchange-alt"></i>
+                    What-If
+                </a>
+
+
+                <a href="/comparables">
+                    <i class="fas fa-balance-scale"></i>
+                    Comparables
+                </a>
+
+
+                <a href="/bulk-valuation">
+                    <i class="fas fa-file-csv"></i>
+                    Bulk Valuation
+                </a>
+
+
+                <a href="/market-intelligence">
+                    <i class="fas fa-chart-line"></i>
+                    Market Intel
+                </a>
+
+
+                <a href="/map">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Map
+                </a>
+
+
+                <a href="/model-performance">
+                    <i class="fas fa-robot"></i>
+                    Model Performance
+                </a>
+
             </nav>
+
         </aside>
 
+
+        <!-- =================================================
+             MAIN CONTENT
+        ================================================== -->
+
         <main class="main-content">
+
+
             <div class="content-header">
-                <h1><i class="fas fa-exchange-alt" style="color:var(--primary);"></i> What-If Analysis</h1>
-                <p>See how changes to property features affect valuation</p>
+
+                <h1>
+
+                    <i class="fas fa-exchange-alt" style="color:var(--primary);"></i>
+
+                    What-If Analysis
+
+                </h1>
+
+
+                <p>
+                    See how changes to property features affect valuation
+                </p>
+
             </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
+
+            <!-- =================================================
+                 FLASH MESSAGES
+            ================================================== -->
+
+            {% with messages = get_flashed_messages(
+            with_categories=true
+            ) %}
+
             {% if messages %}
+
             <div class="flash-messages">
+
                 {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
+
+                <div class="flash {{ category }}">
+                    {{ message }}
+                </div>
+
                 {% endfor %}
+
             </div>
+
             {% endif %}
+
             {% endwith %}
 
+
+            <!-- =================================================
+                 WHAT-IF FORMS
+            ================================================== -->
+
             <div class="whatif-forms-grid">
-                <div class="prediction-form-card">
-                    <h2><i class="fas fa-edit" style="color:var(--primary);"></i> Base Property</h2>
-                    <form id="whatIfForm">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Property Type</label>
-                                <select name="property_type">
-                                    <option value="Apartment">Apartment</option>
-                                    <option value="House">House</option>
-                                    <option value="Villa">Villa</option>
-                                    <option value="Plot">Plot</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>City</label>
-                                <select name="city">
-                                    <option value="Ahmedabad">Ahmedabad</option>
-                                    <option value="Bengaluru">Bengaluru</option>
-                                    <option value="Chandigarh">Chandigarh</option>
-                                    <option value="Chennai">Chennai</option>
-                                    <option value="Coimbatore">Coimbatore</option>
-                                    <option value="Delhi">Delhi</option>
-                                    <option value="Ghaziabad">Ghaziabad</option>
-                                    <option value="Gurgaon">Gurgaon</option>
-                                    <option value="Hyderabad" selected>Hyderabad</option>
-                                    <option value="Indore">Indore</option>
-                                    <option value="Jaipur">Jaipur</option>
-                                    <option value="Kochi">Kochi</option>
-                                    <option value="Kolkata">Kolkata</option>
-                                    <option value="Lucknow">Lucknow</option>
-                                    <option value="Mumbai">Mumbai</option>
-                                    <option value="Nagpur">Nagpur</option>
-                                    <option value="Pune">Pune</option>
-                                    <option value="Visakhapatnam">Visakhapatnam</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Locality</label>
-                                <input type="text" name="locality" placeholder="e.g. Gachibowli">
-                            </div>
-                            <div class="form-group">
-                                <label>Area (sqft)</label>
-                                <input type="number" name="area_sqft" placeholder="e.g. 1500" required min="100">
-                            </div>
-                            <div class="form-group">
-                                <label>BHK</label>
-                                <select name="bhk">
-                                    <option value="1">1 BHK</option>
-                                    <option value="2">2 BHK</option>
-                                    <option value="3" selected>3 BHK</option>
-                                    <option value="4">4 BHK</option>
-                                    <option value="5">5 BHK</option>
-                                    <option value="6">6 BHK</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Bathrooms</label>
-                                <select name="bathrooms">
-                                    <option value="1">1</option>
-                                    <option value="2" selected>2</option>
-                                    <option value="3">3</option>
-                                    <option value="4">4</option>
-                                    <option value="5">5</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Property Age (years)</label>
-                                <input type="number" name="property_age" placeholder="e.g. 5" min="0" max="100">
-                            </div>
-                        </div>
-                    </form>
-                </div>
+
+
+                <!-- =================================================
+                     BASE PROPERTY
+                ================================================== -->
 
                 <div class="prediction-form-card">
-                    <h2><i class="fas fa-sliders-h" style="color:var(--primary);"></i> Proposed Changes</h2>
-                    <form id="changesForm">
+
+                    <h2>
+
+                        <i class="fas fa-edit" style="color:var(--primary);"></i>
+
+                        Base Property
+
+                    </h2>
+
+
+                    <form id="whatIfForm">
+
+
                         <div class="form-grid">
+
+
+                            <!-- =====================================
+                                 PROPERTY TYPE
+                            ====================================== -->
+
                             <div class="form-group">
-                                <label>Change BHK (+/-)</label>
-                                <input type="number" name="change_bhk" placeholder="e.g. +1 or -1" step="1">
+
+                                <label for="property_type">
+                                    Property Type
+                                </label>
+
+                                <select name="property_type" id="property_type" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Property Type
+                                    </option>
+
+                                </select>
+
                             </div>
+
+
+                            <!-- =====================================
+                                 CITY
+                            ====================================== -->
+
                             <div class="form-group">
-                                <label>Change Area (sqft +/-)</label>
-                                <input type="number" name="change_area" placeholder="e.g. +200 or -100">
+
+                                <label for="city">
+                                    City
+                                </label>
+
+                                <select name="city" id="city" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select City
+                                    </option>
+
+                                </select>
+
                             </div>
+
+
+                            <!-- =====================================
+                                 LOCALITY
+                            ====================================== -->
+
                             <div class="form-group">
-                                <label>Change Bathrooms (+/-)</label>
-                                <input type="number" name="change_bathrooms" placeholder="e.g. +1" step="1">
+
+                                <label for="locality">
+                                    Locality
+                                </label>
+
+                                <select name="locality" id="locality" class="whatif-dropdown" required disabled>
+
+                                    <option value="">
+                                        Select Locality
+                                    </option>
+
+                                </select>
+
                             </div>
+
+
+                            <!-- =====================================
+                                 AREA
+                            ====================================== -->
+
                             <div class="form-group">
-                                <label>Change Age (years +/-)</label>
-                                <input type="number" name="change_age" placeholder="e.g. -2" step="1">
+
+                                <label for="area_sqft">
+                                    Area (sqft)
+                                </label>
+
+                                <select name="area_sqft" id="area_sqft" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Area
+                                    </option>
+
+                                </select>
+
                             </div>
+
+
+                            <!-- =====================================
+                                 BHK
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="bhk">
+                                    BHK
+                                </label>
+
+                                <select name="bhk" id="bhk" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select BHK
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 BATHROOMS
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="bathrooms">
+                                    Bathrooms
+                                </label>
+
+                                <select name="bathrooms" id="bathrooms" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Bathrooms
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 FURNISHING
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="furnishing">
+                                    Furnishing
+                                </label>
+
+                                <select name="furnishing" id="furnishing" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Furnishing
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 FACING
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="facing">
+                                    Facing
+                                </label>
+
+                                <select name="facing" id="facing" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Facing
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 PROPERTY AGE
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="property_age">
+                                    Property Age (years)
+                                </label>
+
+                                <select name="property_age" id="property_age" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Property Age
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 FLOOR
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="floor">
+                                    Floor
+                                </label>
+
+                                <select name="floor" id="floor" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Floor
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 TOTAL FLOORS
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="total_floors">
+                                    Total Floors
+                                </label>
+
+                                <select name="total_floors" id="total_floors" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Total Floors
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
+                            <!-- =====================================
+                                 PARKING
+                            ====================================== -->
+
+                            <div class="form-group">
+
+                                <label for="parking">
+                                    Parking
+                                </label>
+
+                                <select name="parking" id="parking" class="whatif-dropdown" required>
+
+                                    <option value="">
+                                        Select Parking
+                                    </option>
+
+                                </select>
+
+                            </div>
+
+
                         </div>
-                        <div class="form-actions">
-                            <button type="button" class="btn-primary" onclick="runWhatIf()"><i class="fas fa-calculator"></i> Compare Predictions</button>
-                        </div>
+
                     </form>
+
                 </div>
-            </div>
+
+
+                <!-- =================================================
+                     PROPOSED CHANGES
+                ================================================== -->
+
+                <div class="prediction-form-card">
+
+                    <h2>
+
+                        <i class="fas fa-sliders-h" style="color:var(--primary);"></i>
+
+                        Proposed Changes
+
+                    </h2>
+
+                    <form id="changesForm">
+                    
+                        <div class="form-grid">
+                    
+                            <!-- =====================================================
+                                                     CHANGE BHK
+                                                ====================================================== -->
+                    
+                            <div class="form-group">
+                    
+                                <label for="change_bhk">
+                                    Change BHK
+                                </label>
+                    
+                                <select name="change_bhk" id="change_bhk" class="whatif-dropdown">
+                    
+                                    <option value="" selected>
+                                        Select BHK
+                                    </option>
+                    
+                                    {% for i in range(1, 21) %}
+                    
+                                    <option value="{{ i }}">
+                                        {{ i }} BHK
+                                    </option>
+                    
+                                    {% endfor %}
+                    
+                                </select>
+                    
+                            </div>
+                    
+                    
+                            <!-- =====================================================
+                                                     CHANGE AREA
+                                                ====================================================== -->
+                    
+                            <div class="form-group">
+                    
+                                <label for="change_area">
+                                    Change Area (sqft)
+                                </label>
+                    
+                                <select name="change_area" id="change_area" class="whatif-dropdown">
+                    
+                                    <option value="" selected>
+                                        Select Area
+                                    </option>
+                    
+                                    <option value="750">
+                                        500-1000 sqft
+                                    </option>
+                    
+                                    <option value="1250">
+                                        1000-1500 sqft
+                                    </option>
+                    
+                                    <option value="1750">
+                                        1500-2000 sqft
+                                    </option>
+                    
+                                    <option value="2250">
+                                        2000-2500 sqft
+                                    </option>
+                    
+                                    <option value="2750">
+                                        2500-3000 sqft
+                                    </option>
+                    
+                                    <option value="3250">
+                                        3000-3500 sqft
+                                    </option>
+                    
+                                    <option value="3750">
+                                        3500-4000 sqft
+                                    </option>
+                    
+                                    <option value="4250">
+                                        4000-4500 sqft
+                                    </option>
+                    
+                                    <option value="4750">
+                                        4500-5000 sqft
+                                    </option>
+                    
+                                    <option value="5250">
+                                        5000+ sqft
+                                    </option>                    
+                                </select>
+                    
+                            </div>
+                    
+                    
+                            <!-- =====================================================
+                                                     CHANGE BATHROOMS
+                                                ====================================================== -->
+                    
+                            <div class="form-group">
+                    
+                                <label for="change_bathrooms">
+                                    Change Bathrooms
+                                </label>
+                    
+                                <select name="change_bathrooms" id="change_bathrooms" class="whatif-dropdown">
+                    
+                                    <option value="" selected>
+                                        Select Bathrooms
+                                    </option>
+                    
+                                    {% for i in range(1, 21) %}
+                    
+                                    <option value="{{ i }}">
+                                        {{ i }}
+                                    </option>
+                    
+                                    {% endfor %}
+                    
+                                </select>
+                    
+                            </div>
+                    
+                    
+                            <!-- =====================================================
+                                                     CHANGE PROPERTY AGE
+                                                ====================================================== -->
+                    
+                            <div class="form-group">
+                    
+                                <label for="change_age">
+                                    Change Property Age
+                                </label>
+                    
+                                <select name="change_age" id="change_age" class="whatif-dropdown">
+                    
+                                    <option value="" selected>
+                                        Select Property Age
+                                    </option>
+                    
+                                    {% for i in range(0, 21) %}
+                    
+                                    <option value="{{ i }}">
+                                        {{ i }} years
+                                    </option>
+                    
+                                    {% endfor %}
+                    
+                                </select>
+                    
+                            </div>
+                    
+                        </div>
+                    
+                    
+                        <div class="form-actions">
+                    
+                            <button type="button" class="btn-primary" onclick="runWhatIf()">
+                    
+                                <i class="fas fa-calculator"></i>
+                    
+                                Compare Predictions
+                    
+                            </button>
+                    
+                        </div>             </form>
+
+            <!-- =================================================
+                 EXISTING RESULTS
+            ================================================== -->
 
             <div id="whatIfResult"></div>
+
+
         </main>
+
     </div>
 
+
     <script>
-        async function runWhatIf() {
-            const resultArea = document.getElementById('whatIfResult');
-            resultArea.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i><p style="margin-top:10px;color:var(--text-light);">Running comparison...</p></div>';
 
-            const formData1 = new FormData(document.getElementById('whatIfForm'));
-            const base = Object.fromEntries(formData1);
+        /* =====================================================
+           ELEMENT REFERENCES
+        ====================================================== */
 
-            const formData2 = new FormData(document.getElementById('changesForm'));
-            const changes = Object.fromEntries(formData2);
+        const propertyTypeSelect =
+            document.getElementById(
+                'property_type'
+            );
+
+        const citySelect =
+            document.getElementById(
+                'city'
+            );
+
+        const localitySelect =
+            document.getElementById(
+                'locality'
+            );
+
+        const areaSelect =
+            document.getElementById(
+                'area_sqft'
+            );
+
+        const bhkSelect =
+            document.getElementById(
+                'bhk'
+            );
+
+        const bathroomsSelect =
+            document.getElementById(
+                'bathrooms'
+            );
+
+        const furnishingSelect =
+            document.getElementById(
+                'furnishing'
+            );
+
+        const facingSelect =
+            document.getElementById(
+                'facing'
+            );
+
+        const propertyAgeSelect =
+            document.getElementById(
+                'property_age'
+            );
+
+        const floorSelect =
+            document.getElementById(
+                'floor'
+            );
+
+        const totalFloorsSelect =
+            document.getElementById(
+                'total_floors'
+            );
+
+        const parkingSelect =
+            document.getElementById(
+                'parking'
+            );
+
+
+        let dropdownData = null;
+
+
+        /* =====================================================
+           GENERIC DROPDOWN POPULATOR
+        ====================================================== */
+
+        function populateSelect(
+            select,
+            options,
+            placeholder
+        ) {
+
+            select.innerHTML = '';
+
+
+            const placeholderOption =
+                document.createElement(
+                    'option'
+                );
+
+            placeholderOption.value = '';
+
+            placeholderOption.textContent =
+                placeholder;
+
+            placeholderOption.selected =
+                true;
+
+            select.appendChild(
+                placeholderOption
+            );
+
+
+            if (
+                !Array.isArray(
+                    options
+                )
+            ) {
+
+                return;
+            }
+
+
+            options.forEach(
+                function (item) {
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        item;
+
+                    option.textContent =
+                        item;
+
+                    select.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           AREA DROPDOWN
+        ====================================================== */
+
+        function populateAreaOptions(
+            ranges
+        ) {
+
+            areaSelect.innerHTML = '';
+
+
+            const placeholder =
+                document.createElement(
+                    'option'
+                );
+
+            placeholder.value = '';
+
+            placeholder.textContent =
+                'Select Area';
+
+            placeholder.selected =
+                true;
+
+            areaSelect.appendChild(
+                placeholder
+            );
+
+
+            if (
+                !Array.isArray(
+                    ranges
+                )
+            ) {
+
+                return;
+            }
+
+
+            ranges.forEach(
+                function (range) {
+
+                    const minimum =
+                        Number(
+                            range.min
+                        );
+
+                    const maximum =
+                        Number(
+                            range.max
+                        );
+
+
+                    const midpoint =
+                        Math.floor(
+                            (
+                                minimum +
+                                maximum
+                            ) / 2
+                        );
+
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        midpoint;
+
+                    option.textContent =
+                        range.label;
+
+                    areaSelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+        }
+
+
+        /* =====================================================
+           LOCALITY DROPDOWN
+        ====================================================== */
+
+        function populateLocalities(
+            city
+        ) {
+
+            localitySelect.innerHTML = '';
+
+
+            const placeholder =
+                document.createElement(
+                    'option'
+                );
+
+            placeholder.value = '';
+
+            placeholder.textContent =
+                'Select Locality';
+
+            placeholder.selected =
+                true;
+
+            localitySelect.appendChild(
+                placeholder
+            );
+
+
+            localitySelect.disabled =
+                !city;
+
+
+            if (
+                !city ||
+                !dropdownData ||
+                !dropdownData.localities
+            ) {
+
+                return;
+            }
+
+
+            const localities =
+                dropdownData.localities[
+                city
+                ] || [];
+
+
+            localities.forEach(
+                function (locality) {
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        locality;
+
+                    option.textContent =
+                        locality;
+
+                    localitySelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+
+            localitySelect.disabled =
+                localities.length === 0;
+
+        }
+
+
+        /* =====================================================
+           LOAD EXISTING APPLICATION DROPDOWN DATA
+        ====================================================== */
+
+        async function loadDropdownData() {
 
             try {
-                const response = await fetch('/what-if', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({base, changes})
-                });
-                const result = await response.json();
 
-                if (result.error) {
-                    resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>' + result.error + '</p></div>';
-                    return;
+                const response =
+                    await fetch(
+                        '/api/dropdown-data'
+                    );
+
+
+                if (
+                    !response.ok
+                ) {
+
+                    throw new Error(
+                        'Unable to load dropdown data'
+                    );
+
                 }
 
-                const diff = result.modified.predicted_price - result.original.predicted_price;
-                const diffClass = diff >= 0 ? 'reliability-high' : 'reliability-low';
-                const diffSign = diff >= 0 ? '+' : '';
 
-                resultArea.innerHTML = `
-                    <div class="what-if-grid">
-                        <div class="what-if-card original">
-                            <h3><i class="fas fa-home" style="color:var(--primary);"></i> Original Property</h3>
-                            <div class="big-value">₹${Number(result.original.predicted_price).toLocaleString()}</div>
-                            <div class="sub-value">₹${Number(result.original.price_per_sqft).toLocaleString()}/sqft</div>
-                            <div style="margin-top:10px;font-size:0.85rem;color:var(--text-light);">
-                                <p>${result.original.property_type} | ${result.original.city}</p>
-                                <p>${result.original.area_sqft} sqft | ${result.original.bhk} BHK | ${result.original.bathrooms} Bath</p>
-                            </div>
-                        </div>
-                        <div class="what-if-card modified">
-                            <h3><i class="fas fa-magic" style="color:var(--primary);"></i> Modified Property</h3>
-                            <div class="big-value">₹${Number(result.modified.predicted_price).toLocaleString()}</div>
-                            <div class="sub-value">₹${Number(result.modified.price_per_sqft).toLocaleString()}/sqft</div>
-                            <div style="margin-top:10px;font-size:0.85rem;color:var(--text-light);">
-                                <p>${result.modified.property_type} | ${result.modified.city}</p>
-                                <p>${result.modified.area_sqft} sqft | ${result.modified.bhk} BHK | ${result.modified.bathrooms} Bath</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="prediction-form-card" style="text-align:center;">
-                        <h3><i class="fas fa-exchange-alt" style="color:var(--primary);"></i> Price Difference</h3>
-                        <div class="big-value ${diffClass}" style="font-size:2rem;">${diffSign}₹${Number(Math.abs(diff)).toLocaleString()}</div>
-                        <div class="sub-value">${diff >= 0 ? 'Value increases with changes' : 'Value decreases with changes'}</div>
-                    </div>
-                `;
-            } catch(err) {
-                resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>Failed to run analysis. Please try again.</p></div>';
+                dropdownData =
+                    await response.json();
+
+
+                /* Property Type */
+
+                populateSelect(
+                    propertyTypeSelect,
+                    dropdownData.property_types || [],
+                    'Select Property Type'
+                );
+
+
+                /* City */
+
+                populateSelect(
+                    citySelect,
+                    dropdownData.cities || [],
+                    'Select City'
+                );
+
+
+                /* Area */
+
+                populateAreaOptions(
+                    dropdownData.area_ranges || []
+                );
+
+
+                /* BHK */
+
+                populateSelect(
+                    bhkSelect,
+                    dropdownData.bhk_options ||
+                    [1, 2, 3, 4, 5, 6],
+                    'Select BHK'
+                );
+
+
+                /* Bathrooms */
+
+                populateSelect(
+                    bathroomsSelect,
+                    dropdownData.bathroom_options ||
+                    [1, 2, 3, 4, 5],
+                    'Select Bathrooms'
+                );
+
+
+                /* Furnishing */
+
+                populateSelect(
+                    furnishingSelect,
+                    dropdownData.furnishing_options ||
+                    [
+                        'Unfurnished',
+                        'Semi-Furnished',
+                        'Fully Furnished'
+                    ],
+                    'Select Furnishing'
+                );
+
+
+                /* Facing */
+
+                populateSelect(
+                    facingSelect,
+                    dropdownData.facing_options ||
+                    [
+                        'North',
+                        'South',
+                        'East',
+                        'West',
+                        'North-East',
+                        'North-West',
+                        'South-East',
+                        'South-West'
+                    ],
+                    'Select Facing'
+                );
+
+
+                /* Property Age */
+
+                populateSelect(
+                    propertyAgeSelect,
+                    dropdownData.ages ||
+                    Array.from(
+                        {
+                            length: 21
+                        },
+                        function (_, index) {
+                            return index;
+                        }
+                    ),
+                    'Select Property Age'
+                );
+
+
+                /* Floor */
+
+                populateSelect(
+                    floorSelect,
+                    dropdownData.floors ||
+                    Array.from(
+                        {
+                            length: 20
+                        },
+                        function (_, index) {
+                            return index + 1;
+                        }
+                    ),
+                    'Select Floor'
+                );
+
+
+                /* Total Floors */
+
+                populateSelect(
+                    totalFloorsSelect,
+                    dropdownData.total_floors ||
+                    Array.from(
+                        {
+                            length: 20
+                        },
+                        function (_, index) {
+                            return index + 1;
+                        }
+                    ),
+                    'Select Total Floors'
+                );
+
+
+                /* Parking */
+
+                populateSelect(
+                    parkingSelect,
+                    dropdownData.parkings ||
+                    [
+                        'None',
+                        'Car',
+                        'Bike',
+                        'Car and Bike'
+                    ],
+                    'Select Parking'
+                );
+
+
+                /* Locality starts blank */
+
+                populateLocalities(
+                    ''
+                );
+
+
+            } catch (error) {
+
+                console.error(
+                    'Dropdown loading error:',
+                    error
+                );
+
             }
+
         }
 
-        function initWhatIfAutoRun() {
-            const inputs = document.querySelectorAll('#changesForm input');
-            inputs.forEach(function(input) {
-                input.addEventListener('input', function() {
-                    const hasChanges = Array.from(inputs).some(i => i.value.trim() !== '');
-                    if (hasChanges) {
-                        runWhatIf();
+
+        /* =====================================================
+           CITY → LOCALITY
+        ====================================================== */
+
+        citySelect.addEventListener(
+            'change',
+            function () {
+
+                populateLocalities(
+                    citySelect.value
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           INITIALIZE DROPDOWNS
+        ====================================================== */
+
+        loadDropdownData();
+
+
+        /* =====================================================
+           EXISTING WHAT-IF LOGIC
+           RESULT STRUCTURE UNCHANGED
+        ====================================================== */
+
+        async function runWhatIf() {
+
+                const resultArea =
+                    document.getElementById(
+                        'whatIfResult'
+                    );
+
+
+                resultArea.innerHTML =
+                    '<div style="text-align:center;padding:40px;">' +
+
+                    '<i class="fas fa-spinner fa-spin" ' +
+                    'style="font-size:2rem;color:var(--primary);"></i>' +
+
+                    '<p style="margin-top:10px;color:var(--text-light);">' +
+                    'Running comparison...' +
+                    '</p>' +
+
+                    '</div>';
+
+
+                /* =====================================================
+                   READ BASE PROPERTY
+                ===================================================== */
+
+                const baseForm =
+                    document.getElementById(
+                        'whatIfForm'
+                    );
+
+
+                const baseFormData =
+                    new FormData(
+                        baseForm
+                    );
+
+
+                const base =
+                    Object.fromEntries(
+                        baseFormData
+                    );
+
+
+                /* =====================================================
+                   READ PROPOSED CHANGES
+                ===================================================== */
+
+                const changesForm =
+                    document.getElementById(
+                        'changesForm'
+                    );
+
+
+                const changesFormData =
+                    new FormData(
+                        changesForm
+                    );
+
+
+                const changes =
+                    Object.fromEntries(
+                        changesFormData
+                    );
+
+
+                /* =====================================================
+                   VALIDATE BASE PROPERTY
+                ===================================================== */
+
+                const requiredFields = [
+
+                    'property_type',
+                    'city',
+                    'locality',
+                    'area_sqft',
+                    'bhk',
+                    'bathrooms',
+                    'furnishing',
+                    'facing',
+                    'property_age',
+                    'floor',
+                    'total_floors',
+                    'parking'
+
+                ];
+
+
+                const missingFields =
+                    requiredFields.filter(
+                        function (field) {
+
+                            return (
+                                !base[field] ||
+                                String(
+                                    base[field]
+                                ).trim() === ''
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    missingFields.length > 0
+                ) {
+
+                    resultArea.innerHTML =
+                        '<div class="prediction-form-card">' +
+
+                        '<h3>' +
+
+                        '<i class="fas fa-exclamation-circle" ' +
+                        'style="color:#DC2626;"></i> ' +
+
+                        'Incomplete Property Details' +
+
+                        '</h3>' +
+
+                        '<p>' +
+
+                        'Please select all base property details ' +
+                        'before comparing predictions.' +
+
+                        '</p>' +
+
+                        '</div>';
+
+                    return;
+
+                }
+
+
+                /* =====================================================
+                   BUILD ONE FLAT PAYLOAD
+                   IMPORTANT:
+                   Backend expects base fields + change_* fields
+                   in the same object.
+                ===================================================== */
+
+                const payload = {
+
+                    property_type:
+                        base.property_type,
+
+                    city:
+                        base.city,
+
+                    locality:
+                        base.locality,
+
+                    area_sqft:
+                        base.area_sqft,
+
+                    bhk:
+                        base.bhk,
+
+                    bathrooms:
+                        base.bathrooms,
+
+                    property_age:
+                        base.property_age,
+
+                    furnishing:
+                        base.furnishing,
+
+                    facing:
+                        base.facing,
+
+                    floor:
+                        base.floor,
+
+                    total_floors:
+                        base.total_floors,
+
+                    parking:
+                        base.parking,
+
+                    change_bhk:
+                        changes.change_bhk || '',
+
+                    change_area:
+                        changes.change_area || '',
+
+                    change_bathrooms:
+                        changes.change_bathrooms || '',
+
+                    change_age:
+                        changes.change_age || ''
+
+                };
+
+
+                /* =====================================================
+                   BUILD LOCAL MODIFIED PROPERTY FOR DISPLAY
+                   This keeps the existing backend output untouched.
+                ===================================================== */
+
+                const modifiedDisplay = {
+
+                    property_type:
+                        base.property_type,
+
+                    city:
+                        base.city,
+
+                    locality:
+                        base.locality,
+
+                    area_sqft:
+                        Number(
+                            base.area_sqft
+                        ),
+
+                    bhk:
+                        Number(
+                            base.bhk
+                        ),
+
+                    bathrooms:
+                        Number(
+                            base.bathrooms
+                        ),
+
+                    property_age:
+                        Number(
+                            base.property_age
+                        ),
+
+                    furnishing:
+                        base.furnishing,
+
+                    facing:
+                        base.facing,
+
+                    floor:
+                        Number(
+                            base.floor
+                        ),
+
+                    total_floors:
+                        Number(
+                            base.total_floors
+                        ),
+
+                    parking:
+                        base.parking
+
+                };
+
+
+                /* =====================================================
+                   APPLY SELECTED CHANGES
+                   These are direct values, not +/-
+                ===================================================== */
+
+                if (
+                    changes.change_bhk !== undefined &&
+                    changes.change_bhk !== ''
+                ) {
+
+                    modifiedDisplay.bhk =
+                        Number(
+                            changes.change_bhk
+                        );
+
+                }
+
+
+                if (
+                    changes.change_area !== undefined &&
+                    changes.change_area !== ''
+                ) {
+
+                    modifiedDisplay.area_sqft =
+                        Number(
+                            changes.change_area
+                        );
+
+                }
+
+
+                if (
+                    changes.change_bathrooms !== undefined &&
+                    changes.change_bathrooms !== ''
+                ) {
+
+                    modifiedDisplay.bathrooms =
+                        Number(
+                            changes.change_bathrooms
+                        );
+
+                }
+
+
+                if (
+                    changes.change_age !== undefined &&
+                    changes.change_age !== ''
+                ) {
+
+                    modifiedDisplay.property_age =
+                        Number(
+                            changes.change_age
+                        );
+
+                }
+
+
+                /* =====================================================
+                   CALL EXISTING WHAT-IF ENDPOINT
+                ===================================================== */
+
+                try {
+
+                    const response =
+                        await fetch(
+                            '/what-if',
+                            {
+                                method:
+                                    'POST',
+
+                                headers: {
+                                    'Content-Type':
+                                        'application/json'
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        payload
+                                    )
+
+                            }
+                        );
+
+
+                    const result =
+                        await response.json();
+
+
+                    if (
+                        !response.ok ||
+                        result.error
+                    ) {
+
+                        resultArea.innerHTML =
+                            '<div class="prediction-form-card">' +
+
+                            '<h3>Error</h3>' +
+
+                            '<p>' +
+
+                            (
+                                result.error ||
+                                'Unable to run What-If analysis.'
+                            ) +
+
+                            '</p>' +
+
+                            '</div>';
+
+                        return;
+
                     }
-                });
-            });
-        }
 
+
+                    /* =================================================
+                       PRICE VALUES FROM EXISTING BACKEND OUTPUT
+                    ================================================= */
+
+                    const originalPrice =
+                        Number(
+                            result.original.predicted_price ||
+                            0
+                        );
+
+
+                    const modifiedPrice =
+                        Number(
+                            result.modified.predicted_price ||
+                            0
+                        );
+
+
+                    const originalPricePerSqft =
+                        Number(
+                            result.original.price_per_sqft ||
+                            (
+                                originalPrice /
+                                Number(
+                                    base.area_sqft
+                                )
+                            ) ||
+                            0
+                        );
+
+
+                    const modifiedPricePerSqft =
+                        Number(
+                            result.modified.price_per_sqft ||
+                            (
+                                modifiedPrice /
+                                Number(
+                                    modifiedDisplay.area_sqft
+                                )
+                            ) ||
+                            0
+                        );
+
+
+                    const diff =
+                        modifiedPrice -
+                        originalPrice;
+
+
+                    const diffSign =
+                        diff >= 0
+                            ? '+'
+                            : '';
+
+
+                    const diffClass =
+                        diff >= 0
+                            ? 'reliability-high'
+                            : 'reliability-low';
+
+
+                    const diffMessage =
+                        diff >= 0
+                            ? 'Value increases with changes'
+                            : 'Value decreases with changes';
+
+
+                    /* =================================================
+                       DISPLAY EXISTING OUTPUT
+                       Only the source of property labels/details is fixed.
+                    ================================================= */
+
+                    resultArea.innerHTML = `
+
+        <div class="what-if-grid">
+
+            <!-- =========================================
+                 ORIGINAL PROPERTY
+            ========================================== -->
+
+            <div class="what-if-card original">
+
+                <h3>
+
+                    <i
+                        class="fas fa-home"
+                        style="color:var(--primary);"
+                    ></i>
+
+                    Original Property
+
+                </h3>
+
+
+                <div class="big-value">
+
+                    ₹${originalPrice.toLocaleString(
+                        'en-IN',
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    )}
+
+                </div>
+
+
+                <div class="sub-value">
+
+                    ₹${originalPricePerSqft.toLocaleString(
+                        'en-IN',
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    )}/sqft
+
+                </div>
+
+
+                <div
+                    style="
+                        margin-top:10px;
+                        font-size:0.85rem;
+                        color:var(--text-light);
+                    "
+                >
+
+                    <p>
+
+                        ${base.property_type}
+                        |
+                        ${base.locality},
+                        ${base.city}
+
+                    </p>
+
+
+                    <p>
+
+                        ${Number(
+                        base.area_sqft
+                    ).toLocaleString(
+                        'en-IN'
+                    )}
+
+                        sqft
+                        |
+
+                        ${base.bhk}
+                        BHK
+                        |
+
+                        ${base.bathrooms}
+                        Bath
+
+                    </p>
+
+
+                    <p>
+
+                        ${base.furnishing}
+                        |
+                        ${base.facing}
+                        |
+                        ${base.property_age}
+                        years
+                        |
+                        Floor ${base.floor}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================================
+                 MODIFIED PROPERTY
+            ========================================== -->
+
+            <div class="what-if-card modified">
+
+                <h3>
+
+                    <i
+                        class="fas fa-magic"
+                        style="color:var(--primary);"
+                    ></i>
+
+                    Modified Property
+
+                </h3>
+
+
+                <div class="big-value">
+
+                    ₹${modifiedPrice.toLocaleString(
+                        'en-IN',
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    )}
+
+                </div>
+
+
+                <div class="sub-value">
+
+                    ₹${modifiedPricePerSqft.toLocaleString(
+                        'en-IN',
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    )}/sqft
+
+                </div>
+
+
+                <div
+                    style="
+                        margin-top:10px;
+                        font-size:0.85rem;
+                        color:var(--text-light);
+                    "
+                >
+
+                    <p>
+
+                        ${modifiedDisplay.property_type}
+                        |
+                        ${modifiedDisplay.locality},
+                        ${modifiedDisplay.city}
+
+                    </p>
+
+
+                    <p>
+
+                        ${Number(
+                        modifiedDisplay.area_sqft
+                    ).toLocaleString(
+                        'en-IN'
+                    )}
+
+                        sqft
+                        |
+
+                        ${modifiedDisplay.bhk}
+                        BHK
+                        |
+
+                        ${modifiedDisplay.bathrooms}
+                        Bath
+
+                    </p>
+
+
+                    <p>
+
+                        ${modifiedDisplay.furnishing}
+                        |
+                        ${modifiedDisplay.facing}
+                        |
+                        ${modifiedDisplay.property_age}
+                        years
+                        |
+                        Floor ${modifiedDisplay.floor}
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- =============================================
+             PRICE DIFFERENCE
+        ============================================== -->
+
+        <div
+            class="prediction-form-card"
+            style="text-align:center;"
+        >
+
+            <h3>
+
+                <i
+                    class="fas fa-exchange-alt"
+                    style="color:var(--primary);"
+                ></i>
+
+                Price Difference
+
+            </h3>
+
+
+            <div
+                class="big-value ${diffClass}"
+                style="font-size:2rem;"
+            >
+
+                ${diffSign}₹${Math.abs(
+                        diff
+                    ).toLocaleString(
+                        'en-IN',
+                        {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }
+                    )}
+
+            </div>
+
+
+            <div class="sub-value">
+
+                ${diffMessage}
+
+            </div>
+
+        </div>
+
+    `;
+
+
+                } catch (
+                error
+                ) {
+
+                    console.error(
+                        'What-If error:',
+                        error
+                    );
+
+
+                    resultArea.innerHTML =
+                        '<div class="prediction-form-card">' +
+
+                        '<h3>Error</h3>' +
+
+                        '<p>' +
+
+                        'Failed to run analysis. Please try again.' +
+
+                        '</p>' +
+
+                        '</div>';
+
+                }
+
+            }
+
+
+        /* =====================================================
+           EXISTING AUTO-RUN BEHAVIOR
+        ====================================================== */
+        function initWhatIfAutoRun() {
+
+                const inputs =
+                    document.querySelectorAll(
+                        '#changesForm select'
+                    );
+
+
+                inputs.forEach(
+                    function (input) {
+
+                        input.addEventListener(
+                            'change',
+                            function () {
+
+                                /*
+                                 * Do not run when the user is still
+                                 * on the default "Select ..." option.
+                                 */
+                                const hasChanges =
+                                    Array.from(
+                                        inputs
+                                    ).some(
+                                        function (i) {
+
+                                            return (
+                                                i.value.trim() !== ''
+                                            );
+
+                                        }
+                                    );
+
+
+                                if (hasChanges) {
+
+                                    runWhatIf();
+
+                                }
+
+                            }
+                        );
+
+                    }
+                );
+
+            }
         initWhatIfAutoRun();
+
     </script>
+
 </body>
+
 </html>

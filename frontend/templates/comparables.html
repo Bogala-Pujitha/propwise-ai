@@ -1,223 +1,1651 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Comparables - PropWise AI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 </head>
-<body>
+
+
+<body class="comparables-page">
+    <!-- =====================================================
+         NAVBAR
+    ====================================================== -->
+
     <nav class="navbar">
+
         <div class="nav-container">
-            <a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
+
+            <a href="/" class="nav-logo">
+                <i class="fas fa-home"></i>
+                <span>PropWise AI</span>
+            </a>
+
+
             <div class="nav-links">
-                <span style="color:var(--text-light);">Welcome, <strong>{{ current_user.username }}</strong></span>
-                <a href="/logout" class="btn-nav-login">Logout</a>
+
+                <span style="color:var(--text-light);">
+                    Welcome,
+                    <strong>
+                        {{ current_user.username }}
+                    </strong>
+                </span>
+
+
+                <a href="/logout" class="btn-nav-login">
+                    Logout
+                </a>
+
             </div>
+
         </div>
+
     </nav>
 
+
+    <!-- =====================================================
+         DASHBOARD LAYOUT
+    ====================================================== -->
+
     <div class="dashboard-layout">
+
+
+        <!-- =================================================
+             SIDEBAR
+        ================================================== -->
+
         <aside class="sidebar">
+
             <div class="sidebar-header">
-                <h3><i class="fas fa-tachometer-alt"></i> Dashboard</h3>
-                <small>{{ current_user.role }}</small>
+
+                <h3>
+                    <i class="fas fa-tachometer-alt"></i>
+                    Dashboard
+                </h3>
+
+                <small>
+                    {{ current_user.role }}
+                </small>
+
             </div>
+
+
             <nav class="sidebar-nav">
-                <a href="/dashboard"><i class="fas fa-home"></i> Valuation</a>
-                <a href="/what-if"><i class="fas fa-exchange-alt"></i> What-If</a>
-                <a href="/comparables" class="active"><i class="fas fa-balance-scale"></i> Comparables</a>
-                <a href="/bulk-valuation"><i class="fas fa-file-csv"></i> Bulk Valuation</a>
-                <a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
-                <a href="/map"><i class="fas fa-map-marked-alt"></i> Map</a>
-                <a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
+
+                <a href="/dashboard">
+                    <i class="fas fa-home"></i>
+                    Valuation
+                </a>
+
+
+                <a href="/what-if">
+                    <i class="fas fa-exchange-alt"></i>
+                    What-If
+                </a>
+
+
+                <a href="/comparables" class="active">
+                    <i class="fas fa-balance-scale"></i>
+                    Comparables
+                </a>
+
+
+                <a href="/bulk-valuation">
+                    <i class="fas fa-file-csv"></i>
+                    Bulk Valuation
+                </a>
+
+
+                <a href="/market-intelligence">
+                    <i class="fas fa-chart-line"></i>
+                    Market Intel
+                </a>
+
+
+                <a href="/map">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Map
+                </a>
+
+
+                <a href="/model-performance">
+                    <i class="fas fa-robot"></i>
+                    Model Performance
+                </a>
+
             </nav>
+
         </aside>
 
+
+        <!-- =================================================
+             MAIN CONTENT
+        ================================================== -->
+
         <main class="main-content">
+
+
             <div class="content-header">
-                <h1><i class="fas fa-balance-scale" style="color:var(--primary);"></i> Comparable Properties</h1>
-                <p>Find similar properties to validate valuations</p>
+
+                <h1>
+                    <i class="fas fa-balance-scale" style="color:var(--primary);"></i>
+
+                    Comparable Properties
+                </h1>
+
+
+                <p>
+                    Find similar properties to validate valuations
+                </p>
+
             </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
+
+            <!-- =================================================
+                 FLASH MESSAGES
+            ================================================== -->
+
+            {% with messages = get_flashed_messages(
+            with_categories=true
+            ) %}
+
             {% if messages %}
+
             <div class="flash-messages">
+
                 {% for category, message in messages %}
-                <div class="flash {{ category }}">{{ message }}</div>
+
+                <div class="flash {{ category }}">
+                    {{ message }}
+                </div>
+
                 {% endfor %}
+
             </div>
+
             {% endif %}
+
             {% endwith %}
 
+
+            <!-- =================================================
+                 COMPARABLE SEARCH FORM
+            ================================================== -->
+
             <div class="prediction-form-card">
-                <h2><i class="fas fa-search" style="color:var(--primary);"></i> Search Comparables</h2>
+
+                <h2>
+
+                    <i class="fas fa-search" style="color:var(--primary);"></i>
+
+                    Search Comparables
+
+                </h2>
+
+
                 <form id="comparablesForm">
+
+
                     <div class="form-grid">
+
+
+                        <!-- =====================================
+                             PROPERTY TYPE
+                        ====================================== -->
+
                         <div class="form-group">
-                            <label>Property Type</label>
-                            <select name="property_type">
-                                <option value="Apartment">Apartment</option>
-                                <option value="House">House</option>
-                                <option value="Villa">Villa</option>
-                                <option value="Plot">Plot</option>
+
+                            <label for="propertyType">
+                                Property Type
+                            </label>
+
+                            <select name="property_type" id="propertyType" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Property Type
+                                </option>
+
                             </select>
+
                         </div>
+
+
+                        <!-- =====================================
+                             CITY
+                        ====================================== -->
+
                         <div class="form-group">
-                            <label>City</label>
-                            <select name="city">
-                                <option value="Ahmedabad">Ahmedabad</option>
-                                <option value="Bengaluru">Bengaluru</option>
-                                <option value="Chandigarh">Chandigarh</option>
-                                <option value="Chennai">Chennai</option>
-                                <option value="Coimbatore">Coimbatore</option>
-                                <option value="Delhi">Delhi</option>
-                                <option value="Ghaziabad">Ghaziabad</option>
-                                <option value="Gurgaon">Gurgaon</option>
-                                <option value="Hyderabad" selected>Hyderabad</option>
-                                <option value="Indore">Indore</option>
-                                <option value="Jaipur">Jaipur</option>
-                                <option value="Kochi">Kochi</option>
-                                <option value="Kolkata">Kolkata</option>
-                                <option value="Lucknow">Lucknow</option>
-                                <option value="Mumbai">Mumbai</option>
-                                <option value="Nagpur">Nagpur</option>
-                                <option value="Pune">Pune</option>
-                                <option value="Visakhapatnam">Visakhapatnam</option>
+
+                            <label for="city">
+                                City
+                            </label>
+
+                            <select name="city" id="city" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select City
+                                </option>
+
                             </select>
+
                         </div>
+
+
+                        <!-- =====================================
+                             LOCALITY
+                        ====================================== -->
+
                         <div class="form-group">
-                            <label>Locality</label>
-                            <input type="text" name="locality" placeholder="e.g. Gachibowli">
+
+                            <label for="locality">
+                                Locality
+                            </label>
+
+                            <select name="locality" id="locality" class="dropdown-select" required disabled>
+
+                                <option value="">
+                                    Select Locality
+                                </option>
+
+                            </select>
+
                         </div>
+
+
+                        <!-- =====================================
+                             AREA
+                        ====================================== -->
+
                         <div class="form-group">
-                            <label>Area (sqft)</label>
-                            <input type="number" name="area_sqft" placeholder="e.g. 1500" min="100">
+
+                            <label for="area_sqft">
+                                Area (sq ft)
+                            </label>
+
+                            <select name="area_sqft" id="area_sqft" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Area
+                                </option>
+
+                            </select>
+
                         </div>
+
+
+                        <!-- =====================================
+                             BEDROOMS / BHK
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="bhk">
+                                Bedrooms
+                            </label>
+
+                            <select name="bhk" id="bhk" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Bedrooms
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             BATHROOMS
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="bathrooms">
+                                Bathrooms
+                            </label>
+
+                            <select name="bathrooms" id="bathrooms" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Bathrooms
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             FURNISHING
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="furnishing">
+                                Furnishing
+                            </label>
+
+                            <select name="furnishing" id="furnishing" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Furnishing
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             FACING
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="facing">
+                                Facing
+                            </label>
+
+                            <select name="facing" id="facing" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Facing
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             PROPERTY AGE
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="property_age">
+                                Age of Property
+                            </label>
+
+                            <select name="property_age" id="property_age" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Property Age
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             FLOOR
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="floor">
+                                Floor
+                            </label>
+
+                            <select name="floor" id="floor" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Floor
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             TOTAL FLOORS
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="total_floors">
+                                Total Floors
+                            </label>
+
+                            <select name="total_floors" id="total_floors" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Total Floors
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        <!-- =====================================
+                             PARKING
+                        ====================================== -->
+
+                        <div class="form-group">
+
+                            <label for="parking">
+                                Parking
+                            </label>
+
+                            <select name="parking" id="parking" class="dropdown-select" required>
+
+                                <option value="">
+                                    Select Parking
+                                </option>
+
+                            </select>
+
+                        </div>
+
                     </div>
+
+
+                    <!-- =================================================
+                         FORM ACTION
+                    ================================================== -->
+
                     <div class="form-actions">
-                        <button type="submit" class="btn-primary"><i class="fas fa-search"></i> Find Comparables</button>
+
+                        <button type="submit" class="btn-primary" id="findComparablesBtn">
+
+                            <i class="fas fa-search"></i>
+
+                            Find Comparables
+
+                        </button>
+
                     </div>
+
                 </form>
+
             </div>
+
+
+            <!-- =====================================================
+                 EXISTING RESULTS
+            ====================================================== -->
 
             <div id="comparablesResult"></div>
+
+
+            <!-- =====================================================
+                 EXISTING MAP
+            ====================================================== -->
+
             <div id="comparablesMapSection" style="display:none; margin-top:20px;">
+
                 <div class="prediction-form-card">
-                    <h2><i class="fas fa-map" style="color:var(--primary);"></i> Comparable Properties Map</h2>
-                    <div id="comparablesMap" style="height:450px; border-radius:12px; overflow:hidden;"></div>
+
+                    <h2>
+
+                        <i class="fas fa-map" style="color:var(--primary);"></i>
+
+                        Comparable Properties Map
+
+                    </h2>
+
+
+                    <div id="comparablesMap" style="
+                            height:450px;
+                            border-radius:12px;
+                            overflow:hidden;
+                        "></div>
+
                 </div>
+
             </div>
+
         </main>
+
     </div>
+
+
     <script>
-        const comparablesForm = document.getElementById('comparablesForm');
-        const resultArea = document.getElementById('comparablesResult');
-        const mapSection = document.getElementById('comparablesMapSection');
 
-        comparablesForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            resultArea.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fas fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i><p style="margin-top:10px;color:var(--text-light);">Finding comparables...</p></div>';
-            mapSection.style.display = 'none';
+        /* =====================================================
+           FORM ELEMENTS
+        ====================================================== */
 
-            const formData = new FormData(comparablesForm);
-            const data = Object.fromEntries(formData);
+        const comparablesForm =
+            document.getElementById(
+                'comparablesForm'
+            );
+
+        const resultArea =
+            document.getElementById(
+                'comparablesResult'
+            );
+
+        const mapSection =
+            document.getElementById(
+                'comparablesMapSection'
+            );
+
+
+        const propertyTypeSelect =
+            document.getElementById(
+                'propertyType'
+            );
+
+        const citySelect =
+            document.getElementById(
+                'city'
+            );
+
+        const localitySelect =
+            document.getElementById(
+                'locality'
+            );
+
+        const areaSelect =
+            document.getElementById(
+                'area_sqft'
+            );
+
+        const bhkSelect =
+            document.getElementById(
+                'bhk'
+            );
+
+        const bathroomsSelect =
+            document.getElementById(
+                'bathrooms'
+            );
+
+        const furnishingSelect =
+            document.getElementById(
+                'furnishing'
+            );
+
+        const facingSelect =
+            document.getElementById(
+                'facing'
+            );
+
+        const ageSelect =
+            document.getElementById(
+                'property_age'
+            );
+
+        const floorSelect =
+            document.getElementById(
+                'floor'
+            );
+
+        const totalFloorsSelect =
+            document.getElementById(
+                'total_floors'
+            );
+
+        const parkingSelect =
+            document.getElementById(
+                'parking'
+            );
+
+
+        let dropdownData = null;
+
+
+        /* =====================================================
+           GENERIC SELECT POPULATOR
+        ====================================================== */
+
+        function populateSelect(
+            select,
+            options,
+            placeholder
+        ) {
+
+            select.innerHTML = '';
+
+            const placeholderOption =
+                document.createElement(
+                    'option'
+                );
+
+            placeholderOption.value = '';
+
+            placeholderOption.textContent =
+                placeholder;
+
+            placeholderOption.selected =
+                true;
+
+            select.appendChild(
+                placeholderOption
+            );
+
+
+            if (!Array.isArray(options)) {
+                return;
+            }
+
+
+            options.forEach(
+                function (item) {
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        item;
+
+                    option.textContent =
+                        item;
+
+                    select.appendChild(
+                        option
+                    );
+
+                }
+            );
+        }
+
+
+        /* =====================================================
+           AREA OPTION POPULATOR
+
+           Uses the exact area ranges already used by
+           the main admin valuation dashboard.
+        ====================================================== */
+
+        function populateAreaOptions(
+            ranges
+        ) {
+
+            areaSelect.innerHTML = '';
+
+            const placeholder =
+                document.createElement(
+                    'option'
+                );
+
+            placeholder.value = '';
+
+            placeholder.textContent =
+                'Select Area';
+
+            placeholder.selected =
+                true;
+
+            areaSelect.appendChild(
+                placeholder
+            );
+
+
+            if (!Array.isArray(ranges)) {
+                return;
+            }
+
+
+            ranges.forEach(
+                function (range) {
+
+                    const minimum =
+                        Number(
+                            range.min
+                        );
+
+                    const maximum =
+                        Number(
+                            range.max
+                        );
+
+
+                    const midpoint =
+                        Math.floor(
+                            (
+                                minimum +
+                                maximum
+                            ) / 2
+                        );
+
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        midpoint;
+
+                    option.textContent =
+                        range.label;
+
+                    areaSelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+        }
+
+
+        /* =====================================================
+           LOCALITY POPULATOR
+        ====================================================== */
+
+        function populateLocalities(
+            city
+        ) {
+
+            localitySelect.innerHTML = '';
+
+            const placeholder =
+                document.createElement(
+                    'option'
+                );
+
+            placeholder.value = '';
+
+            placeholder.textContent =
+                'Select Locality';
+
+            placeholder.selected =
+                true;
+
+            localitySelect.appendChild(
+                placeholder
+            );
+
+
+            localitySelect.disabled =
+                !city;
+
+
+            if (
+                !city ||
+                !dropdownData ||
+                !dropdownData.localities
+            ) {
+
+                return;
+            }
+
+
+            const localities =
+                dropdownData.localities[
+                city
+                ] || [];
+
+
+            localities.forEach(
+                function (locality) {
+
+                    const option =
+                        document.createElement(
+                            'option'
+                        );
+
+                    option.value =
+                        locality;
+
+                    option.textContent =
+                        locality;
+
+                    localitySelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+
+            localitySelect.disabled =
+                localities.length === 0;
+        }
+
+
+        /* =====================================================
+           LOAD EXACT DROPDOWN DATA FROM EXISTING APP
+        ====================================================== */
+
+        async function loadDropdownData() {
 
             try {
-                const response = await fetch('/comparables', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-                const result = await response.json();
 
-                if (result.error) {
-                    resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>' + result.error + '</p></div>';
-                    return;
+                const response =
+                    await fetch(
+                        '/api/dropdown-data'
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        'Unable to load dropdown data'
+                    );
                 }
 
-                if (!result.comparables || result.comparables.length === 0) {
-                    resultArea.innerHTML = '<div class="prediction-form-card"><h3>No Comparables Found</h3><p style="text-align:center;color:var(--text-light);padding:20px;">No comparable properties found for the given criteria.</p></div>';
-                    return;
-                }
 
-                let tableHtml = '<div class="prediction-form-card"><h2><i class="fas fa-list" style="color:var(--primary);"></i> Found ' + result.comparables.length + ' Comparables</h2>';
-                tableHtml += '<table class="comparables-table"><thead><tr><th>Locality</th><th>Area</th><th>Price</th><th>Price/sqft</th></tr></thead><tbody>';
-                result.comparables.forEach(c => {
-                    tableHtml += '<tr><td>' + c.locality + '</td><td>' + c.area_sqft + ' sqft</td><td><strong>₹' + Number(c.price).toLocaleString() + '</strong></td><td>₹' + Number(c.price_per_sqft).toLocaleString() + '</td></tr>';
-                });
-                tableHtml += '</tbody></table></div>';
+                dropdownData =
+                    await response.json();
 
-                if (result.stats) {
-                    tableHtml += '<div class="result-grid" style="margin-top:20px;">';
-                    tableHtml += '<div class="result-card"><h3><i class="fas fa-calculator"></i> Average Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.average).toLocaleString() + '</div></div>';
-                    tableHtml += '<div class="result-card"><h3><i class="fas fa-chart-bar"></i> Median Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.median).toLocaleString() + '</div></div>';
-                    tableHtml += '<div class="result-card"><h3><i class="fas fa-sort-amount-down"></i> Min Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.min).toLocaleString() + '</div></div>';
-                    tableHtml += '<div class="result-card"><h3><i class="fas fa-sort-amount-up"></i> Max Price</h3><div class="big-value" style="font-size:1.5rem;">₹' + Number(result.stats.max).toLocaleString() + '</div></div>';
-                    tableHtml += '</div>';
-                }
 
-                resultArea.innerHTML = tableHtml;
+                /* Property Types */
 
-                const mapParams = new URLSearchParams({
-                    city: data.city || 'Hyderabad',
-                    locality: data.locality || ''
-                });
-                if (data.property_type) mapParams.set('property_type', data.property_type);
+                populateSelect(
+                    propertyTypeSelect,
+                    dropdownData.property_types || [],
+                    'Select Property Type'
+                );
 
-                const mapResponse = await fetch('/api/map/properties?' + mapParams.toString());
-                const mapData = await mapResponse.json();
-                const mapProperties = mapData.properties || [];
 
-                if (mapProperties.length > 0) {
-                    const validPoints = mapProperties.filter(p => Number.isFinite(p.latitude) && Number.isFinite(p.longitude));
-                    if (validPoints.length > 0) {
-                        const centerLat = validPoints[0].latitude;
-                        const centerLng = validPoints[0].longitude;
-                        const map = L.map('comparablesMap').setView([centerLat, centerLng], 13);
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '&copy; OpenStreetMap contributors'
-                        }).addTo(map);
+                /* Cities */
 
-                        const COLORS = {
-                            Apartment: "#1E3A8A",
-                            House: "#475569",
-                            Villa: "#B85C38",
-                            Plot: "#B68B2E"
-                        };
+                populateSelect(
+                    citySelect,
+                    dropdownData.cities || [],
+                    'Select City'
+                );
 
-                        validPoints.forEach(function(prop) {
-                            const pLat = Number(prop.latitude);
-                            const pLng = Number(prop.longitude);
-                            const pType = prop.property_type || 'Apartment';
-                            const color = COLORS[pType] || '#6B747A';
 
-                            const icon = L.divIcon({
-                                className: 'comp-map-marker',
-                                html: '<div style="background:' + color + ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);">INR ' + Number(prop.price || 0).toLocaleString('en-IN') + '</div>',
-                                iconSize: [100, 22],
-                                iconAnchor: [50, 11]
-                            });
+                /* Area */
 
-                            L.marker([pLat, pLng], {icon: icon}).addTo(map)
-                                .bindPopup('<b>' + pType + '</b><br>' + (prop.locality || '') + '<br>' + (prop.area_sqft ? Number(prop.area_sqft).toLocaleString('en-IN') + ' sqft | ' : '') + (prop.bhk || '?') + ' BHK<br>INR ' + Number(prop.price || 0).toLocaleString('en-IN'));
-                        });
+                populateAreaOptions(
+                    dropdownData.area_ranges || []
+                );
 
-                        const bounds = L.latLngBounds();
-                        validPoints.forEach(p => bounds.extend([p.latitude, p.longitude]));
-                        map.fitBounds(bounds.pad(0.2));
 
-                        mapSection.style.display = 'block';
-                    }
-                }
-            } catch(err) {
-                resultArea.innerHTML = '<div class="prediction-form-card"><h3>Error</h3><p>Failed to find comparables. Please try again.</p></div>';
+                /* Bedrooms */
+
+                populateSelect(
+                    bhkSelect,
+                    dropdownData.bhk_options || [1, 2, 3, 4, 5],
+                    'Select Bedrooms'
+                );
+
+
+                /* Bathrooms */
+
+                populateSelect(
+                    bathroomsSelect,
+                    dropdownData.bathroom_options || [1, 2, 3, 4, 5],
+                    'Select Bathrooms'
+                );
+
+
+                /* Furnishing */
+
+                populateSelect(
+                    furnishingSelect,
+                    dropdownData.furnishing_options ||
+                    [
+                        'Unfurnished',
+                        'Semi-Furnished',
+                        'Fully Furnished'
+                    ],
+                    'Select Furnishing'
+                );
+
+
+                /* Facing */
+
+                populateSelect(
+                    facingSelect,
+                    dropdownData.facing_options ||
+                    [
+                        'North',
+                        'South',
+                        'East',
+                        'West',
+                        'North-East',
+                        'North-West',
+                        'South-East',
+                        'South-West'
+                    ],
+                    'Select Facing'
+                );
+
+
+                /* Property Age */
+
+                populateSelect(
+                    ageSelect,
+                    dropdownData.ages ||
+                    Array.from(
+                        {
+                            length: 21
+                        },
+                        (
+                            _,
+                            index
+                        ) => index
+                    ),
+                    'Select Property Age'
+                );
+
+
+                /* Floor */
+
+                populateSelect(
+                    floorSelect,
+                    dropdownData.floors ||
+                    Array.from(
+                        {
+                            length: 20
+                        },
+                        (
+                            _,
+                            index
+                        ) => index + 1
+                    ),
+                    'Select Floor'
+                );
+
+
+                /* Total Floors */
+
+                populateSelect(
+                    totalFloorsSelect,
+                    dropdownData.total_floors ||
+                    Array.from(
+                        {
+                            length: 20
+                        },
+                        (
+                            _,
+                            index
+                        ) => index + 1
+                    ),
+                    'Select Total Floors'
+                );
+
+
+                /* Parking */
+
+                populateSelect(
+                    parkingSelect,
+                    dropdownData.parkings ||
+                    [
+                        'None',
+                        'Car',
+                        'Bike',
+                        'Car and Bike'
+                    ],
+                    'Select Parking'
+                );
+
+
+                /* Locality starts empty */
+
+                populateLocalities(
+                    ''
+                );
+
+            } catch (error) {
+
+                console.error(
+                    'Dropdown loading error:',
+                    error
+                );
+
             }
-        });
+
+        }
+
+
+        /* =====================================================
+           CITY → LOCALITY
+        ====================================================== */
+
+        citySelect.addEventListener(
+            'change',
+            function () {
+
+                populateLocalities(
+                    citySelect.value
+                );
+
+            }
+        );
+
+
+        /* =====================================================
+           LOAD DROPDOWNS
+        ====================================================== */
+
+        loadDropdownData();
+
+
+        /* =====================================================
+           EXISTING COMPARABLE SEARCH
+           OUTPUT STRUCTURE PRESERVED
+        ====================================================== */
+
+        comparablesForm.addEventListener(
+            'submit',
+            async function (e) {
+
+                e.preventDefault();
+
+
+                resultArea.innerHTML =
+                    '<div style="text-align:center;padding:40px;">' +
+
+                    '<i class="fas fa-spinner fa-spin" ' +
+                    'style="font-size:2rem;color:var(--primary);">' +
+                    '</i>' +
+
+                    '<p style="margin-top:10px;color:var(--text-light);">' +
+                    'Finding comparables...' +
+                    '</p>' +
+
+                    '</div>';
+
+
+                mapSection.style.display =
+                    'none';
+
+
+                const formData =
+                    new FormData(
+                        comparablesForm
+                    );
+
+
+                const data =
+                    Object.fromEntries(
+                        formData
+                    );
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            '/comparables',
+                            {
+                                method:
+                                    'POST',
+
+                                headers: {
+                                    'Content-Type':
+                                        'application/json'
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        data
+                                    )
+                            }
+                        );
+
+
+                    const result =
+                        await response.json();
+
+
+                    if (
+                        result.error
+                    ) {
+
+                        resultArea.innerHTML =
+                            '<div class="prediction-form-card">' +
+                            '<h3>Error</h3>' +
+                            '<p>' +
+                            result.error +
+                            '</p>' +
+                            '</div>';
+
+                        return;
+                    }
+
+
+                    if (
+                        !result.comparables ||
+                        result.comparables.length === 0
+                    ) {
+
+                        resultArea.innerHTML =
+                            '<div class="prediction-form-card">' +
+                            '<h3>No Comparables Found</h3>' +
+                            '<p style="text-align:center;color:var(--text-light);padding:20px;">' +
+                            'No comparable properties found for the given criteria.' +
+                            '</p>' +
+                            '</div>';
+
+                        return;
+                    }
+
+
+                    /* =========================================
+                       EXISTING RESULT TABLE
+                    ========================================== */
+
+                    let tableHtml =
+                        '<div class="prediction-form-card">' +
+
+                        '<h2>' +
+
+                        '<i class="fas fa-list" ' +
+                        'style="color:var(--primary);"></i> ' +
+
+                        'Found ' +
+                        result.comparables.length +
+                        ' Comparables' +
+
+                        '</h2>';
+
+
+                    tableHtml +=
+                        '<table class="comparables-table">' +
+
+                        '<thead>' +
+
+                        '<tr>' +
+
+                        '<th>Locality</th>' +
+                        '<th>Area</th>' +
+                        '<th>Price</th>' +
+                        '<th>Price/sqft</th>' +
+
+                        '</tr>' +
+
+                        '</thead>' +
+
+                        '<tbody>';
+
+
+                    result.comparables.forEach(
+                        function (c) {
+
+                            tableHtml +=
+
+                                '<tr>' +
+
+                                '<td>' +
+                                c.locality +
+                                '</td>' +
+
+                                '<td>' +
+                                c.area_sqft +
+                                ' sqft</td>' +
+
+                                '<td>' +
+
+                                '<strong>₹' +
+
+                                Number(
+                                    c.price
+                                ).toLocaleString(
+                                    'en-IN'
+                                ) +
+
+                                '</strong>' +
+
+                                '</td>' +
+
+                                '<td>₹' +
+
+                                Number(
+                                    c.price_per_sqft
+                                ).toLocaleString(
+                                    'en-IN'
+                                ) +
+
+                                '</td>' +
+
+                                '</tr>';
+
+                        }
+                    );
+
+
+                    tableHtml +=
+                        '</tbody></table></div>';
+
+
+                    /* =========================================
+                       EXISTING STATISTICS
+                    ========================================== */
+
+                    if (
+                        result.stats
+                    ) {
+
+                        tableHtml +=
+                            '<div class="result-grid" ' +
+                            'style="margin-top:20px;">';
+
+
+                        tableHtml +=
+                            '<div class="result-card">' +
+
+                            '<h3>' +
+
+                            '<i class="fas fa-calculator"></i> ' +
+
+                            'Average Price' +
+
+                            '</h3>' +
+
+                            '<div class="big-value" ' +
+                            'style="font-size:1.5rem;">₹' +
+
+                            Number(
+                                result.stats.average
+                            ).toLocaleString(
+                                'en-IN'
+                            ) +
+
+                            '</div>' +
+
+                            '</div>';
+
+
+                        tableHtml +=
+                            '<div class="result-card">' +
+
+                            '<h3>' +
+
+                            '<i class="fas fa-chart-bar"></i> ' +
+
+                            'Median Price' +
+
+                            '</h3>' +
+
+                            '<div class="big-value" ' +
+                            'style="font-size:1.5rem;">₹' +
+
+                            Number(
+                                result.stats.median
+                            ).toLocaleString(
+                                'en-IN'
+                            ) +
+
+                            '</div>' +
+
+                            '</div>';
+
+
+                        tableHtml +=
+                            '<div class="result-card">' +
+
+                            '<h3>' +
+
+                            '<i class="fas fa-sort-amount-down"></i> ' +
+
+                            'Min Price' +
+
+                            '</h3>' +
+
+                            '<div class="big-value" ' +
+                            'style="font-size:1.5rem;">₹' +
+
+                            Number(
+                                result.stats.min
+                            ).toLocaleString(
+                                'en-IN'
+                            ) +
+
+                            '</div>' +
+
+                            '</div>';
+
+
+                        tableHtml +=
+                            '<div class="result-card">' +
+
+                            '<h3>' +
+
+                            '<i class="fas fa-sort-amount-up"></i> ' +
+
+                            'Max Price' +
+
+                            '</h3>' +
+
+                            '<div class="big-value" ' +
+                            'style="font-size:1.5rem;">₹' +
+
+                            Number(
+                                result.stats.max
+                            ).toLocaleString(
+                                'en-IN'
+                            ) +
+
+                            '</div>' +
+
+                            '</div>';
+
+
+                        tableHtml +=
+                            '</div>';
+
+                    }
+
+
+                    resultArea.innerHTML =
+                        tableHtml;
+
+
+                    /* =========================================
+                       EXISTING MAP LOGIC
+                    ========================================== */
+
+                    const mapParams =
+                        new URLSearchParams(
+                            {
+                                city:
+                                    data.city ||
+                                    '',
+
+                                locality:
+                                    data.locality ||
+                                    ''
+                            }
+                        );
+
+
+                    if (
+                        data.property_type
+                    ) {
+
+                        mapParams.set(
+                            'property_type',
+                            data.property_type
+                        );
+
+                    }
+
+
+                    const mapResponse =
+                        await fetch(
+                            '/api/map/properties?' +
+                            mapParams.toString()
+                        );
+
+
+                    const mapData =
+                        await mapResponse.json();
+
+
+                    const mapProperties =
+                        mapData.properties ||
+                        [];
+
+
+                    if (
+                        mapProperties.length > 0
+                    ) {
+
+                        const validPoints =
+                            mapProperties.filter(
+                                function (p) {
+
+                                    return (
+
+                                        Number.isFinite(
+                                            p.latitude
+                                        ) &&
+
+                                        Number.isFinite(
+                                            p.longitude
+                                        )
+                                    );
+
+                                }
+                            );
+
+
+                        if (
+                            validPoints.length > 0
+                        ) {
+
+                            const centerLat =
+                                validPoints[0]
+                                    .latitude;
+
+
+                            const centerLng =
+                                validPoints[0]
+                                    .longitude;
+
+
+                            const map =
+                                L.map(
+                                    'comparablesMap'
+                                ).setView(
+                                    [
+                                        centerLat,
+                                        centerLng
+                                    ],
+                                    13
+                                );
+
+
+                            L.tileLayer(
+                                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                                {
+                                    attribution:
+                                        '&copy; OpenStreetMap contributors'
+                                }
+                            ).addTo(
+                                map
+                            );
+
+
+                            const COLORS = {
+
+                                Apartment:
+                                    '#1E3A8A',
+
+                                House:
+                                    '#475569',
+
+                                Villa:
+                                    '#B85C38',
+
+                                Plot:
+                                    '#B68B2E'
+
+                            };
+
+
+                            validPoints.forEach(
+                                function (
+                                    prop
+                                ) {
+
+                                    const pLat =
+                                        Number(
+                                            prop.latitude
+                                        );
+
+
+                                    const pLng =
+                                        Number(
+                                            prop.longitude
+                                        );
+
+
+                                    const pType =
+                                        prop.property_type ||
+                                        'Apartment';
+
+
+                                    const color =
+                                        COLORS[
+                                        pType
+                                        ] ||
+                                        '#6B747A';
+
+
+                                    const icon =
+                                        L.divIcon(
+                                            {
+
+                                                className:
+                                                    'comp-map-marker',
+
+                                                html:
+                                                    '<div style="background:' +
+                                                    color +
+                                                    ';color:white;padding:4px 8px;border-radius:12px;font-size:10px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);">' +
+                                                    'INR ' +
+                                                    Number(
+                                                        prop.price ||
+                                                        0
+                                                    ).toLocaleString(
+                                                        'en-IN'
+                                                    ) +
+                                                    '</div>',
+
+                                                iconSize:
+                                                    [
+                                                        100,
+                                                        22
+                                                    ],
+
+                                                iconAnchor:
+                                                    [
+                                                        50,
+                                                        11
+                                                    ]
+
+                                            }
+                                        );
+
+
+                                    L.marker(
+                                        [
+                                            pLat,
+                                            pLng
+                                        ],
+                                        {
+                                            icon:
+                                                icon
+                                        }
+                                    )
+                                        .addTo(
+                                            map
+                                        )
+                                        .bindPopup(
+
+                                            '<b>' +
+                                            pType +
+                                            '</b><br>' +
+
+                                            (
+                                                prop.locality ||
+                                                ''
+                                            ) +
+
+                                            '<br>' +
+
+                                            (
+                                                prop.area_sqft
+                                                    ? Number(
+                                                        prop.area_sqft
+                                                    ).toLocaleString(
+                                                        'en-IN'
+                                                    ) +
+                                                    ' sqft | '
+                                                    : ''
+                                            ) +
+
+                                            (
+                                                prop.bhk ||
+                                                '?'
+                                            ) +
+
+                                            ' BHK<br>INR ' +
+
+                                            Number(
+                                                prop.price ||
+                                                0
+                                            ).toLocaleString(
+                                                'en-IN'
+                                            )
+
+                                        );
+
+                                }
+                            );
+
+
+                            const bounds =
+                                L.latLngBounds();
+
+
+                            validPoints.forEach(
+                                function (p) {
+
+                                    bounds.extend(
+                                        [
+                                            p.latitude,
+                                            p.longitude
+                                        ]
+                                    );
+
+                                }
+                            );
+
+
+                            map.fitBounds(
+                                bounds.pad(
+                                    0.2
+                                )
+                            );
+
+
+                            mapSection.style.display =
+                                'block';
+
+                        }
+
+                    }
+
+                } catch (err) {
+
+                    console.error(
+                        err
+                    );
+
+
+                    resultArea.innerHTML =
+                        '<div class="prediction-form-card">' +
+
+                        '<h3>Error</h3>' +
+
+                        '<p>' +
+
+                        'Failed to find comparables. ' +
+                        'Please try again.' +
+
+                        '</p>' +
+
+                        '</div>';
+
+                }
+
+            }
+        );
+
     </script>
+
 </body>
+
 </html>

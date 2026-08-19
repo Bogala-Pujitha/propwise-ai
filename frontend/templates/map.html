@@ -1,108 +1,1574 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Property Map - PropWise AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <style>
-.map-filters{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
-.map-field label{display:block;font-size:.85rem;font-weight:600;margin-bottom:6px;color:var(--pw-text)}
-.map-field select{width:100%;padding:12px;border:1px solid var(--pw-border);border-radius:8px;background:#fff;color:var(--pw-text)}
-#pwMap{height:620px;border:1px solid var(--pw-border);border-radius:12px;overflow:hidden;background:var(--pw-soft)}
-.map-status{margin:10px 0;color:var(--pw-muted);font-size:.9rem}
-.legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:12px}
-.legend span{display:flex;align-items:center;gap:7px;font-size:.84rem}
-.dot{width:11px;height:11px;border-radius:50%}
-@media(max-width:800px){.map-filters{grid-template-columns:1fr}}
-</style>
+
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Property Map - PropWise AI</title>
+
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/clean.css') }}">
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+
+  <style>
+    /* =====================================================
+           MAP PAGE — SCOPED STYLES
+           Does not alter other project pages.
+        ====================================================== */
+
+    .map-page .main-content {
+
+      min-width: 0;
+
+      width: auto;
+
+      max-width: none;
+
+      box-sizing: border-box;
+
+      padding: 24px;
+
+    }
+
+
+    /* =====================================================
+           MAP CARD
+        ====================================================== */
+
+    .map-page .map-card {
+
+      width: 100%;
+
+      box-sizing: border-box;
+
+      background: #FFFFFF;
+
+      border: 1px solid #E2E8F0;
+
+      border-radius: 12px;
+
+      padding: 18px;
+
+      box-shadow:
+        0 2px 8px rgba(15, 23, 42, 0.05);
+
+    }
+
+
+    /* =====================================================
+           FILTER GRID
+        ====================================================== */
+
+    .map-page .map-filters {
+
+      display: grid;
+
+      grid-template-columns:
+        minmax(220px, 1fr) minmax(220px, 1fr) auto;
+
+      gap: 14px;
+
+      align-items: end;
+
+      width: 100%;
+
+      margin-bottom: 12px;
+
+      box-sizing: border-box;
+
+    }
+
+
+    .map-page .map-field {
+
+      min-width: 0;
+
+    }
+
+
+    .map-page .map-field label {
+
+      display: block;
+
+      margin-bottom: 7px;
+
+      color: #0F172A;
+
+      font-size: 0.85rem;
+
+      font-weight: 600;
+
+    }
+
+
+    .map-page .map-field select {
+
+      width: 100%;
+
+      height: 42px;
+
+      padding: 9px 12px;
+
+      box-sizing: border-box;
+
+      border: 1px solid #CBD5E1;
+
+      border-radius: 8px;
+
+      background: #FFFFFF;
+
+      color: #0F172A;
+
+      font-size: 14px;
+
+    }
+
+
+    .map-page .map-field select:focus {
+
+      outline: none;
+
+      border-color: #2563EB;
+
+      box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.10);
+
+    }
+
+
+    .map-page .map-field select:disabled {
+
+      background: #F8FAFC;
+
+      color: #94A3B8;
+
+      cursor: not-allowed;
+
+    }
+
+
+    /* =====================================================
+           BUTTON
+        ====================================================== */
+
+    .map-page #pwApply {
+
+      height: 42px;
+
+      min-width: 170px;
+
+      white-space: nowrap;
+
+    }
+
+
+    /* =====================================================
+           STATUS
+        ====================================================== */
+
+    .map-page .map-status {
+
+      min-height: 24px;
+
+      margin: 10px 0;
+
+      color: #64748B;
+
+      font-size: 0.88rem;
+
+    }
+
+
+    /* =====================================================
+           MAP
+        ====================================================== */
+
+    .map-page #pwMap {
+
+      width: 100%;
+
+      height: 560px;
+
+      border: 1px solid #E2E8F0;
+
+      border-radius: 10px;
+
+      overflow: hidden;
+
+      background: #F1F5F9;
+
+    }
+
+
+    /* =====================================================
+           LEGEND
+        ====================================================== */
+
+    .map-page .map-legend {
+
+      display: flex;
+
+      flex-wrap: wrap;
+
+      align-items: center;
+
+      gap: 16px;
+
+      margin-top: 12px;
+
+      padding: 10px 12px;
+
+      background: #F8FAFC;
+
+      border: 1px solid #E2E8F0;
+
+      border-radius: 8px;
+
+    }
+
+
+    .map-page .legend-item {
+
+      display: inline-flex;
+
+      align-items: center;
+
+      gap: 7px;
+
+      color: #475569;
+
+      font-size: 0.8rem;
+
+      font-weight: 500;
+
+    }
+
+
+    .map-page .legend-dot {
+
+      width: 11px;
+
+      height: 11px;
+
+      border-radius: 50%;
+
+      display: inline-block;
+
+    }
+
+
+    /* =====================================================
+           PROPERTY POPUP
+        ====================================================== */
+
+    .map-page .leaflet-popup-content {
+
+      margin: 10px 12px;
+
+      line-height: 1.5;
+
+      font-size: 13px;
+
+    }
+
+
+    /* =====================================================
+           RESPONSIVE
+        ====================================================== */
+
+    @media (max-width: 950px) {
+
+      .map-page .map-filters {
+
+        grid-template-columns:
+          1fr 1fr;
+
+      }
+
+      .map-page #pwApply {
+
+        width: 100%;
+
+      }
+
+    }
+
+
+    @media (max-width: 650px) {
+
+      .map-page .main-content {
+
+        padding: 14px;
+
+      }
+
+      .map-page .map-card {
+
+        padding: 12px;
+
+      }
+
+      .map-page .map-filters {
+
+        grid-template-columns:
+          1fr;
+
+      }
+
+      .map-page #pwMap {
+
+        height: 480px;
+
+      }
+
+    }
+  </style>
+
 </head>
-<body>
-<nav class="navbar scrolled">
-<div class="nav-container">
-<a href="/" class="nav-logo"><i class="fas fa-home"></i><span>PropWise AI</span></a>
-<div class="nav-links"><span>Welcome, <strong>{{ current_user.username }}</strong></span><a href="/logout" class="btn-nav-login">Logout</a></div>
-</div></nav>
-
-<div class="dashboard-layout">
-<aside class="sidebar">
-<div class="sidebar-header"><h3><i class="fas fa-map"></i> Property Map</h3><small>{{ current_user.role }}</small></div>
-<nav class="sidebar-nav">
-<a href="/dashboard"><i class="fas fa-calculator"></i> Valuation</a>
-<a href="/what-if"><i class="fas fa-sliders-h"></i> What-If</a>
-<a href="/comparables"><i class="fas fa-balance-scale"></i> Comparables</a>
-<a href="/market-intelligence"><i class="fas fa-chart-line"></i> Market Intel</a>
-<a href="/map" class="active"><i class="fas fa-map"></i> Map</a>
-<a href="/model-performance"><i class="fas fa-robot"></i> Model Performance</a>
-<a href="/experiments"><i class="fas fa-flask"></i> Experiments</a>
-{% if current_user.role=="admin" %}<a href="/admin"><i class="fas fa-user-shield"></i> Admin</a>{% endif %}
-</nav></aside>
-
-<main class="main-content">
-<div class="content-header"><h1><i class="fas fa-map-marker-alt" style="color:var(--pw-primary)"></i> Property Map</h1><p>Select a city and area to see property types available in that location.</p></div>
-
-<section class="prediction-form-card">
-<div class="map-filters">
-<div class="map-field"><label for="pwCity">City</label><select id="pwCity"></select></div>
-<div class="map-field"><label for="pwArea">Area / Locality</label><select id="pwArea"><option value="">All areas</option></select></div>
-<button class="btn-primary" id="pwApply" type="button"><i class="fas fa-map-marker-alt"></i> Show Properties</button>
-</div>
-<div class="map-status" id="pwStatus">Loading locations...</div>
-<div id="pwMap"></div>
-<div class="legend">
-    <span><i class="dot" style="background:#1E3A8A;"></i>Apartment</span>
-    <span><i class="dot" style="background:#475569;"></i>House</span>
-    <span><i class="dot" style="background:#B85C38;"></i>Villa</span>
-    <span><i class="dot" style="background:#B68B2E;"></i>Plot</span>
-</div>
-</section></main></div>
 
 
-<script src="{{ url_for('static', filename='js/propwise_maps.js') }}"></script>
-<script>
-let optionsData=null;
-const citySelect=document.getElementById("pwCity");
-const areaSelect=document.getElementById("pwArea");
-const statusEl=document.getElementById("pwStatus");
+<body class="map-page">
 
-function fillAreas(){
-  areaSelect.innerHTML='<option value="">All areas</option>';
-  ((optionsData.localities||{})[citySelect.value]||[]).forEach(function(area){
-    const option=document.createElement("option");
-    option.value=area; option.textContent=area; areaSelect.appendChild(option);
-  });
-}
 
-async function loadOptions(){
-  const response=await fetch("/api/map/options");
-  optionsData=await response.json();
-  citySelect.innerHTML="";
-  (optionsData.cities||[]).forEach(function(city,index){
-    const option=document.createElement("option");
-    option.value=city; option.textContent=city; if(index===0) option.selected=true;
-    citySelect.appendChild(option);
-  });
-  fillAreas();
-}
+  <!-- =====================================================
+         TOP NAVBAR
+    ====================================================== -->
 
-async function showProperties(){
-  const params=new URLSearchParams({city:citySelect.value});
-  if(areaSelect.value) params.set("locality",areaSelect.value);
-  const response=await fetch("/api/map/properties?"+params.toString());
-  const data=await response.json();
-  statusEl.textContent=(data.count||0)+" properties shown"+(areaSelect.value?" in "+areaSelect.value:" in "+citySelect.value);
-  try{
-    await window.PW_renderStandaloneMap("pwMap",data.properties||[]);
-  }catch(error){
-    document.getElementById("pwMap").innerHTML='<div class="map-api-message"><strong>Map unavailable.</strong><br>Unable to load property locations.</div>';
-  }
-}
+  <nav class="navbar">
 
-citySelect.addEventListener("change",fillAreas);
-document.getElementById("pwApply").addEventListener("click",showProperties);
-(async function(){try{await loadOptions();await showProperties();}catch(error){statusEl.textContent="Unable to load property locations.";}})();
-</script>
+    <div class="nav-container">
+
+      <a href="/" class="nav-logo">
+        <i class="fas fa-home"></i>
+        <span>PropWise AI</span>
+      </a>
+
+
+      <div class="nav-links">
+
+        <span style="color:var(--text-light);">
+
+          Welcome,
+          <strong>
+            {{ current_user.username }}
+          </strong>
+
+        </span>
+
+
+        <a href="/logout" class="btn-nav-login">
+          Logout
+        </a>
+
+      </div>
+
+    </div>
+
+  </nav>
+
+
+  <!-- =====================================================
+         DASHBOARD LAYOUT
+    ====================================================== -->
+
+  <div class="dashboard-layout">
+
+
+    <!-- =================================================
+             ADMIN SIDEBAR
+        ================================================== -->
+        <aside class="sidebar map-admin-sidebar">
+        
+          <!-- =================================================
+                       SIDEBAR HEADER
+                  ================================================== -->
+        
+          <div class="sidebar-header">
+        
+            <h3>
+              <i class="fas fa-tachometer-alt"></i>
+              Dashboard
+            </h3>
+        
+            <small>
+              {{ current_user.role }}
+            </small>
+        
+          </div>
+        
+        
+          <!-- =================================================
+                       MAIN DASHBOARD
+                  ================================================== -->
+        
+          <nav class="sidebar-nav">
+        
+        
+            <div class="sidebar-section-title">
+              Dashboard
+            </div>
+        
+        
+            <a href="/admin">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Valuation</span>
+            </a>
+        
+        
+            <a href="/admin#result-section">
+              <i class="fas fa-chart-bar"></i>
+              <span>Result</span>
+            </a>
+        
+        
+            <a href="/admin#charts-section">
+              <i class="fas fa-chart-pie"></i>
+              <span>Charts</span>
+            </a>
+        
+        
+            <a href="/admin#trend-section">
+              <i class="fas fa-chart-line"></i>
+              <span>Trend</span>
+            </a>
+        
+        
+            <a href="/map" class="active">
+              <i class="fas fa-map-marked-alt"></i>
+              <span>Map</span>
+            </a>
+        
+        
+            <a href="/admin#shap-section">
+              <i class="fas fa-microscope"></i>
+              <span>SHAP</span>
+            </a>
+        
+        
+            <a href="/admin#location-section">
+              <i class="fas fa-map-pin"></i>
+              <span>Location</span>
+            </a>
+        
+        
+            <a href="/comparables">
+              <i class="fas fa-balance-scale"></i>
+              <span>Comparables</span>
+            </a>
+        
+        
+            <a href="/what-if">
+              <i class="fas fa-sliders-h"></i>
+              <span>What-If</span>
+            </a>
+        
+        
+            <a href="/admin#history-section">
+              <i class="fas fa-history"></i>
+              <span>History</span>
+            </a>
+        
+        
+            {% if current_user.role == "admin" %}
+        
+            <!-- =================================================
+                           ADMIN TOOLS
+                      ================================================== -->
+        
+            <div class="sidebar-divider"></div>
+        
+            <div class="sidebar-section-title">
+              Admin Tools
+            </div>
+        
+        
+            <a href="/bulk-valuation">
+              <i class="fas fa-box"></i>
+              <span>Bulk Valuation</span>
+            </a>
+        
+        
+            <a href="/market-intelligence">
+              <i class="fas fa-chart-line"></i>
+              <span>Market Intel</span>
+            </a>
+        
+        
+            <a href="/experiments">
+              <i class="fas fa-flask"></i>
+              <span>Experiments</span>
+            </a>
+        
+        
+            <a href="/model-performance">
+              <i class="fas fa-robot"></i>
+              <span>Models</span>
+            </a>
+        
+        
+            <!-- =================================================
+                           ADMIN PANEL
+                      ================================================== -->
+        
+            <div class="sidebar-divider"></div>
+        
+            <div class="sidebar-section-title">
+              Admin Panel
+            </div>
+        
+        
+            <a href="/admin/users">
+              <i class="fas fa-users"></i>
+              <span>Users</span>
+            </a>
+        
+        
+            <a href="/admin/analytics">
+              <i class="fas fa-chart-pie"></i>
+              <span>Analytics</span>
+            </a>
+        
+        
+            <a href="/admin/audit">
+              <i class="fas fa-shield-alt"></i>
+              <span>Audit</span>
+            </a>
+        
+            {% endif %}
+        
+          </nav>
+        
+          </aside>
+
+    <!-- =================================================
+             MAIN CONTENT
+        ================================================== -->
+
+    <main class="main-content">
+
+
+      <div class="content-header">
+
+        <h1>
+
+          <i class="fas fa-map-marker-alt" style="color:var(--primary);"></i>
+
+          Property Map
+
+        </h1>
+
+
+        <p>
+          Select a city and area to see property
+          types available in that location.
+        </p>
+
+      </div>
+
+
+      <!-- =================================================
+                 MAP CARD
+            ================================================== -->
+
+      <section class="map-card">
+
+
+        <!-- =============================================
+                     FILTERS
+                ============================================== -->
+
+        <div class="map-filters">
+
+
+          <!-- CITY -->
+
+          <div class="map-field">
+
+            <label for="pwCity">
+              City
+            </label>
+
+            <select id="pwCity" required>
+
+              <option value="">
+                Select City
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- AREA / LOCALITY -->
+
+          <div class="map-field">
+
+            <label for="pwArea">
+              Area / Locality
+            </label>
+
+            <select id="pwArea" required disabled>
+
+              <option value="">
+                Select Area / Locality
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- BUTTON -->
+
+          <button class="btn-primary" id="pwApply" type="button" disabled>
+
+            <i class="fas fa-map-marker-alt"></i>
+
+            Show Properties
+
+          </button>
+
+        </div>
+
+
+        <!-- =============================================
+                     STATUS
+                ============================================== -->
+
+        <div class="map-status" id="pwStatus">
+          Select a city and area to display properties.
+        </div>
+
+
+        <!-- =============================================
+                     MAP
+                ============================================== -->
+
+        <div id="pwMap"></div>
+
+
+        <!-- =============================================
+                     LEGEND
+                ============================================== -->
+
+        <div class="map-legend">
+
+          <span class="legend-item">
+
+            <span class="legend-dot" style="background:#1E3A8A;"></span>
+
+            Apartment
+
+          </span>
+
+
+          <span class="legend-item">
+
+            <span class="legend-dot" style="background:#475569;"></span>
+
+            House
+
+          </span>
+
+
+          <span class="legend-item">
+
+            <span class="legend-dot" style="background:#B85C38;"></span>
+
+            Villa
+
+          </span>
+
+
+          <span class="legend-item">
+
+            <span class="legend-dot" style="background:#B68B2E;"></span>
+
+            Plot
+
+          </span>
+
+        </div>
+
+
+      </section>
+
+    </main>
+
+  </div>
+
+
+  <script>
+
+    /* =====================================================
+       ELEMENTS
+    ====================================================== */
+
+    const citySelect =
+      document.getElementById(
+        "pwCity"
+      );
+
+
+    const areaSelect =
+      document.getElementById(
+        "pwArea"
+      );
+
+
+    const applyButton =
+      document.getElementById(
+        "pwApply"
+      );
+
+
+    const statusEl =
+      document.getElementById(
+        "pwStatus"
+      );
+
+
+    const mapElement =
+      document.getElementById(
+        "pwMap"
+      );
+
+
+    let optionsData = null;
+
+    let propertyMap = null;
+
+    let propertyMarkers = [];
+
+
+    /* =====================================================
+       PROPERTY COLORS
+    ====================================================== */
+
+    const PROPERTY_COLORS = {
+
+      Apartment:
+        "#1E3A8A",
+
+      House:
+        "#475569",
+
+      Villa:
+        "#B85C38",
+
+      Plot:
+        "#B68B2E"
+
+    };
+
+
+    /* =====================================================
+       SAFE HTML
+    ====================================================== */
+
+    function escapeHtml(
+      value
+    ) {
+
+      return String(
+        value ?? ""
+      )
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+    /* =====================================================
+       RESET MAP
+    ====================================================== */
+
+    function clearMap() {
+
+      propertyMarkers
+        .forEach(
+          function (marker) {
+
+            if (propertyMap) {
+
+              propertyMap
+                .removeLayer(
+                  marker
+                );
+
+            }
+
+          }
+        );
+
+
+      propertyMarkers = [];
+
+
+      if (propertyMap) {
+
+        propertyMap.remove();
+
+        propertyMap = null;
+
+      }
+
+
+      mapElement.innerHTML = "";
+
+    }
+
+
+    /* =====================================================
+       CREATE LEAFLET MAP
+    ====================================================== */
+
+    function createPropertyMap(
+      properties
+    ) {
+
+      clearMap();
+
+
+      const validProperties =
+        properties.filter(
+          function (property) {
+
+            return (
+
+              Number.isFinite(
+                Number(
+                  property.latitude
+                )
+              ) &&
+
+              Number.isFinite(
+                Number(
+                  property.longitude
+                )
+              )
+
+            );
+
+          }
+        );
+
+
+      /*
+       * Do not draw an arbitrary fake location.
+       * If the selected area has no coordinates,
+       * tell the user clearly.
+       */
+
+      if (
+        validProperties.length === 0
+      ) {
+
+        mapElement.innerHTML =
+          '<div style="' +
+          'height:100%;' +
+          'display:flex;' +
+          'align-items:center;' +
+          'justify-content:center;' +
+          'padding:20px;' +
+          'box-sizing:border-box;' +
+          'text-align:center;' +
+          'color:#64748B;' +
+          '">' +
+
+          '<div>' +
+
+          '<i class="fas fa-map-marked-alt" ' +
+          'style="font-size:2rem;' +
+          'margin-bottom:10px;' +
+          'display:block;' +
+          'color:#94A3B8;"></i>' +
+
+          'No mappable property locations ' +
+          'are available for this selection.' +
+
+          '</div>' +
+
+          '</div>';
+
+        return;
+
+      }
+
+
+      /* ===============================================
+         CENTER
+      ============================================ */
+
+      const first =
+        validProperties[0];
+
+
+      propertyMap =
+        L.map(
+          mapElement,
+          {
+            scrollWheelZoom: true,
+            zoomControl: true
+          }
+        );
+
+
+      propertyMap.setView(
+        [
+          Number(
+            first.latitude
+          ),
+          Number(
+            first.longitude
+          )
+        ],
+        13
+      );
+
+
+      /* ===============================================
+         OPENSTREETMAP
+      ============================================ */
+
+      L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+          maxZoom: 19,
+
+          attribution:
+            '&copy; OpenStreetMap contributors'
+        }
+      ).addTo(
+        propertyMap
+      );
+
+
+      /* ===============================================
+         BOUNDS
+      ============================================ */
+
+      const bounds =
+        L.latLngBounds();
+
+
+      /* ===============================================
+         MARKERS
+      ============================================ */
+
+      validProperties.forEach(
+        function (property) {
+
+          const lat =
+            Number(
+              property.latitude
+            );
+
+
+          const lng =
+            Number(
+              property.longitude
+            );
+
+
+          const type =
+            property.property_type ||
+            "Apartment";
+
+
+          const color =
+            PROPERTY_COLORS[type] ||
+            "#64748B";
+
+
+          const marker =
+            L.circleMarker(
+              [
+                lat,
+                lng
+              ],
+              {
+
+                radius: 7,
+
+                color: "#FFFFFF",
+
+                weight: 2,
+
+                fillColor:
+                  color,
+
+                fillOpacity:
+                  0.9
+
+              }
+            )
+              .addTo(
+                propertyMap
+              );
+
+
+          marker.bindPopup(
+
+            "<strong>" +
+            escapeHtml(
+              type
+            ) +
+            "</strong><br>" +
+
+            (
+              property.city
+                ? escapeHtml(
+                  property.city
+                ) +
+                "<br>"
+                : ""
+            ) +
+
+            (
+              property.locality
+                ? escapeHtml(
+                  property.locality
+                ) +
+                "<br>"
+                : ""
+            ) +
+
+            (
+              property.area_sqft
+                ? Number(
+                  property.area_sqft
+                ).toLocaleString(
+                  "en-IN"
+                ) +
+                " sqft<br>"
+                : ""
+            ) +
+
+            (
+              property.bhk
+                ? property.bhk +
+                " BHK<br>"
+                : ""
+            ) +
+
+            (
+              property.bathrooms
+                ? property.bathrooms +
+                " Bath<br>"
+                : ""
+            ) +
+
+            (
+              property.price
+                ? "₹" +
+                Number(
+                  property.price
+                ).toLocaleString(
+                  "en-IN"
+                )
+                : ""
+            )
+
+          );
+
+
+          bounds.extend(
+            [
+              lat,
+              lng
+            ]
+          );
+
+
+          propertyMarkers.push(
+            marker
+          );
+
+        }
+      );
+
+
+      /* ===============================================
+         FIT MAP
+      ============================================ */
+
+      if (
+        validProperties.length === 1
+      ) {
+
+        propertyMap.setView(
+          [
+            Number(
+              validProperties[0]
+                .latitude
+            ),
+            Number(
+              validProperties[0]
+                .longitude
+            )
+          ],
+          15
+        );
+
+      } else {
+
+        propertyMap.fitBounds(
+          bounds.pad(
+            0.15
+          )
+        );
+
+      }
+
+
+      setTimeout(
+        function () {
+
+          propertyMap
+            .invalidateSize();
+
+        },
+        150
+      );
+
+    }
+
+
+    /* =====================================================
+       POPULATE CITY
+    ====================================================== */
+
+    function populateCities() {
+
+      citySelect.innerHTML =
+        '<option value="">' +
+        'Select City' +
+        '</option>';
+
+
+      const cities =
+        Array.isArray(
+          optionsData?.cities
+        )
+          ? optionsData.cities
+          : [];
+
+
+      cities.forEach(
+        function (city) {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+
+          option.value =
+            city;
+
+
+          option.textContent =
+            city;
+
+
+          citySelect.appendChild(
+            option
+          );
+
+        }
+      );
+
+
+      citySelect.disabled =
+        cities.length === 0;
+
+    }
+
+
+    /* =====================================================
+       POPULATE LOCALITIES
+    ====================================================== */
+
+    function populateAreas() {
+
+      areaSelect.innerHTML =
+        '<option value="">' +
+        'Select Area / Locality' +
+        '</option>';
+
+
+      const city =
+        citySelect.value;
+
+
+      if (!city) {
+
+        areaSelect.disabled =
+          true;
+
+        applyButton.disabled =
+          true;
+
+        statusEl.textContent =
+          "Select a city first.";
+
+        clearMap();
+
+        return;
+
+      }
+
+
+      const localities =
+        (
+          optionsData &&
+          optionsData.localities &&
+          optionsData.localities[city]
+        ) || [];
+
+
+      localities.forEach(
+        function (locality) {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+
+          option.value =
+            locality;
+
+
+          option.textContent =
+            locality;
+
+
+          areaSelect.appendChild(
+            option
+          );
+
+        }
+      );
+
+
+      areaSelect.disabled =
+        localities.length === 0;
+
+
+      applyButton.disabled =
+        true;
+
+
+      if (
+        localities.length === 0
+      ) {
+
+        statusEl.textContent =
+          "No localities available for " +
+          city + ".";
+
+      } else {
+
+        statusEl.textContent =
+          "Select an area/locality.";
+
+      }
+
+
+      clearMap();
+
+    }
+
+
+    /* =====================================================
+       LOAD MAP OPTIONS
+    ====================================================== */
+
+    async function loadOptions() {
+
+      try {
+
+        statusEl.textContent =
+          "Loading locations...";
+
+
+        const response =
+          await fetch(
+            "/api/map/options"
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            "Unable to load map options."
+          );
+
+        }
+
+
+        optionsData =
+          await response.json();
+
+
+        populateCities();
+
+
+        areaSelect.disabled =
+          true;
+
+
+        applyButton.disabled =
+          true;
+
+
+        statusEl.textContent =
+          "Select a city and area to display properties.";
+
+
+      } catch (error) {
+
+        console.error(
+          "Map options error:",
+          error
+        );
+
+
+        statusEl.textContent =
+          "Unable to load locations.";
+
+
+        citySelect.disabled =
+          true;
+
+
+        areaSelect.disabled =
+          true;
+
+
+        applyButton.disabled =
+          true;
+
+      }
+
+    }
+
+
+    /* =====================================================
+       CITY CHANGE
+    ====================================================== */
+
+    citySelect.addEventListener(
+      "change",
+      function () {
+
+        populateAreas();
+
+      }
+    );
+
+
+    /* =====================================================
+       AREA CHANGE
+    ====================================================== */
+
+    areaSelect.addEventListener(
+      "change",
+      function () {
+
+        applyButton.disabled =
+          !(
+            citySelect.value &&
+            areaSelect.value
+          );
+
+
+        if (
+          areaSelect.value
+        ) {
+
+          statusEl.textContent =
+            "Click Show Properties to display " +
+            "properties in " +
+            areaSelect.value +
+            ".";
+
+        }
+
+      }
+    );
+
+
+    /* =====================================================
+       SHOW PROPERTIES
+    ====================================================== */
+
+    async function showProperties() {
+
+      const city =
+        citySelect.value;
+
+
+      const locality =
+        areaSelect.value;
+
+
+      if (
+        !city ||
+        !locality
+      ) {
+
+        return;
+
+      }
+
+
+      applyButton.disabled =
+        true;
+
+
+      statusEl.textContent =
+        "Loading properties...";
+
+
+      try {
+
+        const params =
+          new URLSearchParams();
+
+
+        params.set(
+          "city",
+          city
+        );
+
+
+        params.set(
+          "locality",
+          locality
+        );
+
+
+        const response =
+          await fetch(
+            "/api/map/properties?" +
+            params.toString()
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          throw new Error(
+            "Unable to load properties."
+          );
+
+        }
+
+
+        const data =
+          await response.json();
+
+
+        const properties =
+          Array.isArray(
+            data.properties
+          )
+            ? data.properties
+            : [];
+
+
+        statusEl.textContent =
+
+          properties.length +
+          " properties available in " +
+          locality +
+          ", " +
+          city;
+
+
+        createPropertyMap(
+          properties
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Property map error:",
+          error
+        );
+
+
+        clearMap();
+
+
+        statusEl.textContent =
+          "Unable to load properties for " +
+          locality +
+          ", " +
+          city + ".";
+
+      }
+
+
+      applyButton.disabled =
+        false;
+
+    }
+
+
+    applyButton.addEventListener(
+      "click",
+      showProperties
+    );
+
+
+    /* =====================================================
+       INITIALIZE
+       No city is auto-selected.
+    ====================================================== */
+
+    loadOptions();
+
+  </script>
+
 </body>
+
 </html>
