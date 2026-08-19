@@ -1,29 +1,30 @@
 {
-  "purpose": "Remaining missing/partial PropWise AI implementation pack",
-  "source_basis": "Current main branch reviewed on 2026-08-18 plus user-provided architecture document",
+  "purpose": "PropWise AI implementation pack manifest",
+  "source_basis": "Full MVC restructuring with backend/frontend separation",
   "existing_files_not_recreated": [
-    "app/controllers/auth_controller.py",
-    "app/controllers/admin_controller.py",
-    "app/controllers/user_controller.py",
-    "app/controllers/analytics_controller.py",
-    "app/services/auth_service.py",
-    "app/services/activity_service.py",
-    "app/services/analytics.py",
-    "app/services/password_reset.py"
+    "backend/controllers/auth_controller.py",
+    "backend/controllers/admin_controller.py",
+    "backend/controllers/user_controller.py",
+    "backend/controllers/analytics_controller.py",
+    "backend/services/auth_service.py",
+    "backend/services/activity_service.py",
+    "backend/services/analytics.py",
+    "backend/services/password_reset.py"
   ],
   "new_files": [
-    ".github/workflows/ci-hardening.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/deploy.yml",
     "INTEGRATION_PATCHES.md",
     "README_FIRST.md",
-    "app/controllers/behavior_controller.py",
-    "app/controllers/password_reset_controller.py",
-    "app/security.py",
-    "app/services/behavior_analytics.py",
-    "app/services/behavior_tracking.py",
-    "app/services/email_service.py",
-    "app/views/reset_password.html",
-    "tests/integration/test_complete_user_journey.py",
-    "tests/security/test_authorization_matrix.py",
-    "tests/security/test_password_reset.py"
+    "backend/controllers/behavior_controller.py",
+    "backend/controllers/password_reset_controller.py",
+    "backend/security.py",
+    "backend/services/behavior_analytics.py",
+    "backend/services/behavior_tracking.py",
+    "backend/services/email_service.py",
+    "frontend/templates/reset_password.html",
+    "backend/tests/integration/test_complete_user_journey.py",
+    "backend/tests/security/test_authorization_matrix.py",
+    "backend/tests/security/test_password_reset.py"
   ]
 }

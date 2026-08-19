@@ -34,9 +34,9 @@ jobs:
       - name: Verify project structure
         run: |
           test -f requirements.txt
-          test -d app
+          test -d backend
           test -d ml
-          test -d tests
+          test -d frontend
 
       - name: Install dependencies
         run: |
@@ -46,12 +46,12 @@ jobs:
 
       - name: Compile Python
         run: |
-          python -m compileall -q app ml tests
+          python -m compileall -q backend ml
 
       - name: Run Flake8
         continue-on-error: true
         run: |
-          flake8 app ml tests --count --statistics
+          flake8 backend ml --count --statistics
 
       - name: Run tests
         run: |
@@ -88,4 +88,4 @@ jobs:
 
       - name: Import application
         run: |
-          python -c "from app import app; print('PropWise app import OK')"
+          python -c "from backend import app; print('PropWise app import OK')"

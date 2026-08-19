@@ -32,7 +32,7 @@ jobs:
           SECRET_KEY: ${{ secrets.PROPWISE_SECRET_KEY }}
           DATABASE_URL: ${{ secrets.PROPWISE_DATABASE_URL }}
           FLASK_ENV: production
-        run: python scripts/check_production_readiness.py
+        run: python backend/scripts/check_production_readiness.py
 
       # Replace the block below with your actual hosting provider's deployment
       # command. Credentials/API tokens belong in GitHub Actions secrets.
