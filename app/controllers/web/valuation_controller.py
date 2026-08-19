@@ -13,11 +13,8 @@ from flask import (
 from flask_login import current_user, login_required
 
 from app.security import admin_required
-
 from app.extensions import db
-
 from app.services.activity_service import record_activity
-
 from app.services.valuation_service import (
     bulk_valuate,
     find_comparables,
@@ -27,6 +24,190 @@ from app.services.valuation_service import (
     what_if_properties,
 )
 
+
+# ============================================================
+# VALIDATION HELPER
+# ============================================================
+
+def validate_prediction_payload(data):
+    """
+    Validate required fields before the valuation model is called.
+
+    Returns:
+        None
+            When every required field is valid.
+
+        str
+            A user-friendly validation message when one or more
+            required fields are missing/invalid.
+    """
+
+    data = data or {}
+
+    # --------------------------------------------------------
+    # REQUIRED TEXT FIELDS
+    # --------------------------------------------------------
+
+    property_type = str(
+        data.get("property_type", "") or ""
+    ).strip()
+
+    city = str(
+        data.get("city", "") or ""
+    ).strip()
+
+    locality = str(
+        data.get("locality", "") or ""
+    ).strip()
+
+
+    # --------------------------------------------------------
+    # REQUIRED NUMERIC FIELDS
+    # --------------------------------------------------------
+
+    area_raw = str(
+        data.get("area_sqft", "") or ""
+    ).strip()
+
+    bhk_raw = str(
+        data.get("bhk", "") or ""
+    ).strip()
+
+    bathrooms_raw = str(
+        data.get("bathrooms", "") or ""
+    ).strip()
+
+    age_raw = str(
+        data.get("property_age", "") or ""
+    ).strip()
+
+
+    missing_fields = []
+
+
+    # --------------------------------------------------------
+    # PROPERTY TYPE
+    # --------------------------------------------------------
+
+    if not property_type:
+        missing_fields.append("property type")
+
+
+    # --------------------------------------------------------
+    # CITY
+    # --------------------------------------------------------
+
+    if not city:
+        missing_fields.append("city")
+
+
+    # --------------------------------------------------------
+    # LOCALITY
+    # --------------------------------------------------------
+
+    if not locality:
+        missing_fields.append("locality")
+
+
+    # --------------------------------------------------------
+    # AREA
+    # --------------------------------------------------------
+
+    try:
+
+        area_value = float(area_raw)
+
+        if area_value <= 0:
+            raise ValueError
+
+    except (TypeError, ValueError):
+
+        missing_fields.append("area")
+
+
+    # --------------------------------------------------------
+    # BHK
+    # --------------------------------------------------------
+
+    try:
+
+        bhk_value = int(bhk_raw)
+
+        if bhk_value < 0:
+            raise ValueError
+
+    except (TypeError, ValueError):
+
+        missing_fields.append("BHK")
+
+
+    # --------------------------------------------------------
+    # BATHROOMS
+    # --------------------------------------------------------
+
+    try:
+
+        bathrooms_value = int(bathrooms_raw)
+
+        if bathrooms_value < 0:
+            raise ValueError
+
+    except (TypeError, ValueError):
+
+        missing_fields.append("bathrooms")
+
+
+    # --------------------------------------------------------
+    # PROPERTY AGE
+    # --------------------------------------------------------
+
+    try:
+
+        age_value = int(age_raw)
+
+        if age_value < 0:
+            raise ValueError
+
+    except (TypeError, ValueError):
+
+        missing_fields.append("property age")
+
+
+    # --------------------------------------------------------
+    # EVERYTHING VALID
+    # --------------------------------------------------------
+
+    if not missing_fields:
+        return None
+
+
+    # --------------------------------------------------------
+    # BUILD USER-FRIENDLY MESSAGE
+    # --------------------------------------------------------
+
+    if len(missing_fields) == 1:
+
+        return (
+            "Please enter "
+            + missing_fields[0]
+            + "."
+        )
+
+
+    return (
+        "Please enter "
+        + ", ".join(
+            missing_fields[:-1]
+        )
+        + " and "
+        + missing_fields[-1]
+        + "."
+    )
+
+
+# ============================================================
+# SINGLE PROPERTY VALUATION
+# ============================================================
 
 @login_required
 def predict():
@@ -38,71 +219,74 @@ def predict():
         else request.form
     )
 
-    # ------------------------------------------------------------
-    # REQUIRED VALIDATION
-    # Locality and area are mandatory.
-    # ------------------------------------------------------------
 
-    locality = str(
-        data.get("locality", "") or ""
-    ).strip()
+    # --------------------------------------------------------
+    # REQUIRED BACKEND VALIDATION
+    #
+    # IMPORTANT:
+    # This happens BEFORE property_from_payload()
+    # and BEFORE predict_property().
+    #
+    # Therefore missing values cannot be replaced by
+    # fallback/default values and sent to the ML model.
+    # --------------------------------------------------------
 
-    area_raw = str(
-        data.get("area_sqft", "") or ""
-    ).strip()
-
-    area_valid = False
-
-    if area_raw:
-        try:
-            area_value = float(area_raw)
-
-            if area_value > 0:
-                area_valid = True
-
-        except (TypeError, ValueError):
-            area_valid = False
-
-    if not locality or not area_valid:
-
-        error_message = (
-            "Please enter locality and area."
+    validation_error = (
+        validate_prediction_payload(
+            data
         )
+    )
+
+
+    if validation_error:
 
         if request.is_json:
+
             return jsonify(
                 {
-                    "error": error_message
+                    "error":
+                        validation_error
                 }
             ), 400
 
-        flash(error_message, "error")
+
+        flash(
+            validation_error,
+            "error",
+        )
 
         return redirect(
             url_for("dashboard")
         )
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # BUILD PROPERTY DATA
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     property_data = property_from_payload(
         data,
         area_default=0,
     )
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # RUN PREDICTION
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     result = predict_property(
         property_data
     )
 
+
     if "error" in result:
 
         if request.is_json:
-            return jsonify(result), 400
+
+            return jsonify(
+                result
+            ), 400
+
 
         flash(
             result["error"],
@@ -113,9 +297,10 @@ def predict():
             url_for("dashboard")
         )
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # SAVE PREDICTION
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     save_prediction(
         db,
@@ -124,9 +309,10 @@ def predict():
         result=result,
     )
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # ACTIVITY LOG
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     record_activity(
         user_id=current_user.id,
@@ -141,14 +327,20 @@ def predict():
         commit=False,
     )
 
+
     db.session.commit()
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # RESPONSE
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     if request.is_json:
-        return jsonify(result)
+
+        return jsonify(
+            result
+        )
+
 
     return render_template(
         "result.html",
@@ -156,6 +348,10 @@ def predict():
         property=property_data,
     )
 
+
+# ============================================================
+# WHAT-IF ANALYSIS
+# ============================================================
 
 @login_required
 def what_if():
@@ -171,25 +367,32 @@ def what_if():
             changes={},
         )
 
+
     data = (
         request.get_json(silent=True)
         if request.is_json
         else request.form
     )
 
+
     (
         base_property,
         modified_property,
         changes,
-    ) = what_if_properties(data)
+    ) = what_if_properties(
+        data
+    )
+
 
     original_result = predict_property(
         base_property
     )
 
+
     modified_result = predict_property(
         modified_property
     )
+
 
     record_activity(
         user_id=current_user.id,
@@ -203,17 +406,25 @@ def what_if():
         commit=False,
     )
 
+
     db.session.commit()
+
 
     if request.is_json:
 
         return jsonify(
             {
-                "original": original_result,
-                "modified": modified_result,
-                "changes": changes,
+                "original":
+                    original_result,
+
+                "modified":
+                    modified_result,
+
+                "changes":
+                    changes,
             }
         )
+
 
     return render_template(
         "what_if.html",
@@ -223,6 +434,10 @@ def what_if():
         changes=changes,
     )
 
+
+# ============================================================
+# COMPARABLE PROPERTIES
+# ============================================================
 
 @login_required
 def comparables():
@@ -236,20 +451,24 @@ def comparables():
             property={},
         )
 
+
     data = (
         request.get_json(silent=True)
         if request.is_json
         else request.form
     )
 
+
     property_data = property_from_payload(
         data,
         area_default=1500,
     )
 
+
     comparables_result = find_comparables(
         property_data
     )
+
 
     record_activity(
         user_id=current_user.id,
@@ -263,15 +482,19 @@ def comparables():
         commit=False,
     )
 
+
     db.session.commit()
+
 
     if request.is_json:
 
         return jsonify(
             {
-                "comparables": comparables_result
+                "comparables":
+                    comparables_result
             }
         )
+
 
     return render_template(
         "comparables.html",
@@ -279,6 +502,10 @@ def comparables():
         property=property_data,
     )
 
+
+# ============================================================
+# BULK VALUATION
+# ============================================================
 
 @login_required
 @admin_required
@@ -299,14 +526,22 @@ def bulk_valuation():
             results=None,
         )
 
-    # ------------------------------------------------------------
-    # ACCEPT BOTH FILE FIELD NAMES
-    # ------------------------------------------------------------
 
-    file = request.files.get("file")
+    # --------------------------------------------------------
+    # ACCEPT BOTH FILE FIELD NAMES
+    # --------------------------------------------------------
+
+    file = request.files.get(
+        "file"
+    )
+
 
     if file is None:
-        file = request.files.get("csv_file")
+
+        file = request.files.get(
+            "csv_file"
+        )
+
 
     if file is None:
 
@@ -320,6 +555,7 @@ def bulk_valuation():
             results=None,
         )
 
+
     if file.filename == "":
 
         flash(
@@ -332,7 +568,10 @@ def bulk_valuation():
             results=None,
         )
 
-    if not file.filename.lower().endswith(".csv"):
+
+    if not file.filename.lower().endswith(
+        ".csv"
+    ):
 
         flash(
             "Only CSV files are supported",
@@ -344,13 +583,16 @@ def bulk_valuation():
             results=None,
         )
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # READ CSV
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     try:
 
-        dataframe = pd.read_csv(file)
+        dataframe = pd.read_csv(
+            file
+        )
 
     except Exception as error:
 
@@ -366,9 +608,10 @@ def bulk_valuation():
             results=None,
         )
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # RUN BULK VALUATION
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     try:
 
@@ -390,9 +633,10 @@ def bulk_valuation():
             results=None,
         )
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # ACTIVITY LOG
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     record_activity(
         user_id=current_user.id,
@@ -405,11 +649,13 @@ def bulk_valuation():
         commit=False,
     )
 
+
     db.session.commit()
 
-    # ------------------------------------------------------------
+
+    # --------------------------------------------------------
     # RESULT
-    # ------------------------------------------------------------
+    # --------------------------------------------------------
 
     return render_template(
         "bulk_valuation.html",

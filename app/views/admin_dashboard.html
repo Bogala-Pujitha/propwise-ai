@@ -1249,39 +1249,488 @@
         let mapMarkers = [];
 
         async function predict() {
-            const form = document.getElementById('valuationForm');
-            const formData = new FormData(form);
-            const formDataObj = {};
-            formData.forEach(function(value, key) { formDataObj[key] = value; });
 
-            const payload = {
-                property_type: formDataObj.property_type || 'Apartment',
-                city: formDataObj.city || 'Hyderabad',
-                locality: formDataObj.locality || '',
-                area_sqft: parseFloat(formDataObj.area) || 0,
-                bhk: parseInt(formDataObj.bedrooms) || 2,
-                bathrooms: parseInt(formDataObj.bathrooms) || 2,
-                property_age: parseInt(formDataObj.age) || 5,
-                furnishing: formDataObj.furnishing || '',
-                facing: formDataObj.facing || '',
-                floor: parseInt(formDataObj.floor) || 0,
-                total_floors: parseInt(formDataObj.total_floors) || 0,
-                parking: formDataObj.parking || '',
-            };
+                const form =
+                    document.getElementById('valuationForm');
 
-            try {
-                const response = await fetch('/api/valuation/predict', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                predictionData = await response.json();
-                renderPrediction();
-            } catch (err) {
-                console.error('Prediction failed:', err);
+                if (!form) {
+                    console.error(
+                        'Valuation form not found.'
+                    );
+                    return;
+                }
+
+
+                /* =========================================================
+                   GET FORM ELEMENTS
+                ========================================================== */
+
+                const propertyTypeElement =
+                    document.getElementById(
+                        'property_type'
+                    );
+
+                const cityElement =
+                    document.getElementById(
+                        'city'
+                    );
+
+                const localityElement =
+                    document.getElementById(
+                        'locality'
+                    );
+
+                const areaElement =
+                    document.getElementById(
+                        'area'
+                    );
+
+                const bedroomsElement =
+                    document.getElementById(
+                        'bedrooms'
+                    );
+
+                const bathroomsElement =
+                    document.getElementById(
+                        'bathrooms'
+                    );
+
+                const ageElement =
+                    document.getElementById(
+                        'age'
+                    );
+
+
+                /* =========================================================
+                   READ VALUES WITHOUT DEFAULTING MISSING VALUES
+                ========================================================== */
+
+                const propertyType =
+                    propertyTypeElement
+                        ? propertyTypeElement.value.trim()
+                        : '';
+
+                const city =
+                    cityElement
+                        ? cityElement.value.trim()
+                        : '';
+
+                const locality =
+                    localityElement
+                        ? localityElement.value.trim()
+                        : '';
+
+                const areaRaw =
+                    areaElement
+                        ? areaElement.value.trim()
+                        : '';
+
+                const bedroomsRaw =
+                    bedroomsElement
+                        ? bedroomsElement.value.trim()
+                        : '';
+
+                const bathroomsRaw =
+                    bathroomsElement
+                        ? bathroomsElement.value.trim()
+                        : '';
+
+                const ageRaw =
+                    ageElement
+                        ? ageElement.value.trim()
+                        : '';
+
+
+                /* =========================================================
+                   VALIDATE REQUIRED FIELDS
+                ========================================================== */
+
+                const missingFields = [];
+
+
+                /*
+                 * Property type
+                 */
+                if (!propertyType) {
+                    missingFields.push(
+                        'property type'
+                    );
+                }
+
+
+                /*
+                 * City
+                 */
+                if (!city) {
+                    missingFields.push(
+                        'city'
+                    );
+                }
+
+
+                /*
+                 * Locality
+                 */
+                if (!locality) {
+                    missingFields.push(
+                        'locality'
+                    );
+                }
+
+
+                /*
+                 * Area
+                 */
+                const area =
+                    parseFloat(areaRaw);
+
+                if (
+                    !areaRaw ||
+                    Number.isNaN(area) ||
+                    area <= 0
+                ) {
+
+                    missingFields.push(
+                        'area'
+                    );
+                }
+
+
+                /*
+                 * Bedrooms / BHK
+                 */
+                const bedrooms =
+                    parseInt(
+                        bedroomsRaw,
+                        10
+                    );
+
+                if (
+                    !bedroomsRaw ||
+                    Number.isNaN(bedrooms) ||
+                    bedrooms < 0
+                ) {
+
+                    missingFields.push(
+                        'BHK'
+                    );
+                }
+
+
+                /*
+                 * Bathrooms
+                 */
+                const bathrooms =
+                    parseInt(
+                        bathroomsRaw,
+                        10
+                    );
+
+                if (
+                    !bathroomsRaw ||
+                    Number.isNaN(bathrooms) ||
+                    bathrooms < 0
+                ) {
+
+                    missingFields.push(
+                        'bathrooms'
+                    );
+                }
+
+
+                /*
+                 * Property age
+                 */
+                const propertyAge =
+                    parseInt(
+                        ageRaw,
+                        10
+                    );
+
+                if (
+                    !ageRaw ||
+                    Number.isNaN(propertyAge) ||
+                    propertyAge < 0
+                ) {
+
+                    missingFields.push(
+                        'property age'
+                    );
+                }
+
+
+                /* =========================================================
+                   STOP — DO NOT CALL THE PREDICTION API
+                ========================================================== */
+
+                if (
+                    missingFields.length > 0
+                ) {
+
+                    predictionData =
+                        null;
+
+
+                    const predictionResult =
+                        document.getElementById(
+                            'predictionResult'
+                        );
+
+
+                    if (predictionResult) {
+
+                        predictionResult.style.display =
+                            'none';
+
+                    }
+
+
+                    let message;
+
+
+                    if (
+                        missingFields.length === 1
+                    ) {
+
+                        message =
+                            'Please enter ' +
+                            missingFields[0] +
+                            '.';
+
+                    } else {
+
+                        message =
+                            'Please enter ' +
+                            missingFields
+                                .slice(0, -1)
+                                .join(', ') +
+                            ' and ' +
+                            missingFields[
+                            missingFields.length - 1
+                            ] +
+                            '.';
+
+                    }
+
+
+                    showPredictionValidationMessage(
+                        message
+                    );
+
+
+                    return;
+                }
+
+
+                /* =========================================================
+                   CLEAR PREVIOUS VALIDATION MESSAGE
+                ========================================================== */
+
+                clearPredictionValidationMessage();
+
+
+                /* =========================================================
+                   COLLECT OPTIONAL FIELDS
+                   These don't get fake defaults either.
+                ========================================================== */
+
+                const formData =
+                    new FormData(form);
+
+                const formDataObj = {};
+
+
+                formData.forEach(
+                    function (
+                        value,
+                        key
+                    ) {
+
+                        formDataObj[key] =
+                            String(
+                                value
+                            ).trim();
+
+                    }
+                );
+
+
+                /* =========================================================
+                   BUILD REAL PAYLOAD
+                   NO FAKE FALLBACK VALUES FOR REQUIRED FIELDS
+                ========================================================== */
+
+                const payload = {
+
+                    property_type:
+                        propertyType,
+
+                    city:
+                        city,
+
+                    locality:
+                        locality,
+
+                    area_sqft:
+                        area,
+
+                    bhk:
+                        bedrooms,
+
+                    bathrooms:
+                        bathrooms,
+
+                    property_age:
+                        propertyAge,
+
+                    furnishing:
+                        formDataObj.furnishing || '',
+
+                    facing:
+                        formDataObj.facing || '',
+
+                    floor:
+                        formDataObj.floor !== ''
+                            ? parseInt(
+                                formDataObj.floor,
+                                10
+                            )
+                            : null,
+
+                    total_floors:
+                        formDataObj.total_floors !== ''
+                            ? parseInt(
+                                formDataObj.total_floors,
+                                10
+                            )
+                            : null,
+
+                    parking:
+                        formDataObj.parking || ''
+
+                };
+
+
+                /* =========================================================
+                   CALL PREDICTION API
+                ========================================================== */
+
+                try {
+
+                    const response =
+                        await fetch(
+                            '/api/valuation/predict',
+                            {
+                                method: 'POST',
+
+                                headers: {
+                                    'Content-Type':
+                                        'application/json'
+                                },
+
+                                body:
+                                    JSON.stringify(
+                                        payload
+                                    )
+                            }
+                        );
+
+
+                    let data = {};
+
+                    try {
+
+                        data =
+                            await response.json();
+
+                    } catch (
+                    jsonError
+                    ) {
+
+                        data = {};
+
+                    }
+
+
+                    /* =====================================================
+                       BACKEND REJECTED REQUEST
+                    ====================================================== */
+
+                    if (!response.ok) {
+
+                        predictionData =
+                            null;
+
+
+                        const predictionResult =
+                            document.getElementById(
+                                'predictionResult'
+                            );
+
+
+                        if (predictionResult) {
+
+                            predictionResult.style.display =
+                                'none';
+
+                        }
+
+
+                        showPredictionValidationMessage(
+                            data.error ||
+                            'Please complete all required property details.'
+                        );
+
+
+                        return;
+                    }
+
+
+                    /* =====================================================
+                       SUCCESS
+                    ====================================================== */
+
+                    predictionData =
+                        data;
+
+
+                    renderPrediction();
+
+
+                } catch (
+                error
+                ) {
+
+                    console.error(
+                        'Prediction failed:',
+                        error
+                    );
+
+
+                    predictionData =
+                        null;
+
+
+                    const predictionResult =
+                        document.getElementById(
+                            'predictionResult'
+                        );
+
+
+                    if (predictionResult) {
+
+                        predictionResult.style.display =
+                            'none';
+
+                    }
+
+
+                    showPredictionValidationMessage(
+                        'Unable to get the valuation. Please try again.'
+                    );
+
+                }
             }
-        }
-
         function renderPrediction() {
                 if (!predictionData) return;
 
