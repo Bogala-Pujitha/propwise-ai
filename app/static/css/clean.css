@@ -9,7 +9,7 @@
     --text-muted: #475569;
     --border: #E2E8F0;
     --radius: 8px;
-    --shadow: 0 1px 3px rgba(0,0,0,0.1);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 * {
@@ -34,7 +34,8 @@ a {
     color: var(--primary);
 }
 
-button, .btn {
+button,
+.btn {
     background: var(--primary);
     color: #fff;
     border: none;
@@ -44,7 +45,8 @@ button, .btn {
     cursor: pointer;
 }
 
-button:hover, .btn:hover {
+button:hover,
+.btn:hover {
     background: var(--primary-dark);
 }
 
@@ -160,6 +162,14 @@ section {
     padding: 60px 0;
 }
 
+.section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
 .section-header {
     text-align: center;
     margin-bottom: 40px;
@@ -242,7 +252,8 @@ table {
     border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid var(--border);
@@ -259,20 +270,26 @@ tr:hover td {
     background: var(--surface-alt);
 }
 
-/* DASHBOARD LAYOUT */
+/* =========================================================
+   DASHBOARD LAYOUT
+========================================================= */
+
 .dashboard-layout {
     display: flex;
+    align-items: stretch;
     min-height: 100vh;
     padding-top: 60px;
 }
 
 .sidebar {
     width: 240px;
+    flex: 0 0 240px;
     background: var(--surface);
     border-right: 1px solid var(--border);
     padding: 20px 0;
-    position: fixed;
-    height: 100vh;
+    position: sticky;
+    top: 60px;
+    height: calc(100vh - 60px);
     overflow-y: auto;
 }
 
@@ -306,11 +323,16 @@ tr:hover td {
     border-left-color: var(--primary);
 }
 
+/* Main content sits directly beside the sidebar */
 .main-content {
-    margin-left: 240px;
-    flex: 1;
+    margin-left: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    max-width: none;
     padding: 24px;
     background: var(--bg);
+    box-sizing: border-box;
 }
 
 .content-header {
@@ -491,21 +513,301 @@ tr:hover td {
     display: inline-block;
 }
 
+/* =========================================================
+   DASHBOARD RESULT / LOCATION / WHAT-IF ALIGNMENT
+   Visual alignment only - no output or content changes
+========================================================= */
+
+/* ---------------------------------------------------------
+   PREDICTION RESULT
+   4 equal cards in one row
+--------------------------------------------------------- */
+
+.result-cards {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 14px !important;
+    width: 100%;
+    align-items: stretch;
+    margin-bottom: 20px;
+}
+
+.result-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+
+    text-align: center;
+}
+
+.result-card h4,
+.result-card .value,
+.result-card .sub {
+    width: 100%;
+}
+
+/* ---------------------------------------------------------
+   PREDICTION RESULT METRICS
+   5 equal cards in one row
+--------------------------------------------------------- */
+
+.metric-row {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100%;
+    align-items: stretch;
+    margin-bottom: 16px;
+}
+
+.metric-mini {
+    flex: none !important;
+    width: 100%;
+    min-width: 0 !important;
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   LOCATION INTELLIGENCE
+   5 equal cards in one row
+--------------------------------------------------------- */
+
+.location-grid {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    width: 100%;
+    align-items: stretch;
+}
+
+.loc-item {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   WHAT-IF ANALYSIS
+   6 controls aligned evenly
+--------------------------------------------------------- */
+
+#whatif-section>div[style*="display:flex"] {
+    display: grid !important;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+    align-items: end !important;
+    width: 100%;
+    margin-bottom: 14px !important;
+}
+
+#whatif-section>div[style*="display:flex"]>div {
+    width: 100%;
+    min-width: 0 !important;
+    box-sizing: border-box;
+}
+
+#whatif-section .dropdown-select {
+    width: 100%;
+}
+
+/* ---------------------------------------------------------
+   WHAT-IF RESULT CARDS
+   Original and Modified properties
+--------------------------------------------------------- */
+
+.whatif-grid {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr) 56px minmax(0, 1fr);
+
+    gap: 18px;
+
+    width: 100%;
+    margin-bottom: 16px;
+
+    align-items: stretch;
+}
+
+.whatif-card {
+    background: var(--surface);
+
+    border: 1px solid var(--border);
+
+    border-radius: var(--radius);
+
+    padding: 18px 20px;
+
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+
+    /* FIX:
+       Always start card content from the same top position.
+       This keeps Original and Modified Property aligned
+       even when Modified Property contains more lines. */
+    justify-content: flex-start;
+}
+
+.whatif-card h4 {
+    margin: 0 0 8px;
+
+    font-size: 1rem;
+    font-weight: 700;
+
+    color: var(--text);
+}
+
+.whatif-card div {
+    max-width: 100%;
+    word-wrap: break-word;
+}
+
+.whatif-card>div:last-child {
+    margin-top: 8px;
+}
+
+.whatif-arrow {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    align-self: stretch;
+
+    color: var(--primary);
+
+    font-size: 1.35rem;
+
+    padding: 0;
+}
+
+.diff-badge {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: fit-content;
+
+    padding: 4px 10px;
+
+    border-radius: 20px;
+
+    font-size: 0.75rem;
+
+    font-weight: 600;
+
+    margin-top: 4px;
+}
+
+.diff-badge.positive,
+.diff-up {
+    background: #ECFDF5;
+    color: #047857;
+}
+
+.diff-badge.negative,
+.diff-down {
+    background: #FEF2F2;
+    color: #B91C1C;
+}
+
+.diff-badge.same,
+.diff-same {
+    background: var(--surface-alt);
+    color: var(--text-muted);
+}
+
+.whatif-card .whatif-price {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* =========================================================
+   RESPONSIVE ALIGNMENT
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .result-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .metric-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .location-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    #whatif-section>div[style*="display:flex"] {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
+
     .sidebar {
         display: none;
     }
+
     .main-content {
         margin-left: 0;
+        width: 100%;
+        max-width: 100%;
     }
+
     .hero h1 {
         font-size: 1.75rem;
     }
+
     .card-grid {
         grid-template-columns: 1fr;
     }
+
     .footer-grid {
         grid-template-columns: 1fr;
+    }
+
+    /* Prediction result */
+    .result-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .metric-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    /* Location intelligence */
+    .location-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    /* What-if controls */
+    #whatif-section>div[style*="display:flex"] {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    /* What-if result cards */
+    .whatif-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+    .whatif-arrow {
+        min-height: 35px;
+        transform: rotate(90deg);
     }
 }

@@ -2402,78 +2402,632 @@
         }
 
         function runAdminWhatIf() {
-            if (!predictionData || !predictionData.predicted_price) return;
 
-            const bhk = document.getElementById('whatifBhk').value;
-            const area = document.getElementById('whatifArea').value;
-            const bath = document.getElementById('whatifBath').value;
-            const furnishing = document.getElementById('whatifFurnishing').value;
-            const facing = document.getElementById('whatifFacing').value;
-            const age = document.getElementById('whatifAge').value;
+                /*
+                 * What-If Analysis
+                 * ----------------
+                 * Uses the CURRENT valuation form as the source of truth
+                 * for the original property details.
+                 *
+                 * This prevents locality/area from becoming empty when
+                 * the prediction response does not contain every original
+                 * form field.
+                 */
 
-            const payload = {
-                property_type: predictionData.property_type || 'Apartment',
-                city: predictionData.city || 'Hyderabad',
-                locality: predictionData.locality || '',
-                area_sqft: area ? parseFloat(area) : (predictionData.area_sqft || 1500),
-                bhk: bhk ? parseInt(bhk) : (predictionData.bhk || 3),
-                bathrooms: bath ? parseInt(bath) : (predictionData.bathrooms || 2),
-                property_age: age ? parseInt(age) : (predictionData.property_age || 5),
-                furnishing: furnishing || '',
-                facing: facing || '',
-            };
-
-            const resultsEl = document.getElementById('whatifResults');
-            resultsEl.innerHTML = '<div style="text-align:center;padding:16px;color:var(--text-light);"><i class="fas fa-spinner fa-spin"></i> Analyzing...</div>';
-
-            fetch('/api/valuation/predict', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload)
-            })
-            .then(function(r) { return r.json(); })
-            .then(function(res) {
-                if (res.error) {
-                    resultsEl.innerHTML = '<div style="color:red;">' + res.error + '</div>';
+                if (!predictionData || !predictionData.predicted_price) {
                     return;
                 }
 
-                const origPrice = predictionData.predicted_price;
-                const modPrice = res.predicted_price;
-                const diff = modPrice - origPrice;
-                const pct = origPrice ? ((diff / origPrice) * 100).toFixed(1) : 0;
-                const diffCls = diff > 0 ? 'diff-up' : diff < 0 ? 'diff-down' : 'diff-same';
-                const diffIcon = diff > 0 ? 'fa-arrow-up' : diff < 0 ? 'fa-arrow-down' : 'fa-equals';
+                const resultsEl = document.getElementById('whatifResults');
 
-                const changes = [];
-                if (bhk && bhk != predictionData.bhk) changes.push('BHK: ' + bhk);
-                if (area && area != predictionData.area_sqft) changes.push('Area: ' + area + ' sqft');
-                if (bath && bath != predictionData.bathrooms) changes.push('Bath: ' + bath);
-                if (furnishing) changes.push('Furnishing: ' + furnishing);
-                if (facing) changes.push('Facing: ' + facing);
-                if (age && age != predictionData.property_age) changes.push('Age: ' + age + ' yrs');
+                if (!resultsEl) {
+                    return;
+                }
 
-                resultsEl.innerHTML = '<div class="whatif-grid" style="grid-template-columns: 1fr auto 1fr;">' +
-                    '<div class="whatif-card">' +
-                        '<h4>Original Property</h4>' +
-                        '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (predictionData.property_type || 'Property') + ' | ' + (predictionData.locality || '') + ', ' + (predictionData.city || '') + '</div>' +
-                        '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + (predictionData.area_sqft || 0) + ' sqft | ' + (predictionData.bhk || 0) + ' BHK | ' + (predictionData.bathrooms || 0) + ' Bath</div>' +
-                        '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(origPrice) + '</div>' +
-                    '</div>' +
-                    '<div class="whatif-arrow"><i class="fas fa-arrow-right"></i></div>' +
-                    '<div class="whatif-card">' +
-                        '<h4>Modified Property</h4>' +
-                        '<div style="font-size:0.85rem;color:var(--text-light);margin-bottom:8px;">' + (changes.length ? changes.join(' | ') : 'No changes') + '</div>' +
-                        '<div style="font-size:0.8rem;color:#64748b;margin-bottom:10px;">' + payload.area_sqft + ' sqft | ' + payload.bhk + ' BHK | ' + payload.bathrooms + ' Bath</div>' +
-                        '<div style="font-size:1.2rem;font-weight:700;color:var(--primary);">₹' + formatNumber(modPrice) + '</div>' +
-                        '<div style="margin-top:8px;"><span class="diff-badge ' + diffCls + '"><i class="fas ' + diffIcon + '"></i> ' + (diff >= 0 ? '+' : '') + formatNumber(diff) + ' (' + (diff >= 0 ? '+' : '') + pct + '%)</span></div>' +
-                    '</div>' +
-                '</div>';
-            })
-            .catch(function(err) {
-                resultsEl.innerHTML = '<p style="color:red;">Error running what-if</p>';
-            });
-        }
+                /* =========================================================
+                   READ WHAT-IF CHANGES
+                ========================================================= */
+
+                const bhkChange =
+                    document.getElementById('whatifBhk')?.value || '';
+
+                const areaChange =
+                    document.getElementById('whatifArea')?.value || '';
+
+                const bathChange =
+                    document.getElementById('whatifBath')?.value || '';
+
+                const furnishingChange =
+                    document.getElementById('whatifFurnishing')?.value || '';
+
+                const facingChange =
+                    document.getElementById('whatifFacing')?.value || '';
+
+                const ageChange =
+                    document.getElementById('whatifAge')?.value || '';
+
+
+                /* =========================================================
+                   READ ORIGINAL PROPERTY FROM MAIN VALUATION FORM
+                   IMPORTANT:
+                   Do NOT rely only on predictionData for these fields.
+                ========================================================= */
+
+                const propertyType =
+                    document.getElementById('property_type')?.value ||
+                    predictionData.property_type ||
+                    '';
+
+                const city =
+                    document.getElementById('city')?.value ||
+                    predictionData.city ||
+                    '';
+
+                const locality =
+                    document.getElementById('locality')?.value ||
+                    predictionData.locality ||
+                    '';
+
+                const areaRaw =
+                    document.getElementById('area')?.value ||
+                    predictionData.area_sqft ||
+                    '';
+
+                const bedroomsRaw =
+                    document.getElementById('bedrooms')?.value ||
+                    predictionData.bhk ||
+                    '';
+
+                const bathroomsRaw =
+                    document.getElementById('bathrooms')?.value ||
+                    predictionData.bathrooms ||
+                    '';
+
+                const ageRaw =
+                    document.getElementById('age')?.value ||
+                    predictionData.property_age ||
+                    '';
+
+                const furnishingOriginal =
+                    document.getElementById('furnishing')?.value ||
+                    predictionData.furnishing ||
+                    '';
+
+                const facingOriginal =
+                    document.getElementById('facing')?.value ||
+                    predictionData.facing ||
+                    '';
+
+                const floorRaw =
+                    document.getElementById('floor')?.value ||
+                    predictionData.floor ||
+                    '';
+
+                const totalFloorsRaw =
+                    document.getElementById('total_floors')?.value ||
+                    predictionData.total_floors ||
+                    '';
+
+                const parkingOriginal =
+                    document.getElementById('parking')?.value ||
+                    predictionData.parking ||
+                    '';
+
+
+                /* =========================================================
+                   CONVERT ORIGINAL VALUES
+                ========================================================= */
+
+                const originalArea =
+                    parseFloat(areaRaw);
+
+                const originalBhk =
+                    parseInt(bedroomsRaw, 10);
+
+                const originalBathrooms =
+                    parseInt(bathroomsRaw, 10);
+
+                const originalAge =
+                    parseInt(ageRaw, 10);
+
+                const originalFloor =
+                    floorRaw !== ''
+                        ? parseInt(floorRaw, 10)
+                        : 0;
+
+                const originalTotalFloors =
+                    totalFloorsRaw !== ''
+                        ? parseInt(totalFloorsRaw, 10)
+                        : 0;
+
+
+                /* =========================================================
+                   FINAL VALIDATION
+                   What-If must always use the valid original property.
+                ========================================================= */
+
+                if (
+                    !propertyType ||
+                    !city ||
+                    !locality ||
+                    !Number.isFinite(originalArea) ||
+                    originalArea <= 0 ||
+                    !Number.isFinite(originalBhk) ||
+                    !Number.isFinite(originalBathrooms) ||
+                    !Number.isFinite(originalAge)
+                ) {
+
+                    resultsEl.innerHTML =
+                        '<div style="' +
+                        'color:#DC2626;' +
+                        'padding:12px 0;' +
+                        'font-size:0.9rem;' +
+                        'font-weight:600;' +
+                        '">' +
+                        'Unable to run What-If analysis. ' +
+                        'Please make sure the original valuation is complete.' +
+                        '</div>';
+
+                    return;
+                }
+
+
+                /* =========================================================
+                   BUILD MODIFIED VALUES
+                ========================================================= */
+
+                const modifiedBhk =
+                    bhkChange !== ''
+                        ? parseInt(bhkChange, 10)
+                        : originalBhk;
+
+                const modifiedArea =
+                    areaChange !== ''
+                        ? parseFloat(areaChange)
+                        : originalArea;
+
+                const modifiedBathrooms =
+                    bathChange !== ''
+                        ? parseInt(bathChange, 10)
+                        : originalBathrooms;
+
+                const modifiedAge =
+                    ageChange !== ''
+                        ? parseInt(ageChange, 10)
+                        : originalAge;
+
+                const modifiedFurnishing =
+                    furnishingChange !== ''
+                        ? furnishingChange
+                        : furnishingOriginal;
+
+                const modifiedFacing =
+                    facingChange !== ''
+                        ? facingChange
+                        : facingOriginal;
+
+
+                /* =========================================================
+                   BUILD COMPLETE PREDICTION PAYLOAD
+                
+                   Keep ALL original property fields so the What-If
+                   prediction uses exactly the same base property.
+                ========================================================= */
+
+                const payload = {
+
+                    property_type:
+                        propertyType,
+
+                    city:
+                        city,
+
+                    locality:
+                        locality,
+
+                    area_sqft:
+                        modifiedArea,
+
+                    bhk:
+                        modifiedBhk,
+
+                    bathrooms:
+                        modifiedBathrooms,
+
+                    property_age:
+                        modifiedAge,
+
+                    furnishing:
+                        modifiedFurnishing,
+
+                    facing:
+                        modifiedFacing,
+
+                    floor:
+                        originalFloor,
+
+                    total_floors:
+                        originalTotalFloors,
+
+                    parking:
+                        parkingOriginal
+                };
+
+
+                console.log(
+                    'What-If prediction payload:',
+                    payload
+                );
+
+
+                /* =========================================================
+                   SHOW LOADING
+                ========================================================= */
+
+                resultsEl.innerHTML =
+                    '<div style="' +
+                    'text-align:center;' +
+                    'padding:18px;' +
+                    'color:var(--text-light);' +
+                    '">' +
+                    '<i class="fas fa-spinner fa-spin"></i> ' +
+                    'Analyzing modified property...' +
+                    '</div>';
+
+
+                /* =========================================================
+                   CALL SAME PREDICTION API
+                
+                   This guarantees the modified property is evaluated
+                   by the same ML prediction flow as the normal valuation.
+                ========================================================= */
+
+                fetch(
+                    '/api/valuation/predict',
+                    {
+                        method: 'POST',
+
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        },
+
+                        credentials: 'same-origin',
+
+                        body: JSON.stringify(payload)
+                    }
+                )
+                    .then(function (response) {
+
+                        return response.json()
+                            .then(function (data) {
+
+                                return {
+                                    ok: response.ok,
+                                    status: response.status,
+                                    data: data
+                                };
+
+                            });
+
+                    })
+                    .then(function (result) {
+
+                        const res =
+                            result.data || {};
+
+
+                        /* =====================================================
+                           BACKEND ERROR
+                        ====================================================== */
+
+                        if (!result.ok || res.error) {
+
+                            console.error(
+                                'What-If API error:',
+                                result.status,
+                                res
+                            );
+
+                            resultsEl.innerHTML =
+                                '<div style="' +
+                                'color:#DC2626;' +
+                                'padding:12px 0;' +
+                                'font-size:0.9rem;' +
+                                'font-weight:600;' +
+                                '">' +
+                                (
+                                    res.error ||
+                                    'Unable to calculate the modified valuation.'
+                                ) +
+                                '</div>';
+
+                            return;
+                        }
+
+
+                        /* =====================================================
+                           ORIGINAL / MODIFIED PRICE
+                        ====================================================== */
+
+                        const origPrice =
+                            Number(
+                                predictionData.predicted_price || 0
+                            );
+
+                        const modPrice =
+                            Number(
+                                res.predicted_price || 0
+                            );
+
+                        const diff =
+                            modPrice - origPrice;
+
+                        const pct =
+                            origPrice !== 0
+                                ? (
+                                    (diff / origPrice) * 100
+                                ).toFixed(1)
+                                : '0.0';
+
+
+                        /* =====================================================
+                           CHANGE DISPLAY
+                        ====================================================== */
+
+                        const changes = [];
+
+
+                        if (
+                            bhkChange !== '' &&
+                            modifiedBhk !== originalBhk
+                        ) {
+                            changes.push(
+                                'BHK: ' + modifiedBhk
+                            );
+                        }
+
+
+                        if (
+                            areaChange !== '' &&
+                            modifiedArea !== originalArea
+                        ) {
+                            changes.push(
+                                'Area: ' +
+                                modifiedArea +
+                                ' sqft'
+                            );
+                        }
+
+
+                        if (
+                            bathChange !== '' &&
+                            modifiedBathrooms !== originalBathrooms
+                        ) {
+                            changes.push(
+                                'Bath: ' +
+                                modifiedBathrooms
+                            );
+                        }
+
+
+                        if (
+                            furnishingChange !== '' &&
+                            modifiedFurnishing !== furnishingOriginal
+                        ) {
+                            changes.push(
+                                'Furnishing: ' +
+                                modifiedFurnishing
+                            );
+                        }
+
+
+                        if (
+                            facingChange !== '' &&
+                            modifiedFacing !== facingOriginal
+                        ) {
+                            changes.push(
+                                'Facing: ' +
+                                modifiedFacing
+                            );
+                        }
+
+
+                        if (
+                            ageChange !== '' &&
+                            modifiedAge !== originalAge
+                        ) {
+                            changes.push(
+                                'Age: ' +
+                                modifiedAge +
+                                ' yrs'
+                            );
+                        }
+
+
+                        const diffCls =
+                            diff > 0
+                                ? 'diff-up'
+                                : diff < 0
+                                    ? 'diff-down'
+                                    : 'diff-same';
+
+                        const diffIcon =
+                            diff > 0
+                                ? 'fa-arrow-up'
+                                : diff < 0
+                                    ? 'fa-arrow-down'
+                                    : 'fa-equals';
+
+
+                        /* =====================================================
+                           DISPLAY RESULT
+                        ====================================================== */
+
+                        resultsEl.innerHTML =
+
+                            '<div class="whatif-grid">' +
+
+                            /* ORIGINAL PROPERTY */
+                            '<div class="whatif-card">' +
+
+                            '<h4>Original Property</h4>' +
+
+                            '<div style="' +
+                            'font-size:0.85rem;' +
+                            'color:var(--text-light);' +
+                            'margin-bottom:8px;' +
+                            '">' +
+
+                            propertyType +
+                            ' | ' +
+                            locality +
+                            ', ' +
+                            city +
+
+                            '</div>' +
+
+                            '<div style="' +
+                            'font-size:0.8rem;' +
+                            'color:#64748b;' +
+                            'margin-bottom:10px;' +
+                            '">' +
+
+                            originalArea +
+                            ' sqft | ' +
+
+                            originalBhk +
+                            ' BHK | ' +
+
+                            originalBathrooms +
+                            ' Bath' +
+
+                            '</div>' +
+
+                            '<div style="' +
+                            'font-size:1.2rem;' +
+                            'font-weight:700;' +
+                            'color:var(--primary);' +
+                            '">' +
+
+                            '₹' +
+                            formatNumber(origPrice) +
+
+                            '</div>' +
+
+                            '</div>' +
+
+
+                            /* ARROW */
+                            '<div class="whatif-arrow">' +
+                            '<i class="fas fa-arrow-right"></i>' +
+                            '</div>' +
+
+
+                            /* MODIFIED PROPERTY */
+                            '<div class="whatif-card">' +
+
+                            '<h4>Modified Property</h4>' +
+
+                            '<div style="' +
+                            'font-size:0.85rem;' +
+                            'color:var(--text-light);' +
+                            'margin-bottom:8px;' +
+                            '">' +
+
+                            (
+                                changes.length
+                                    ? changes.join(' | ')
+                                    : 'No changes'
+                            ) +
+
+                            '</div>' +
+
+                            '<div style="' +
+                            'font-size:0.8rem;' +
+                            'color:#64748b;' +
+                            'margin-bottom:10px;' +
+                            '">' +
+
+                            modifiedArea +
+                            ' sqft | ' +
+
+                            modifiedBhk +
+                            ' BHK | ' +
+
+                            modifiedBathrooms +
+                            ' Bath' +
+
+                            '</div>' +
+
+                            '<div style="' +
+                            'font-size:1.2rem;' +
+                            'font-weight:700;' +
+                            'color:var(--primary);' +
+                            '">' +
+
+                            '₹' +
+                            formatNumber(modPrice) +
+
+                            '</div>' +
+
+                            '<div style="margin-top:8px;">' +
+
+                            '<span class="diff-badge ' +
+                            diffCls +
+                            '">' +
+
+                            '<i class="fas ' +
+                            diffIcon +
+                            '"></i> ' +
+
+                            (
+                                diff >= 0
+                                    ? '+'
+                                    : ''
+                            ) +
+
+                            formatNumber(diff) +
+
+                            ' (' +
+
+                            (
+                                diff >= 0
+                                    ? '+'
+                                    : ''
+                            ) +
+
+                            pct +
+
+                            '%)' +
+
+                            '</span>' +
+
+                            '</div>' +
+
+                            '</div>' +
+
+                            '</div>';
+
+                    })
+                    .catch(function (error) {
+
+                        console.error(
+                            'What-If request failed:',
+                            error
+                        );
+
+                        resultsEl.innerHTML =
+                            '<div style="' +
+                            'color:#DC2626;' +
+                            'padding:12px 0;' +
+                            'font-size:0.9rem;' +
+                            'font-weight:600;' +
+                            '">' +
+                            'Error running What-If analysis. Please try again.' +
+                            '</div>';
+                    });
+            }
 
         function initAdminWhatIfListeners() {
             ['whatifBhk', 'whatifArea', 'whatifBath', 'whatifFurnishing', 'whatifFacing', 'whatifAge'].forEach(function(id) {
