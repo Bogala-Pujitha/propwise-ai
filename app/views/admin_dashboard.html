@@ -1254,243 +1254,171 @@
                     document.getElementById('valuationForm');
 
                 if (!form) {
-                    console.error(
-                        'Valuation form not found.'
-                    );
+                    console.error('Valuation form not found.');
                     return;
                 }
 
+                /* =====================================================
+                   GET FORM VALUES
+                ====================================================== */
 
-                /* =========================================================
-                   GET FORM ELEMENTS
-                ========================================================== */
+                const formData = new FormData(form);
+                const values = {};
 
-                const propertyTypeElement =
-                    document.getElementById(
-                        'property_type'
-                    );
-
-                const cityElement =
-                    document.getElementById(
-                        'city'
-                    );
-
-                const localityElement =
-                    document.getElementById(
-                        'locality'
-                    );
-
-                const areaElement =
-                    document.getElementById(
-                        'area'
-                    );
-
-                const bedroomsElement =
-                    document.getElementById(
-                        'bedrooms'
-                    );
-
-                const bathroomsElement =
-                    document.getElementById(
-                        'bathrooms'
-                    );
-
-                const ageElement =
-                    document.getElementById(
-                        'age'
-                    );
+                formData.forEach(function (value, key) {
+                    values[key] = String(value || '').trim();
+                });
 
 
-                /* =========================================================
-                   READ VALUES WITHOUT DEFAULTING MISSING VALUES
-                ========================================================== */
+                /* =====================================================
+                   REQUIRED VALUES
+                ====================================================== */
 
                 const propertyType =
-                    propertyTypeElement
-                        ? propertyTypeElement.value.trim()
-                        : '';
+                    values.property_type || '';
 
                 const city =
-                    cityElement
-                        ? cityElement.value.trim()
-                        : '';
+                    values.city || '';
 
                 const locality =
-                    localityElement
-                        ? localityElement.value.trim()
-                        : '';
+                    values.locality || '';
 
                 const areaRaw =
-                    areaElement
-                        ? areaElement.value.trim()
-                        : '';
+                    values.area || '';
 
                 const bedroomsRaw =
-                    bedroomsElement
-                        ? bedroomsElement.value.trim()
-                        : '';
+                    values.bedrooms || '';
 
                 const bathroomsRaw =
-                    bathroomsElement
-                        ? bathroomsElement.value.trim()
-                        : '';
+                    values.bathrooms || '';
 
                 const ageRaw =
-                    ageElement
-                        ? ageElement.value.trim()
-                        : '';
+                    values.age || '';
 
 
-                /* =========================================================
+                /* =====================================================
                    VALIDATE REQUIRED FIELDS
-                ========================================================== */
+                ====================================================== */
 
                 const missingFields = [];
 
 
-                /*
-                 * Property type
-                 */
                 if (!propertyType) {
-                    missingFields.push(
-                        'property type'
-                    );
+                    missingFields.push('property type');
                 }
 
 
-                /*
-                 * City
-                 */
                 if (!city) {
-                    missingFields.push(
-                        'city'
-                    );
+                    missingFields.push('city');
                 }
 
 
-                /*
-                 * Locality
-                 */
                 if (!locality) {
-                    missingFields.push(
-                        'locality'
-                    );
+                    missingFields.push('locality');
                 }
 
 
                 /*
-                 * Area
+                 * Area values normally come from the dropdown.
+                 * Example:
+                 * 500-1000 sqft
+                 *
+                 * The first numeric value is used by the backend.
                  */
+
+                const areaMatch =
+                    areaRaw.match(/[\d,]+(?:\.\d+)?/);
+
                 const area =
-                    parseFloat(areaRaw);
+                    areaMatch
+                        ? parseFloat(
+                            areaMatch[0].replace(/,/g, '')
+                        )
+                        : NaN;
+
 
                 if (
                     !areaRaw ||
                     Number.isNaN(area) ||
                     area <= 0
                 ) {
-
-                    missingFields.push(
-                        'area'
-                    );
+                    missingFields.push('area');
                 }
 
 
-                /*
-                 * Bedrooms / BHK
-                 */
                 const bedrooms =
                     parseInt(
                         bedroomsRaw,
                         10
                     );
 
+
                 if (
                     !bedroomsRaw ||
                     Number.isNaN(bedrooms) ||
                     bedrooms < 0
                 ) {
-
-                    missingFields.push(
-                        'BHK'
-                    );
+                    missingFields.push('BHK');
                 }
 
 
-                /*
-                 * Bathrooms
-                 */
                 const bathrooms =
                     parseInt(
                         bathroomsRaw,
                         10
                     );
 
+
                 if (
                     !bathroomsRaw ||
                     Number.isNaN(bathrooms) ||
                     bathrooms < 0
                 ) {
-
-                    missingFields.push(
-                        'bathrooms'
-                    );
+                    missingFields.push('bathrooms');
                 }
 
 
-                /*
-                 * Property age
-                 */
                 const propertyAge =
                     parseInt(
                         ageRaw,
                         10
                     );
 
+
+                /*
+                 * 0 years is valid.
+                 */
+
                 if (
                     !ageRaw ||
                     Number.isNaN(propertyAge) ||
                     propertyAge < 0
                 ) {
-
-                    missingFields.push(
-                        'property age'
-                    );
+                    missingFields.push('property age');
                 }
 
 
-                /* =========================================================
-                   STOP — DO NOT CALL THE PREDICTION API
-                ========================================================== */
+                /* =====================================================
+                   STOP WHEN INPUT IS INVALID
+                ====================================================== */
 
-                if (
-                    missingFields.length > 0
-                ) {
+                if (missingFields.length > 0) {
 
-                    predictionData =
-                        null;
-
+                    predictionData = null;
 
                     const predictionResult =
                         document.getElementById(
                             'predictionResult'
                         );
 
-
                     if (predictionResult) {
-
-                        predictionResult.style.display =
-                            'none';
-
+                        predictionResult.style.display = 'none';
                     }
 
 
                     let message;
 
-
-                    if (
-                        missingFields.length === 1
-                    ) {
+                    if (missingFields.length === 1) {
 
                         message =
                             'Please enter ' +
@@ -1509,56 +1437,44 @@
                             missingFields.length - 1
                             ] +
                             '.';
-
                     }
 
 
-                    showPredictionValidationMessage(
-                        message
-                    );
+                    if (
+                        typeof showPredictionValidationMessage ===
+                        'function'
+                    ) {
 
+                        showPredictionValidationMessage(
+                            message
+                        );
+
+                    } else {
+
+                        alert(message);
+
+                    }
 
                     return;
                 }
 
 
-                /* =========================================================
+                /* =====================================================
                    CLEAR PREVIOUS VALIDATION MESSAGE
-                ========================================================== */
+                ====================================================== */
 
-                clearPredictionValidationMessage();
-
-
-                /* =========================================================
-                   COLLECT OPTIONAL FIELDS
-                   These don't get fake defaults either.
-                ========================================================== */
-
-                const formData =
-                    new FormData(form);
-
-                const formDataObj = {};
+                if (
+                    typeof clearPredictionValidationMessage ===
+                    'function'
+                ) {
+                    clearPredictionValidationMessage();
+                }
 
 
-                formData.forEach(
-                    function (
-                        value,
-                        key
-                    ) {
-
-                        formDataObj[key] =
-                            String(
-                                value
-                            ).trim();
-
-                    }
-                );
-
-
-                /* =========================================================
-                   BUILD REAL PAYLOAD
-                   NO FAKE FALLBACK VALUES FOR REQUIRED FIELDS
-                ========================================================== */
+                /* =====================================================
+                   BUILD PAYLOAD
+                   NO FAKE DEFAULT VALUES
+                ====================================================== */
 
                 const payload = {
 
@@ -1584,36 +1500,41 @@
                         propertyAge,
 
                     furnishing:
-                        formDataObj.furnishing || '',
+                        values.furnishing || '',
 
                     facing:
-                        formDataObj.facing || '',
+                        values.facing || '',
 
                     floor:
-                        formDataObj.floor !== ''
+                        values.floor !== ''
                             ? parseInt(
-                                formDataObj.floor,
+                                values.floor,
                                 10
                             )
                             : null,
 
                     total_floors:
-                        formDataObj.total_floors !== ''
+                        values.total_floors !== ''
                             ? parseInt(
-                                formDataObj.total_floors,
+                                values.total_floors,
                                 10
                             )
                             : null,
 
                     parking:
-                        formDataObj.parking || ''
-
+                        values.parking || ''
                 };
 
 
-                /* =========================================================
-                   CALL PREDICTION API
-                ========================================================== */
+                console.log(
+                    'Sending valuation payload:',
+                    payload
+                );
+
+
+                /* =====================================================
+                   CALL BACKEND
+                ====================================================== */
 
                 try {
 
@@ -1625,8 +1546,14 @@
 
                                 headers: {
                                     'Content-Type':
+                                        'application/json',
+
+                                    'Accept':
                                         'application/json'
                                 },
+
+                                credentials:
+                                    'same-origin',
 
                                 body:
                                     JSON.stringify(
@@ -1643,23 +1570,30 @@
                         data =
                             await response.json();
 
-                    } catch (
-                    jsonError
-                    ) {
+                    } catch (jsonError) {
 
-                        data = {};
+                        console.error(
+                            'Invalid JSON response:',
+                            jsonError
+                        );
 
                     }
 
 
-                    /* =====================================================
-                       BACKEND REJECTED REQUEST
-                    ====================================================== */
+                    /* =================================================
+                       BACKEND VALIDATION / ERROR
+                    ================================================== */
 
                     if (!response.ok) {
 
-                        predictionData =
-                            null;
+                        console.error(
+                            'Valuation API error:',
+                            response.status,
+                            data
+                        );
+
+
+                        predictionData = null;
 
 
                         const predictionResult =
@@ -1669,37 +1603,49 @@
 
 
                         if (predictionResult) {
-
-                            predictionResult.style.display =
-                                'none';
-
+                            predictionResult.style.display = 'none';
                         }
 
 
-                        showPredictionValidationMessage(
-                            data.error ||
-                            'Please complete all required property details.'
-                        );
+                        if (
+                            typeof showPredictionValidationMessage ===
+                            'function'
+                        ) {
 
+                            showPredictionValidationMessage(
+                                data.error ||
+                                'Please complete all required property details.'
+                            );
+
+                        } else {
+
+                            alert(
+                                data.error ||
+                                'Please complete all required property details.'
+                            );
+
+                        }
 
                         return;
                     }
 
 
-                    /* =====================================================
+                    /* =================================================
                        SUCCESS
-                    ====================================================== */
+                    ================================================== */
 
-                    predictionData =
-                        data;
+                    predictionData = data;
+
+
+                    console.log(
+                        'Valuation successful:',
+                        predictionData
+                    );
 
 
                     renderPrediction();
 
-
-                } catch (
-                error
-                ) {
+                } catch (error) {
 
                     console.error(
                         'Prediction failed:',
@@ -1707,8 +1653,7 @@
                     );
 
 
-                    predictionData =
-                        null;
+                    predictionData = null;
 
 
                     const predictionResult =
@@ -1718,65 +1663,117 @@
 
 
                     if (predictionResult) {
-
-                        predictionResult.style.display =
-                            'none';
-
+                        predictionResult.style.display = 'none';
                     }
 
 
-                    showPredictionValidationMessage(
-                        'Unable to get the valuation. Please try again.'
-                    );
+                    if (
+                        typeof showPredictionValidationMessage ===
+                        'function'
+                    ) {
 
+                        showPredictionValidationMessage(
+                            'Unable to get the valuation. Please try again.'
+                        );
+
+                    } else {
+
+                        alert(
+                            'Unable to get the valuation. Please try again.'
+                        );
+
+                    }
                 }
             }
-        function renderPrediction() {
-                if (!predictionData) return;
 
-                document.getElementById('predictionResult').style.display = 'block';
 
-                /* =========================================================
-                   EXISTING OUTPUT — KEEP UNCHANGED
-                ========================================================== */
+            /* =========================================================
+            RENDER PREDICTION
+            ========================================================= */
+
+            function renderPrediction() {
+
+                if (!predictionData) {
+                    return;
+                }
+
+
+                const predictionResult =
+                    document.getElementById(
+                        'predictionResult'
+                    );
+
+
+                if (predictionResult) {
+
+                    predictionResult.style.display =
+                        'block';
+                }
+
+
+                /* =====================================================
+                   EXISTING OUTPUT
+                   KEEP ALL CURRENT RESULT SECTIONS
+                ====================================================== */
 
                 renderOODWarning();
+
                 renderSanityCheck();
+
                 renderResultCards();
+
                 renderModelMetrics();
+
                 renderPriceBarChart();
+
                 renderValueDoughnut();
+
                 renderTrendLine();
 
 
-                /* =========================================================
+                /* =====================================================
                    THREE MAPS
-                   Step 4 replacement for the old:
-                       renderMap();
-                ========================================================== */
+                   REPLACE OLD renderMap()
+                ====================================================== */
 
-                if (window.PW_renderThreeMaps) {
+                if (
+                    window.PW_renderThreeMaps
+                ) {
 
                     const cityElement =
-                        document.getElementById('city');
+                        document.getElementById(
+                            'city'
+                        );
 
                     const localityElement =
-                        document.getElementById('locality');
+                        document.getElementById(
+                            'locality'
+                        );
 
                     const propertyTypeElement =
-                        document.getElementById('property_type');
+                        document.getElementById(
+                            'property_type'
+                        );
 
                     const areaElement =
-                        document.getElementById('area');
+                        document.getElementById(
+                            'area'
+                        );
 
                     const bedroomsElement =
-                        document.getElementById('bedrooms');
+                        document.getElementById(
+                            'bedrooms'
+                        );
 
                     const bathroomsElement =
-                        document.getElementById('bathrooms');
+                        document.getElementById(
+                            'bathrooms'
+                        );
 
                     const ageElement =
-                        document.getElementById('age');
+                        document.getElementById(
+                            'age'
+                        );
 
 
                     const inputData = {
@@ -1802,15 +1799,16 @@
                                 ? propertyTypeElement.value
                                 : (
                                     predictionData.property_type
-                                    || 'Apartment'
+                                    || ''
                                 ),
 
                         area_sqft:
                             areaElement
-                                ? Number(areaElement.value || 0)
+                                ? Number(
+                                    areaElement.value || 0
+                                )
                                 : Number(
-                                    predictionData.area_sqft
-                                    || 0
+                                    predictionData.area_sqft || 0
                                 ),
 
                         bhk:
@@ -1819,8 +1817,7 @@
                                     bedroomsElement.value || 0
                                 )
                                 : Number(
-                                    predictionData.bhk
-                                    || 0
+                                    predictionData.bhk || 0
                                 ),
 
                         bathrooms:
@@ -1829,8 +1826,7 @@
                                     bathroomsElement.value || 0
                                 )
                                 : Number(
-                                    predictionData.bathrooms
-                                    || 0
+                                    predictionData.bathrooms || 0
                                 ),
 
                         property_age:
@@ -1839,25 +1835,21 @@
                                     ageElement.value || 0
                                 )
                                 : Number(
-                                    predictionData.property_age
-                                    || 0
+                                    predictionData.property_age || 0
                                 )
                     };
 
 
                     /*
-                     * Send the existing prediction result together with
-                     * the exact values selected in the valuation form.
-                     *
                      * Map 1:
-                     *   selected city/locality coordinates
+                     * Selected city/locality
                      *
                      * Map 2:
-                     *   selected property + dataset comparables
+                     * Selected property + comparable properties
                      *
                      * Map 3:
-                     *   controlled separately through its own
-                     *   City / Locality selectors
+                     * Controlled independently using
+                     * City / Locality selectors.
                      */
 
                     window.PW_renderThreeMaps(
@@ -1868,29 +1860,192 @@
                 } else {
 
                     /*
-                     * Fallback:
-                     * If propwise_maps.js has not loaded yet, do not
-                     * break the rest of the prediction dashboard.
-                     *
-                     * This preserves all existing output.
+                     * Do not break the valuation dashboard
+                     * if the map JavaScript has not loaded.
                      */
 
                     console.warn(
                         'Three-map module is not loaded yet.'
                     );
-
                 }
 
 
-                /* =========================================================
-                   EXISTING OUTPUT — KEEP UNCHANGED
-                ========================================================== */
+                /* =====================================================
+                   EXISTING OUTPUT
+                   KEEP UNCHANGED
+                ====================================================== */
 
                 renderSHAP();
+
                 renderLocation();
+
                 renderComparables();
+
                 renderWhatIf();
+
                 renderHistory();
+            }
+
+
+            /* =========================================================
+            VALIDATION MESSAGE
+            Add this if your HTML does not already contain it.
+            ========================================================= */
+
+            function showPredictionValidationMessage(
+                message
+            ) {
+
+                let messageElement =
+                    document.getElementById(
+                        'predictionValidationMessage'
+                    );
+
+
+                if (!messageElement) {
+
+                    messageElement =
+                        document.createElement(
+                            'div'
+                        );
+
+                    messageElement.id =
+                        'predictionValidationMessage';
+
+
+                    messageElement.style.marginTop =
+                        '12px';
+
+                    messageElement.style.padding =
+                        '12px 16px';
+
+                    messageElement.style.border =
+                        '1px solid #FECACA';
+
+                    messageElement.style.background =
+                        '#FEF2F2';
+
+                    messageElement.style.color =
+                        '#991B1B';
+
+                    messageElement.style.borderRadius =
+                        '8px';
+
+                    messageElement.style.fontSize =
+                        '14px';
+
+                    messageElement.style.fontWeight =
+                        '600';
+
+
+                    const form =
+                        document.getElementById(
+                            'valuationForm'
+                        );
+
+
+                    if (form) {
+
+                        form.parentNode.insertBefore(
+                            messageElement,
+                            form.nextSibling
+                        );
+                    }
+                }
+
+
+                messageElement.textContent =
+                    '⚠️ ' + message;
+
+
+                messageElement.style.display =
+                    'block';
+
+
+                const localityElement =
+                    document.getElementById(
+                        'locality'
+                    );
+
+
+                const areaElement =
+                    document.getElementById(
+                        'area'
+                    );
+
+
+                if (localityElement) {
+
+                    localityElement.style.borderColor =
+                        !localityElement.value
+                            ? '#DC2626'
+                            : '';
+                }
+
+
+                if (areaElement) {
+
+                    const areaValue =
+                        parseFloat(
+                            areaElement.value
+                        );
+
+
+                    areaElement.style.borderColor =
+                        (
+                            !areaElement.value ||
+                            Number.isNaN(areaValue) ||
+                            areaValue <= 0
+                        )
+                            ? '#DC2626'
+                            : '';
+                }
+            }
+
+
+            /* =========================================================
+            CLEAR VALIDATION MESSAGE
+            ========================================================= */
+
+            function clearPredictionValidationMessage() {
+
+                const messageElement =
+                    document.getElementById(
+                        'predictionValidationMessage'
+                    );
+
+
+                if (messageElement) {
+
+                    messageElement.style.display =
+                        'none';
+                }
+
+
+                const localityElement =
+                    document.getElementById(
+                        'locality'
+                    );
+
+
+                const areaElement =
+                    document.getElementById(
+                        'area'
+                    );
+
+
+                if (localityElement) {
+
+                    localityElement.style.borderColor =
+                        '';
+                }
+
+
+                if (areaElement) {
+
+                    areaElement.style.borderColor =
+                        '';
+                }
             }
 
         function renderOODWarning() {
