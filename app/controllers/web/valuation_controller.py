@@ -10,8 +10,9 @@ from flask import (
     request,
     url_for,
 )
-
 from flask_login import current_user, login_required
+
+from app.security import admin_required
 
 from app.extensions import db
 
@@ -280,6 +281,7 @@ def comparables():
 
 
 @login_required
+@admin_required
 def bulk_valuation():
     """Run bulk CSV valuation.
 
