@@ -3,7 +3,7 @@
   "experiment": "expA",
   "algorithm": "random_forest",
   "version": "1.0",
-  "training_date": "2026-08-18T11:25:13.154307",
+  "training_date": "2026-08-20T00:15:43.477105",
   "dataset_size": 972,
   "metrics": {
     "MAE": 2799388.37,

@@ -1,4 +1,16 @@
 {
+  "House": {
+    "experiment": "experiment_b",
+    "algorithm": "random_forest",
+    "metrics": {
+      "MAE": 1187101.57,
+      "RMSE": 1993838.06,
+      "R2": 0.9026,
+      "MAPE": 14.26,
+      "within_10_pct": 50.67,
+      "within_20_pct": 80.7
+    }
+  },
   "Villa": {
     "experiment": "experiment_a",
     "algorithm": "random_forest",
@@ -9,18 +21,6 @@
       "MAPE": 14.43,
       "within_10_pct": 44.1,
       "within_20_pct": 83.08
-    }
-  },
-  "Apartment": {
-    "experiment": "experiment_a",
-    "algorithm": "random_forest",
-    "metrics": {
-      "MAE": 1361646.65,
-      "RMSE": 2664697.01,
-      "R2": 0.8766,
-      "MAPE": 12.98,
-      "within_10_pct": 53.63,
-      "within_20_pct": 82.77
     }
   },
   "Plot": {
@@ -35,16 +35,16 @@
       "within_20_pct": 38.65
     }
   },
-  "House": {
-    "experiment": "experiment_b",
+  "Apartment": {
+    "experiment": "experiment_a",
     "algorithm": "random_forest",
     "metrics": {
-      "MAE": 1187101.57,
-      "RMSE": 1993838.06,
-      "R2": 0.9026,
-      "MAPE": 14.26,
-      "within_10_pct": 50.67,
-      "within_20_pct": 80.7
+      "MAE": 1361646.65,
+      "RMSE": 2664697.01,
+      "R2": 0.8766,
+      "MAPE": 12.98,
+      "within_10_pct": 53.63,
+      "within_20_pct": 82.77
     }
   }
 }
